@@ -9,7 +9,10 @@
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
-    "criar-admin": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/criar-admin.ts"
+    "criar-admin": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/criar-admin.ts",
+    "test:db": "supabase test db",
+    "test:e2e": "playwright test",
+    "verify": "npm run typecheck && npm run lint && npm run test && npm run test:db && npm run test:e2e && npm run build"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -45,5 +48,6 @@
     "esbuild@0.28.2": true,
     "supabase@2.119.0": true,
     "unrs-resolver@1.12.2": true
-  }
+  },
+  "type": "module"
 }
