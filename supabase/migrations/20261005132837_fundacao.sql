@@ -284,6 +284,11 @@ grant select, insert, update, delete on table public.vinculos to authenticated;
 
 grant select on table public.auditoria to authenticated;
 
+-- service_role (somente operações privilegiadas do PLANO, D8). Auditoria segue só leitura.
+grant select, insert, update, delete on table public.municipios, public.configuracoes_municipio,
+  public.perfis, public.vinculos to service_role;
+grant select on table public.auditoria to service_role;
+
 alter table public.municipios enable row level security;
 alter table public.configuracoes_municipio enable row level security;
 alter table public.perfis enable row level security;

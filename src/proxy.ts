@@ -33,13 +33,17 @@ export async function proxy(request: NextRequest) {
     overridePermitido,
   });
 
+  // /auth e /conta são globais: atendem o hub e todos os subdomínios.
+  const global = /^\/(auth|conta)(\/|$)/.test(pathname);
+  const reescrever = resolucao.tipo === "municipio" && !global;
+
   const destino = request.nextUrl.clone();
-  if (resolucao.tipo === "municipio") {
+  if (reescrever) {
     destino.pathname = `/m/${resolucao.slug}${pathname === "/" ? "" : pathname}`;
   }
 
   const criarResposta = () =>
-    resolucao.tipo === "municipio"
+    reescrever
       ? NextResponse.rewrite(destino, { request })
       : NextResponse.next({ request });
 
@@ -77,7 +81,7 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
+  if (/^\/(admin|auth|conta)(\/|$)/.test(pathname)) {
     resposta.headers.set("Cache-Control", "private, no-store");
   }
 

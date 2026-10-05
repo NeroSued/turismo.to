@@ -1,8 +1,10 @@
 "use server";
 
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { overrideDeMunicipioPermitido } from "@/lib/env";
+import { COOKIE_MUNICIPIO, slugDoHost } from "@/lib/municipio/resolver";
 import { criarClienteServidor } from "@/lib/supabase/servidor";
 
 export type EstadoFormulario = { erro?: string; aviso?: string } | undefined;
@@ -47,7 +49,7 @@ export async function recuperarSenha(_: EstadoFormulario, dados: FormData): Prom
   if (!r.success) return { erro: "Informe um e-mail válido." };
 
   const supabase = await criarClienteServidor();
-  const destino = `${await origemDaRequisicao()}/auth/callback?next=/admin/nova-senha`;
+  const destino = `${await origemDaRequisicao()}/auth/confirm?next=/conta/nova-senha`;
   const { error } = await supabase.auth.resetPasswordForEmail(r.data.email, { redirectTo: destino });
   if (error?.status === 429) {
     return { erro: "Muitas solicitações seguidas. Aguarde alguns minutos e tente de novo." };
@@ -82,5 +84,10 @@ export async function definirNovaSenha(_: EstadoFormulario, dados: FormData): Pr
   if (error) {
     return { erro: "Não foi possível salvar a senha. Use uma senha diferente da anterior e tente de novo." };
   }
-  redirect("/admin");
+  // No subdomínio de um município, segue para o painel; no domínio raiz, para o hub.
+  const h = await headers();
+  const noMunicipio =
+    slugDoHost(h.get("host"), process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "") !== null ||
+    (overrideDeMunicipioPermitido() && Boolean((await cookies()).get(COOKIE_MUNICIPIO)?.value));
+  redirect(noMunicipio ? "/admin" : "/");
 }

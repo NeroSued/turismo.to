@@ -244,10 +244,15 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
-# Uncomment to customize email template
-# [auth.email.template.invite]
-# subject = "You have been invited"
-# content_path = "./supabase/templates/invite.html"
+# Os links levam token_hash para /auth/confirm (verifyOtp), que funciona em qualquer host.
+# redirectTo sempre contém "?next=...", por isso o template continua com "&".
+[auth.email.template.invite]
+subject = "Convite para o painel Turismo.TO"
+content_path = "./supabase/templates/convite.html"
+
+[auth.email.template.recovery]
+subject = "Crie uma nova senha para o painel Turismo.TO"
+content_path = "./supabase/templates/recuperacao.html"
 
 # Uncomment to customize notification email template
 # [auth.email.notification.password_changed]

@@ -8,11 +8,13 @@ export const metadata: Metadata = { title: "Nova senha", robots: { index: false 
 
 export default async function NovaSenha() {
   // Chega-se aqui pelo link do e-mail (convite ou recuperação), que já abre a sessão.
-  if (!(await usuarioLogado())) redirect("/admin/recuperar");
+  if (!(await usuarioLogado())) redirect("/conta/link-expirado");
   return (
     <Pagina>
       <h1 className="text-[30px] leading-tight font-bold">Criar nova senha</h1>
-      <p className="text-muted-foreground">Escolha uma senha só sua. Ela não deve ser compartilhada com a equipe.</p>
+      <p className="text-muted-foreground">
+        Escolha uma senha só sua. Ela não deve ser compartilhada com outras pessoas da equipe.
+      </p>
       <FormularioNovaSenha />
     </Pagina>
   );
