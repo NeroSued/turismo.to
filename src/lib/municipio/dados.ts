@@ -44,6 +44,29 @@ export const buscarMunicipioPorSlug = cache(async (slug: string): Promise<Munici
   return m.ativo ? m : null;
 });
 
+const COLUNAS_MUNICIPIO =
+  "id, slug, nome, ativo, configuracoes_municipio (nome_exibicao, cor_primaria, contato_secretaria, ouvidoria_url, logo_caminho, capa_caminho, aviso_privacidade, referencia_icms)";
+
+/**
+ * Município pelo id, mesmo inativo, para o painel (RLS: inativo só aparece para membros e admin).
+ * Quem chama confere o papel; a RLS confere de novo em cada gravação.
+ */
+export const buscarMunicipioPorId = cache(async (id: string): Promise<Municipio | null> => {
+  if (!z.uuid().safeParse(id).success) return null;
+  const supabase = await criarClienteServidor();
+  const { data, error } = await supabase.from("municipios").select(COLUNAS_MUNICIPIO).eq("id", id).maybeSingle();
+  if (error) throw new Error(`Falha ao carregar o município: ${error.message}`);
+  return data ? esquemaMunicipio.parse(data) : null;
+});
+
+/** Todos os municípios que a sessão enxerga (o admin vê também os inativos). */
+export async function listarMunicipiosDoPainel() {
+  const supabase = await criarClienteServidor();
+  const { data, error } = await supabase.from("municipios").select("id, slug, nome, ativo").order("nome");
+  if (error) throw new Error(`Falha ao listar os municípios: ${error.message}`);
+  return z.array(z.object({ id: z.uuid(), slug: z.string(), nome: z.string(), ativo: z.boolean() })).parse(data);
+}
+
 export const listarMunicipiosAtivos = cache(async () => {
   const supabase = await criarClienteServidor();
   const { data, error } = await supabase

@@ -10,6 +10,7 @@ import { describe, expect, it } from "vitest";
 const PERMITIDOS = new Set([
   "scripts/criar-admin.ts", // D8.3: script criar-admin
   "src/lib/voucher/publico.ts", // D8.1 e D8.2: emissão pública e consulta/cancelamento por token
+  "src/lib/equipe/convite.ts", // D8.4: conta da pessoa convidada (depois de conferir quem convida)
 ]);
 
 const PASTAS = ["src", "scripts", "tests"];

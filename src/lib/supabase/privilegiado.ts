@@ -9,7 +9,9 @@ import { envPublico } from "@/lib/env";
  * Uso restrito às "Operações privilegiadas" do docs/PLANO.md (D8):
  *   1. emissão pública de voucher;
  *   2. consulta e cancelamento pelo token do visitante;
- *   3. script criar-admin.
+ *   3. script criar-admin;
+ *   4. conta da pessoa convidada para a equipe (src/lib/equipe/convite.ts), depois de a action
+ *      conferir com a sessão de quem convida que ela é gestora do município ou admin.
  *
  * tests/unit/privilegiado.test.ts falha se outro arquivo importar este módulo.
  */

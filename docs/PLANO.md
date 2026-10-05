@@ -8,7 +8,7 @@ Como usar este arquivo:
 
 ## Estado
 
-- Fase ativa: **4** (Fase 3 concluída; PRs das fases 0 a 2 mesclados em `main`)
+- Fase ativa: **5** (Fase 4 concluída; PRs das fases 0 a 3 mesclados em `main`)
 - Última atualização: 2026-10-05
 
 ---
@@ -46,6 +46,7 @@ Confirmar de novo um voucher utilizado devolve "já utilizado" com horário e op
 1. Emissão pública de voucher.
 2. Consulta e cancelamento pelo token do visitante.
 3. Script `criar-admin`.
+4. Convite para a equipe (Fase 4.2): encontrar a conta pelo e-mail ou criá-la pelo convite do Auth, só depois de a action conferir com a sessão de quem convida que ela é gestora do município do convite (ou admin). O vínculo é gravado com a sessão de quem convida, sob a RLS.
 
 A expiração roda no próprio banco com `pg_cron`. Confirmação, emissão assistida e todo o painel usam a sessão do usuário com RLS.
 
@@ -168,16 +169,18 @@ Primeira entrega completa: criar atividade, publicar, emitir voucher, confirmar 
 
 ## Fase 4: Administração e usuários
 
-- [ ] 4.1 Área do admin da assessoria: lista de municípios, ativar e desativar, acesso às configurações de cada um.
-- [ ] 4.2 Convite de usuário por e-mail com papel e município; alterar papel; desativar vínculo.
-- [ ] 4.3 Menu do operador restrito a atendimento e emissão assistida.
-- [ ] 4.4 Página de auditoria com filtros por município, usuário, período e tipo de ação.
+- [x] 4.1 Área do admin da assessoria: lista de municípios, ativar e desativar, acesso às configurações de cada um.
+- [x] 4.2 Convite de usuário por e-mail com papel e município; alterar papel; desativar vínculo.
+- [x] 4.3 Menu do operador restrito a atendimento e emissão assistida.
+- [x] 4.4 Página de auditoria com filtros por município, usuário, período e tipo de ação.
+- [x] 4.5 Exclusão definitiva de arquivo de evidência a pedido do titular (LGPD): só o admin da assessoria; apaga o arquivo do Storage e mantém no histórico quem removeu, quando e o motivo, sem guardar cópia do arquivo. Gestor e operador não conseguem.
 
 **Pronto quando:**
 
 - Gestor não se promove nem promove outro usuário a admin, nem cria vínculo em outro município (pgTAP e teste de rota).
 - Operador não acessa conteúdo, relatórios, evidências nem configurações (E2E).
 - Convite cria usuário sem senha compartilhada; o próprio convidado define a senha.
+- Exclusão LGPD apaga o arquivo do Storage e registra no histórico quem, quando e o motivo; gestor e operador não conseguem (teste).
 - `npm run verify` termina com código 0.
 
 ```
@@ -236,6 +239,7 @@ Pendências externas conhecidas. Atualize quando surgirem novas ou forem resolvi
 
 - [x] Docker em execução na máquina do Nero. Resolvido em 2026-10-05: Docker Desktop 4.94 (engine 29.8.2) instalado por usuário em `%LOCALAPPDATA%ProgramsDockerDesktop`. Sessões de terminal abertas antes da instalação precisam do caminho `resourcesin` no PATH (ou reabrir o terminal).
 - [ ] Senha do banco remoto: hoje no `.env` local; manter fora do git e, se algum dia foi commitada, trocar no painel do Supabase. Em 2026-10-05 o valor apareceu por engano na conversa do Claude Code (filtro de redação esperava `=` e o arquivo usa `chave:valor`). Nero deve trocar a senha em Project Settings → Database.
+- [ ] Chave secreta (`sb_secret_...`) e chave publicável do projeto remoto apareceram na conversa do Claude Code em 2026-10-05, no início da Fase 4: o `.env` passou a ter as chaves soltas, sem nome, e o comando de mascaramento só cobria linhas com `=` ou `:`. Nero deve revogar a chave secreta e criar outra em Project Settings → API Keys. O arquivo também deixou de ser lido pelo Supabase CLI (formato inválido) e foi renomeado, sem mudar o conteúdo, para `.env.chaves-remotas` (continua fora do git pelo `.gitignore`).
 - [ ] Acesso à Vercel (equipe e projeto).
 - [ ] Compra do domínio `turismo.to`.
 - [ ] Serviço de SMTP para e-mails de convite e recuperação de senha.
@@ -298,6 +302,14 @@ Registre aqui decisões tomadas durante a execução: data, decisão, motivo.
 - 2026-10-05: imagens do portal com `next/image` (AVIF/WebP, `sizes` por uso) a partir do bucket `publico`; `remotePatterns` limitado a `/storage/v1/object/public/publico/**` do Supabase configurado, e `dangerouslyAllowLocalIP` ligado só quando esse Supabase é local (127.0.0.1/localhost).
 - 2026-10-05: testes de integração rodam em arquivos paralelos e cada `entrarComo` define uma senha aleatória para o mesmo usuário `[DEV]`; o login agora tenta de novo se outro arquivo trocou a senha no meio (a sessão já aberta continua válida).
 - 2026-10-05: o Chromium do E2E (densidade 1) arredonda a borda de 1,5px para 1px; o teste aceita 1px ou 1,5px e exige a cor `#16211B`.
+- 2026-10-05: início da Fase 4: `main` atualizada, branches `fase-0-fundacao`, `fase-1-voucher` e `fase-2-portal` (já mescladas) apagadas no local e no GitHub, `fase-4-admin` criada a partir de `main` e banco local zerado com `npx supabase db reset`. O `.env` com as chaves remotas impedia o `db reset` ("failed to parse environment file") e foi renomeado para `.env.chaves-remotas` (ver Bloqueios).
+- 2026-10-05: item 4.5 incluído a pedido do Nero no `/goal` da Fase 4. Para "gestor não consegue excluir de vez", o gestor deixou de apagar arquivos de evidência: o botão virou "Retirar" (coluna `retirado`; o arquivo sai da tela e da minuta, mas fica guardado e o histórico registra "Retirou da evidência"; retirado não volta). Ninguém tem `DELETE` em `evidencias_arquivos`; a política do Storage não deixa o gestor apagar nem sobrescrever objeto ligado a um arquivo de evidência (ele ainda limpa um envio que falhou antes de virar arquivo). O pgTAP da Fase 3 que apagava o anexo como gestor passou a retirá-lo (mesma sequência no histórico) e ganhou um teste de que apagar dá 42501.
+- 2026-10-05: exclusão LGPD em duas etapas, sempre com a sessão do admin: (1) o servidor apaga o objeto pela API do Storage (o banco não permite apagar `storage.objects` diretamente); (2) `excluir_arquivo_evidencia_lgpd` confere que o objeto não existe mais (senão recusa com `arquivo_ainda_no_storage`), registra `arquivo_excluido_lgpd` com autor, horário, tipo e motivo (sem legenda, que pode ter nome da pessoa) e apaga a linha. Se a etapa 2 falhar, repetir funciona. A legenda continua nos registros anteriores do histórico e na auditoria (texto digitado, não o arquivo); a assessoria pode tratar isso caso a caso.
+- 2026-10-05: equipe (4.2): o gestor gerencia gestores e operadores do município em que é gestor; o admin, de qualquer município. Ninguém cria, altera ou desativa o próprio vínculo. Vínculo só aceita `papel` e `ativo` em alterações (privilégio por coluna), então não muda de usuário nem de município; excluir vínculo continua só do admin (o caminho normal é desativar). Autorização sempre pelo município do recurso (`municipio_id` do formulário conferido com a sessão em `contextoDoMunicipio`), nunca pelo host. Formulário com campo a mais (ex.: `admin_assessoria`) é recusado (Zod `strictObject`).
+- 2026-10-05: convite: conta nova recebe o e-mail do Auth (template com `token_hash`) com link para o subdomínio do município; a pessoa cria a própria senha em `/conta/nova-senha`. Conta que já existe só ganha o vínculo e entra com a senha que já usa. O nome digitado só é gravado em conta nova. Gestor vê nome, e-mail e "Ainda não entrou" da equipe pela função `equipe_do_municipio` (ele não lê `perfis` de outras pessoas).
+- 2026-10-05: área da assessoria (4.1) em `/admin/assessoria`, aberta no painel de qualquer município ativo (o admin passa em todos). Configurações e equipe de cada município, inclusive desativado, em `/admin/assessoria/<slug>`, sem trocar de subdomínio (a sessão é por host). Município desativado continua respondendo 404 no portal e no painel, como manda o CLAUDE.md; o admin não desativa o município em cujo painel está. Conceder ou remover admin só para conta existente e nunca para si (o trigger da Fase 0 confere de novo); conta nova continua pelo `criar-admin`.
+- 2026-10-05: auditoria (4.4) em `/admin/auditoria` pela função `auditoria_consultar`: gestor vê só o município do painel (parâmetro `municipio` ignorado); admin escolhe um município ou "Todos". Filtros por pessoa, período (fuso America/Araguaina, padrão últimos 30 dias), área (tabela) e tipo de ação (inclusão, alteração, exclusão), 50 por página. Mostra os campos alterados, não os valores (podem ter dados pessoais).
+- 2026-10-05: o "teste de rota" do convite e da promoção a admin reenvia a requisição real da server action: o formulário do gestor é enviado com o `municipio_id` de Peixe ou com o campo `admin_assessoria`, e a action "Tornar administrador", capturada do painel do admin, é reenviada com os cookies do gestor (para ele mesmo e para outra pessoa). As três respostas trazem "sem permissão", e o banco confirma que nenhuma conta, vínculo ou perfil de admin mudou.
 
 ## Registro
 
@@ -339,3 +351,9 @@ Registre aqui decisões tomadas durante a execução: data, decisão, motivo.
 | 2026-10-05 | 3.5 | Trigger `historico_evidencia`/`historico_arquivo_evidencia`. pgTAP: criação, edição (campos `descricao`, `responsavel`, antes e depois, autor "Gestora A", horário), salvar sem mudança não registra, inclusão/legenda/remoção de anexo e arquivamento registrados; ninguém insere nem apaga o histórico (42501). Integração pela API: edição gera `editada` com `autor_nome` "[DEV] Gestor de Palmeirópolis", `autor_id` da sessão e horário entre o antes e o depois. E2E: histórico na tela com "Alterou título", autor e "05/10/2026 às hh:mm". |
 | 2026-10-05 | 3.6 | `/admin/relatorios/minuta?ano=` com identificação, apresentação (referência do ICMS configurável), atividades, indicadores com notas de leitura, evidências com fotos e anexos, seções 6 a 9 editáveis e campos em branco para nome, cargo, local e data e assinatura. Unidade `minuta` (11): sem assinatura simulada, aprovação/conselho, publicação oficial, pontuação/garantia nem "pesquisa concluída"; campos de assinatura sem valor; aviso antes da identificação. E2E: texto da página sem esses termos e sem o nome do gestor logado, 8 campos em branco, aviso "Não substitui a análise do órgão estadual competente", análise salva aparece na seção 8, impressão sem formulário e navegação. |
 | 2026-10-05 | Fase 3 | `npm run verify` com código 0: typecheck, lint, Vitest 84/84 (14 arquivos; novos: `minuta` 11, `relatorio-csv` 6, integração `relatorios` 6), pgTAP 221/221 (5 arquivos; `005_evidencias` 47), Playwright 35/35 (390x844, build de produção; `relatorios.spec` 7, com axe sem violações críticas ou sérias em 6 telas do painel), build. Banco local zerado com `npx supabase db reset` no início da fase. |
+| 2026-10-05 | 4.1 | `/admin/assessoria` (só admin; gestor é mandado para `/admin`, operador para o atendimento). E2E (390x844): lista os 7 municípios; "Desativar Arraias" → banco `ativo=false`, `arraias.localhost` responde 404 ao anônimo e o hub deixa de listar; "Ativar Arraias" volta; em Ananás (outro município, sem trocar de subdomínio) o nome de exibição salvo aparece no portal e depois é limpo; axe sem violações críticas ou sérias. |
+| 2026-10-05 | 4.2 | Migration `administracao`: gestor grava vínculo só no próprio município, nunca o próprio, só `papel`/`ativo` alteráveis. pgTAP `006_administracao` (48): gestora não se promove, não promove outro, não cria vínculo em outro município, não move vínculo, não altera o próprio, não exclui; cria operador, troca papel e desativa no próprio. Integração `administracao` (pela API): 42501 ao criar vínculo em Peixe e ao se promover, 0 linhas ao promover outro. E2E: convite pela tela Equipe → conta com `invited_at` e sem senha; link do Mailpit (subdomínio do município) → `/conta/nova-senha` → convidado entra como operador e a senha passa a existir; reuso do link → link expirado; gestor troca o papel e desativa → convidado vê "Sem acesso"; rota adulterada (municipio_id de Peixe, campo `admin_assessoria`, action "Tornar administrador" reenviada com a sessão do gestor) → "sem permissão", nenhuma conta, vínculo ou admin criado. |
+| 2026-10-05 | 4.3 | E2E (operador, 390x844): barra com só Atendimento, Emitir voucher e Mais; "Mais" sem Configurações, Conteúdo, Evidências, Equipe, Auditoria, Assessoria e Minuta; 18 páginas do painel (conteúdo, atividades, atrativos, eventos, prestadores, relatórios, minuta, evidências, configurações, equipe, auditoria, assessoria) levam ao Atendimento; CSV do relatório 403 e arquivo de evidência 404. |
+| 2026-10-05 | 4.4 | `/admin/auditoria` com `auditoria_consultar`. pgTAP: gestora de A vê só A; filtros por pessoa, área e tipo com o nome do autor; campos alterados; período fora exclui; período invertido recusado; gestor de B e operador recebem `sem_permissao`; admin consulta todos. E2E: filtro área "Equipe e acessos" + "Inclusão" + pessoa mostra só inclusões do gestor; "Alteração" mostra "Campos: ativo"; período vazio explica o que fazer; gestor de Peixe pedindo Palmeirópolis pelo parâmetro vê só os registros de Peixe (contagem confere com o banco); admin em "Todos" vê o nome do município; axe ok. |
+| 2026-10-05 | 4.5 | pgTAP: ninguém tem DELETE em `evidencias_arquivos`; gestora e operadora recebem `sem_permissao` na função; exclusão sem motivo recusada; com o arquivo ainda no Storage recusada; depois do Storage, o admin exclui e o histórico guarda autor, horário, tipo e motivo, sem a legenda. Integração (Storage local): gestor não apaga nem sobrescreve o arquivo em uso; admin apaga e a função registra. E2E: gestor só "Retira" (arquivo continua no Storage, URL dá 404 para ele); admin vê a seção LGPD com o arquivo retirado, motivo curto recusado, exclusão confirmada → download no Storage falha, linha some e o histórico mostra "Excluiu definitivamente um arquivo (lista de presença) a pedido do titular. Motivo: ...", "[DEV] Admin da assessoria" e o horário. |
+| 2026-10-05 | Fase 4 | `npm run verify` com código 0: typecheck, lint, Vitest 89/89 (15 arquivos; novo: integração `administracao` 5), pgTAP 270/270 (6 arquivos; `006_administracao` 48), Playwright 41/41 (390x844, build de produção; `admin.spec` 6), build. Corrigido no caminho: a mensagem de sucesso da exclusão LGPD sumia junto com o item da lista. |

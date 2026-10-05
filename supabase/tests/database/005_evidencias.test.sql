@@ -170,7 +170,8 @@ select throws_ok(
 );
 update public.evidencias_arquivos set legenda = 'Lista de presença assinada pelos participantes'
 where evidencia_id = current_setting('teste.evid')::uuid;
-delete from public.evidencias_arquivos where evidencia_id = current_setting('teste.evid')::uuid;
+-- Fase 4.5: o gestor retira o anexo (o arquivo fica guardado); apagar de vez é só do admin.
+update public.evidencias_arquivos set retirado = true where evidencia_id = current_setting('teste.evid')::uuid;
 select results_eq(
   $$select acao from public.evidencias_historico where evidencia_id = current_setting('teste.evid')::uuid order by id$$,
   $$values ('criada'::text), ('editada'), ('arquivo_incluido'), ('legenda_alterada'), ('arquivo_removido')$$,

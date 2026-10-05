@@ -4,17 +4,18 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { errosPorCampo } from "@/lib/atividades/esquemas";
 import { enviarArquivo, removerArquivo } from "@/lib/arquivos/armazenamento";
-import { contextoDaAcao, SEM_PERMISSAO, type ResultadoAcao } from "@/lib/painel/contexto";
+import { contextoDoMunicipio, SEM_PERMISSAO, type ResultadoAcao } from "@/lib/painel/contexto";
 import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { esquemaConfiguracoes, IMAGENS_MUNICIPIO, type ImagemMunicipio } from "./esquemas";
 
-// Gestor do município (ou admin), conferido aqui e pela RLS de configuracoes_municipio.
+// Gestor do município do recurso (ou admin, em qualquer município pela área da assessoria),
+// conferido aqui e pela RLS de configuracoes_municipio. O host não autoriza nada.
 
 type Estado = ResultadoAcao | undefined;
 const ERRO_GENERICO = "Não foi possível salvar agora. Confira a conexão e tente de novo.";
 
-export async function salvarConfiguracoes(_: Estado, dados: FormData): Promise<Estado> {
-  const ctx = await contextoDaAcao(["gestor"]);
+export async function salvarConfiguracoes(municipioId: string, _: Estado, dados: FormData): Promise<Estado> {
+  const ctx = await contextoDoMunicipio(municipioId, ["gestor"]);
   if (!ctx) return { ok: false, erro: SEM_PERMISSAO };
   const campos = ["nome_exibicao", "cor_primaria", "contato_secretaria", "ouvidoria_url", "aviso_privacidade", "referencia_icms"];
   const valores = Object.fromEntries(campos.map((k) => [k, String(dados.get(k) ?? "")]));
@@ -38,8 +39,8 @@ export async function salvarConfiguracoes(_: Estado, dados: FormData): Promise<E
 
 const imagemValida = (v: string): v is ImagemMunicipio => z.enum(["logo", "capa"]).safeParse(v).success;
 
-export async function enviarImagemMunicipio(qual: ImagemMunicipio, _: Estado, dados: FormData): Promise<Estado> {
-  const ctx = await contextoDaAcao(["gestor"]);
+export async function enviarImagemMunicipio(municipioId: string, qual: ImagemMunicipio, _: Estado, dados: FormData): Promise<Estado> {
+  const ctx = await contextoDoMunicipio(municipioId, ["gestor"]);
   if (!ctx || !imagemValida(qual)) return { ok: false, erro: SEM_PERMISSAO };
   const supabase = await criarClienteServidor();
   const envio = await enviarArquivo(supabase, "foto", ctx.municipio.id, "marca", dados.get("arquivo"));
@@ -61,8 +62,8 @@ export async function enviarImagemMunicipio(qual: ImagemMunicipio, _: Estado, da
   return { ok: true, aviso: qual === "logo" ? "Logo atualizado." : "Foto de capa atualizada." };
 }
 
-export async function removerImagemMunicipio(qual: ImagemMunicipio): Promise<ResultadoAcao> {
-  const ctx = await contextoDaAcao(["gestor"]);
+export async function removerImagemMunicipio(municipioId: string, qual: ImagemMunicipio): Promise<ResultadoAcao> {
+  const ctx = await contextoDoMunicipio(municipioId, ["gestor"]);
   if (!ctx || !imagemValida(qual)) return { ok: false, erro: SEM_PERMISSAO };
   const coluna = IMAGENS_MUNICIPIO[qual];
   const anterior = ctx.municipio.configuracoes_municipio?.[coluna] ?? null;
