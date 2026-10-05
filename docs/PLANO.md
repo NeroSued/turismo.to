@@ -234,7 +234,7 @@ Primeira entrega completa: criar atividade, publicar, emitir voucher, confirmar 
 
 Pendências externas conhecidas. Atualize quando surgirem novas ou forem resolvidas.
 
-- [ ] Docker em execução na máquina do Nero (Supabase local e testes). Em 2026-10-05: comando `docker` inexistente e WSL não instalado. Bloqueia 0.2 e a verificação de 0.5, 0.6, 0.7, 0.9, 0.10 e 0.11 (`supabase start`, `test:db`, integração e E2E com login). Nero precisa instalar o Docker Desktop (que instala o WSL 2), abri-lo e confirmar com `docker info`.
+- [ ] Docker em execução na máquina do Nero (Supabase local e testes). Em 2026-10-05: comando `docker` inexistente e WSL não instalado; `npx supabase start` falha com `DockerLifecycleInspectError: docker: command not found`. Bloqueia 0.2 e a verificação de 0.5 a 0.11 (`supabase start`/`db reset`, `test:db`, integração, E2E com login, convite real do `criar-admin`) e a geração de `src/lib/database.types.ts`. O código desses itens está escrito e commitado. Nero precisa instalar o Docker Desktop (que instala o WSL 2), abri-lo e confirmar com `docker info`; depois: `npx supabase start`, `npx supabase db reset`, `.env.local` a partir do `npx supabase status` e `npm run verify`.
 - [ ] Senha do banco remoto: hoje no `.env` local; manter fora do git e, se algum dia foi commitada, trocar no painel do Supabase. Em 2026-10-05 o valor apareceu por engano na conversa do Claude Code (filtro de redação esperava `=` e o arquivo usa `chave:valor`). Nero deve trocar a senha em Project Settings → Database.
 - [ ] Acesso à Vercel (equipe e projeto).
 - [ ] Compra do domínio `turismo.to`.
@@ -250,6 +250,15 @@ Registre aqui decisões tomadas durante a execução: data, decisão, motivo.
 - 2026-10-05: item 0.12 (`.gitignore`) feito antes de 0.3, para que nenhum commit pudesse incluir o `.env` existente.
 - 2026-10-05: `@types/node` em `^24` (Node 24 instalado), exigido pelo Vitest 5. `.gitattributes` fixa LF para evitar diferenças de fim de linha no Windows.
 - 2026-10-05: npm 11 bloqueia scripts de instalação; aprovados em `package.json > allowScripts` apenas `esbuild`, `supabase` (baixa o binário do CLI) e `unrs-resolver`. Atualizar a versão desses pacotes exige nova aprovação.
+- 2026-10-05: `eh_admin()` e `tem_papel()` ficam no schema `privado` (fora dos schemas da Data API), com `usage`/`execute` para `anon` e `authenticated`. Motivo: funções `security definer` em `public` viram endpoints RPC. O trigger que protege `admin_assessoria` é `security invoker` de propósito, porque precisa de `current_user` igual ao papel da sessão.
+- 2026-10-05: tabelas novas não são mais expostas automaticamente à Data API (changelog do Supabase, 2026-04-28), então a migration faz `revoke all` e concede `GRANT`s explícitos, inclusive ao `service_role`.
+- 2026-10-05: nesta fase só o admin grava `vinculos` (nunca os próprios). Gestor gerenciar a equipe do próprio município fica para a Fase 4.2.
+- 2026-10-05: convite e recuperação usam templates com `token_hash` (`supabase/templates/`) e a rota global `/auth/confirm` (`verifyOtp`), porque o convite da Admin API não suporta PKCE. `/auth/*` e `/conta/*` não são reescritas pelo proxy e atendem o hub e os subdomínios. No remoto, os templates precisam ser copiados no painel (Fase 6.2).
+- 2026-10-05: a árvore interna `/m/<slug>` responde 404 quando acessada diretamente; só a reescrita do proxy chega nela.
+- 2026-10-05: usuários `[DEV]` do `seed.dev.sql` não têm senha no repositório. O global-setup do Playwright define uma senha aleatória por execução via Admin API, e as chaves locais vêm de `supabase status` (nunca de arquivo versionado). `tests/ambiente.ts` recusa URLs que não sejam `127.0.0.1`/`localhost` (D11).
+- 2026-10-05: sem Docker, a migration, os seeds e o teste pgTAP foram pré-checados num PGlite (Postgres em WASM, no scratchpad, fora do repositório) com um esboço do schema `auth` e um shim de pgTAP: 43/43. Isso NÃO conta como verificação dos itens, que seguem abertos até rodar `npm run test:db` no Supabase local.
+- 2026-10-05: enquanto `database.types.ts` não pode ser gerado (sem banco local), as consultas validam o resultado com Zod. Gerar os tipos é a primeira tarefa depois do Docker.
+- 2026-10-05: `package.json` com `"type": "module"` (Vitest avisava sobre ESM carregado como CommonJS). O `criar-admin` roda com `--conditions=react-server` para que `server-only` resolva fora do Next.
 
 ## Registro
 
