@@ -304,7 +304,8 @@ select is(
 select ok(
   (select autor_id = '24000000-0000-4000-8000-000000000001' and autor_nome = 'Admin F4' and em is not null
           and depois = '{"motivo": "Pedido da titular por e-mail"}'::jsonb and antes = '{"tipo": "foto"}'::jsonb
-   from public.evidencias_historico where acao = 'arquivo_excluido_lgpd'),
+   from public.evidencias_historico
+   where evidencia_id = '44000000-0000-4000-8000-000000000001' and acao = 'arquivo_excluido_lgpd'),
   'histórico guarda quem, quando e o motivo, sem a legenda nem o arquivo'
 );
 select is(

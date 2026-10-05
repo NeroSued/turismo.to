@@ -244,10 +244,12 @@ export function GerenciarArquivosEvidencia({ evidenciaId, arquivos }: { evidenci
 
 export type ArquivoLgpd = { id: string; tipo: string; legenda: string; url: string; retirado: boolean };
 
-function ItemExclusaoLgpd({ evidenciaId, a }: { evidenciaId: string; a: ArquivoLgpd }) {
+type AcaoLgpd = ReturnType<typeof useAcaoSimples>;
+
+function ItemExclusaoLgpd({ evidenciaId, a, acao }: { evidenciaId: string; a: ArquivoLgpd; acao: AcaoLgpd }) {
   const [aberto, setAberto] = useState(false);
   const [motivo, setMotivo] = useState("");
-  const { resultado, pendente, executar } = useAcaoSimples();
+  const { pendente, executar } = acao;
   const id = `motivo-${a.id}`;
   const tipo = ROTULO_TIPO_ARQUIVO[a.tipo as keyof typeof ROTULO_TIPO_ARQUIVO] ?? "Arquivo";
   return (
@@ -259,7 +261,6 @@ function ItemExclusaoLgpd({ evidenciaId, a }: { evidenciaId: string; a: ArquivoL
           <span className="text-sm text-muted-foreground">{tipo}{a.retirado ? " · retirado pelo gestor" : ""}</span>
         </span>
       </a>
-      <MensagemEstado erro={resultado && !resultado.ok ? resultado.erro : null} aviso={resultado?.ok ? resultado.aviso : null} />
       {!aberto ? (
         <Button variant="outline" onClick={() => setAberto(true)} aria-label={`Excluir definitivamente ${a.legenda}`}>
           <Trash2 aria-hidden="true" /> Excluir definitivamente
@@ -286,14 +287,21 @@ function ItemExclusaoLgpd({ evidenciaId, a }: { evidenciaId: string; a: ArquivoL
 
 /** Exclusão definitiva a pedido do titular (LGPD, item 4.5). Só aparece para a assessoria. */
 export function ExclusaoLgpd({ evidenciaId, arquivos }: { evidenciaId: string; arquivos: ArquivoLgpd[] }) {
-  if (arquivos.length === 0) {
-    return <p className="rounded-2xl border bg-superficie p-4">Esta evidência não tem arquivos guardados.</p>;
-  }
+  // O resultado fica acima da lista: depois da exclusão o item some, e a mensagem precisa continuar visível.
+  const acao = useAcaoSimples();
+  const { resultado } = acao;
   return (
-    <ul aria-label="Arquivos para exclusão definitiva" className="flex flex-col overflow-hidden rounded-2xl border bg-superficie">
-      {arquivos.map((a) => (
-        <ItemExclusaoLgpd key={a.id} evidenciaId={evidenciaId} a={a} />
-      ))}
-    </ul>
+    <div className="flex flex-col gap-3">
+      <MensagemEstado erro={resultado && !resultado.ok ? resultado.erro : null} aviso={resultado?.ok ? resultado.aviso : null} />
+      {arquivos.length === 0 ? (
+        <p className="rounded-2xl border bg-superficie p-4">Esta evidência não tem arquivos guardados.</p>
+      ) : (
+        <ul aria-label="Arquivos para exclusão definitiva" className="flex flex-col overflow-hidden rounded-2xl border bg-superficie">
+          {arquivos.map((a) => (
+            <ItemExclusaoLgpd key={a.id} evidenciaId={evidenciaId} a={a} acao={acao} />
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
