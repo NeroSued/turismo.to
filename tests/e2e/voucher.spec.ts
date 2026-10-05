@@ -74,6 +74,7 @@ test.describe.serial("voucher de ponta a ponta no celular", () => {
   test("gestor cria e publica uma atividade com horário e vagas", async ({ page }) => {
     await entrar(page, USUARIOS_DEV.gestorPalmeiropolis);
     await page.getByRole("navigation", { name: "Navegação do painel" }).getByRole("link", { name: "Conteúdo" }).click();
+    await page.getByRole("link", { name: /Atividades com voucher/ }).click();
     await page.getByRole("link", { name: "Nova atividade" }).click();
 
     await page.getByLabel("Reserva gratuita").check();
