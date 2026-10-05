@@ -1,26 +1,126 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
+/*
+ * Paleta do Turismo.TO (CLAUDE.md, seção Interface). Tema único, claro.
+ * --cor-municipal pode ser sobrescrita por município (contraste mínimo 4.5:1 sobre branco).
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --cor-municipal: #1f4d3a;
+
+  --fundo: #eef0ea;
+  --superficie: #ffffff;
+  --borda: #d5dad0;
+  --texto: #16211b;
+  --texto-secundario: #4f5a52;
+  --verde-suave: #dce7df;
+  --dourado: #c99a3b;
+  --dourado-suave: #f3e6c8;
+  --dourado-texto: #6b4a0e;
+  --erro: #a3402b;
+  --erro-suave: #f6e1db;
+
+  /* variáveis esperadas pelos componentes do shadcn/ui */
+  --background: var(--fundo);
+  --foreground: var(--texto);
+  --card: var(--superficie);
+  --card-foreground: var(--texto);
+  --popover: var(--superficie);
+  --popover-foreground: var(--texto);
+  --primary: var(--cor-municipal);
+  --primary-foreground: #ffffff;
+  --secondary: var(--verde-suave);
+  --secondary-foreground: var(--cor-municipal);
+  --muted: var(--verde-suave);
+  --muted-foreground: var(--texto-secundario);
+  --accent: var(--dourado-suave);
+  --accent-foreground: var(--dourado-texto);
+  --destructive: var(--erro);
+  --border: var(--borda);
+  --input: var(--borda);
+  --ring: var(--dourado);
+  --radius: 0.875rem;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-superficie: var(--superficie);
+  --color-verde-suave: var(--verde-suave);
+  --color-dourado: var(--dourado);
+  --color-dourado-suave: var(--dourado-suave);
+  --color-dourado-texto: var(--dourado-texto);
+  --color-erro: var(--erro);
+  --color-erro-suave: var(--erro-suave);
+
+  --font-sans: var(--font-texto), system-ui, sans-serif;
+  --font-heading: var(--font-titulo), var(--font-texto), sans-serif;
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    @apply border-border;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  html {
+    @apply font-sans;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-size: 16px;
+    line-height: 1.45;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-heading;
+    letter-spacing: -0.015em;
+  }
+  a {
+    color: var(--cor-municipal);
+  }
+  a:hover {
+    color: var(--texto);
+  }
+  /* Campos com 16px ou mais evitam o zoom automático do iOS. */
+  input,
+  select,
+  textarea,
+  button {
+    font: inherit;
+  }
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1rem);
+  }
+  /* Foco visível em tudo: contorno dourado de 3px. */
+  :focus-visible {
+    outline: 3px solid var(--dourado) !important;
+    outline-offset: 2px;
+  }
 }
