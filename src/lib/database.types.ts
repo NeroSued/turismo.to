@@ -44,13 +44,13 @@ isOneToOne: false
                   ]
                 },"atividades": {
                   Row: {
-                    "atrativo_id": string | null,"atualizado_em": string,"condicoes": string | null,"criado_em": string,"criado_por": string | null,"descricao": string | null,"exige_contato": boolean,"exige_responsavel": boolean,"id": string,"local_encontro": string | null,"max_pessoas_por_voucher": number,"modo": string,"municipio_id": string,"status": string,"titulo": string
+                    "atrativo_id": string | null,"atualizado_em": string,"condicoes": string | null,"criado_em": string,"criado_por": string | null,"descricao": string | null,"exige_contato": boolean,"exige_responsavel": boolean,"id": string,"local_encontro": string | null,"max_pessoas_por_voucher": number,"modo": string,"municipio_id": string,"prestador_id": string | null,"status": string,"titulo": string
                   }
                   Insert: {
-                    "atrativo_id"?: string | null,"atualizado_em"?: string,"condicoes"?: string | null,"criado_em"?: string,"criado_por"?: string | null,"descricao"?: string | null,"exige_contato"?: boolean,"exige_responsavel"?: boolean,"id"?: string,"local_encontro"?: string | null,"max_pessoas_por_voucher"?: number,"modo": string,"municipio_id": string,"status"?: string,"titulo": string
+                    "atrativo_id"?: string | null,"atualizado_em"?: string,"condicoes"?: string | null,"criado_em"?: string,"criado_por"?: string | null,"descricao"?: string | null,"exige_contato"?: boolean,"exige_responsavel"?: boolean,"id"?: string,"local_encontro"?: string | null,"max_pessoas_por_voucher"?: number,"modo": string,"municipio_id": string,"prestador_id"?: string | null,"status"?: string,"titulo": string
                   }
                   Update: {
-                    "atrativo_id"?: string | null,"atualizado_em"?: string,"condicoes"?: string | null,"criado_em"?: string,"criado_por"?: string | null,"descricao"?: string | null,"exige_contato"?: boolean,"exige_responsavel"?: boolean,"id"?: string,"local_encontro"?: string | null,"max_pessoas_por_voucher"?: number,"modo"?: string,"municipio_id"?: string,"status"?: string,"titulo"?: string
+                    "atrativo_id"?: string | null,"atualizado_em"?: string,"condicoes"?: string | null,"criado_em"?: string,"criado_por"?: string | null,"descricao"?: string | null,"exige_contato"?: boolean,"exige_responsavel"?: boolean,"id"?: string,"local_encontro"?: string | null,"max_pessoas_por_voucher"?: number,"modo"?: string,"municipio_id"?: string,"prestador_id"?: string | null,"status"?: string,"titulo"?: string
                   }
                   Relationships: [
                     {
@@ -65,6 +65,12 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "municipios"
       referencedColumns: ["id"]
+    },{
+      foreignKeyName: "atividades_prestador_fk"
+      columns: ["municipio_id","prestador_id"]
+isOneToOne: false
+      referencedRelation: "prestadores"
+      referencedColumns: ["municipio_id","id"]
     }
                   ]
                 },"atrativos": {
@@ -143,6 +149,63 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"evidencias": {
+                  Row: {
+                    "ano_base": number,"arquivada": boolean,"atividade_id": string | null,"atualizado_em": string,"atualizado_por": string | null,"criado_em": string,"criado_por": string | null,"data_realizacao": string,"descricao": string,"id": string,"municipio_id": string,"responsavel": string,"tipo_acao": string,"titulo": string
+                  }
+                  Insert: {
+                    "ano_base": number,"arquivada"?: boolean,"atividade_id"?: string | null,"atualizado_em"?: string,"atualizado_por"?: string | null,"criado_em"?: string,"criado_por"?: string | null,"data_realizacao": string,"descricao": string,"id"?: string,"municipio_id": string,"responsavel": string,"tipo_acao": string,"titulo": string
+                  }
+                  Update: {
+                    "ano_base"?: number,"arquivada"?: boolean,"atividade_id"?: string | null,"atualizado_em"?: string,"atualizado_por"?: string | null,"criado_em"?: string,"criado_por"?: string | null,"data_realizacao"?: string,"descricao"?: string,"id"?: string,"municipio_id"?: string,"responsavel"?: string,"tipo_acao"?: string,"titulo"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "evidencias_municipio_id_atividade_id_fkey"
+      columns: ["municipio_id","atividade_id"]
+isOneToOne: false
+      referencedRelation: "atividades"
+      referencedColumns: ["municipio_id","id"]
+    },{
+      foreignKeyName: "evidencias_municipio_id_fkey"
+      columns: ["municipio_id"]
+isOneToOne: false
+      referencedRelation: "municipios"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"evidencias_arquivos": {
+                  Row: {
+                    "caminho": string,"criado_em": string,"criado_por": string | null,"evidencia_id": string,"id": string,"legenda": string,"mime": string,"municipio_id": string,"tamanho": number,"tipo": string
+                  }
+                  Insert: {
+                    "caminho": string,"criado_em"?: string,"criado_por"?: string | null,"evidencia_id": string,"id"?: string,"legenda": string,"mime": string,"municipio_id": string,"tamanho": number,"tipo": string
+                  }
+                  Update: {
+                    "caminho"?: string,"criado_em"?: string,"criado_por"?: string | null,"evidencia_id"?: string,"id"?: string,"legenda"?: string,"mime"?: string,"municipio_id"?: string,"tamanho"?: number,"tipo"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "evidencias_arquivos_municipio_id_evidencia_id_fkey"
+      columns: ["municipio_id","evidencia_id"]
+isOneToOne: false
+      referencedRelation: "evidencias"
+      referencedColumns: ["municipio_id","id"]
+    }
+                  ]
+                },"evidencias_historico": {
+                  Row: {
+                    "acao": string,"antes": Json | null,"autor_id": string | null,"autor_nome": string | null,"campos": (string)[],"depois": Json | null,"em": string,"evidencia_id": string,"id": number,"municipio_id": string
+                  }
+                  Insert: {
+                    "acao": string,"antes"?: Json | null,"autor_id"?: string | null,"autor_nome"?: string | null,"campos"?: (string)[],"depois"?: Json | null,"em"?: string,"evidencia_id": string,"id"?: never,"municipio_id": string
+                  }
+                  Update: {
+                    "acao"?: string,"antes"?: Json | null,"autor_id"?: string | null,"autor_nome"?: string | null,"campos"?: (string)[],"depois"?: Json | null,"em"?: string,"evidencia_id"?: string,"id"?: never,"municipio_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"fotos": {
                   Row: {
                     "atrativo_id": string | null,"caminho": string,"criado_em": string,"criado_por": string | null,"evento_id": string | null,"id": string,"legenda": string,"municipio_id": string,"ordem": number,"prestador_id": string | null
@@ -192,6 +255,25 @@ isOneToOne: false
                   }
                   Relationships: [
                     
+                  ]
+                },"minutas_relatorio": {
+                  Row: {
+                    "analise": string | null,"ano_base": number,"atualizado_em": string,"atualizado_por": string | null,"criado_em": string,"limitacoes": string | null,"metodologia": string | null,"municipio_id": string,"recomendacoes": string | null
+                  }
+                  Insert: {
+                    "analise"?: string | null,"ano_base": number,"atualizado_em"?: string,"atualizado_por"?: string | null,"criado_em"?: string,"limitacoes"?: string | null,"metodologia"?: string | null,"municipio_id": string,"recomendacoes"?: string | null
+                  }
+                  Update: {
+                    "analise"?: string | null,"ano_base"?: number,"atualizado_em"?: string,"atualizado_por"?: string | null,"criado_em"?: string,"limitacoes"?: string | null,"metodologia"?: string | null,"municipio_id"?: string,"recomendacoes"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "minutas_relatorio_municipio_id_fkey"
+      columns: ["municipio_id"]
+isOneToOne: false
+      referencedRelation: "municipios"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"municipios": {
                   Row: {
@@ -340,6 +422,9 @@ isOneToOne: false
 { Args: { "p_atividade_id": string,"p_chave_idempotencia": string,"p_cidade": string,"p_contato": string,"p_data_visita": string,"p_municipio_id": string,"p_nome_responsavel": string,"p_pessoas": number,"p_sessao_id": string,"p_uf": string }; Returns: {
               "codigo": string,"repetido": boolean,"token": string,"voucher_id": string
             }[]
+                           },
+"relatorio_completo":
+{ Args: { "p_fim": string,"p_inicio": string,"p_municipio_id": string }; Returns: Json
                            },
 "relatorio_vouchers":
 { Args: { "p_fim": string,"p_inicio": string,"p_municipio_id": string }; Returns: Json
