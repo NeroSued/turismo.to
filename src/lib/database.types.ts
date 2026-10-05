@@ -195,13 +195,13 @@ isOneToOne: false
                   ]
                 },"evidencias_historico": {
                   Row: {
-                    "acao": string,"antes": Json | null,"autor_id": string | null,"autor_nome": string | null,"campos": (string)[],"depois": Json | null,"em": string,"evidencia_id": string,"id": number,"municipio_id": string
+                    "acao": string,"antes": Json | null,"arquivo_id": string | null,"autor_id": string | null,"autor_nome": string | null,"campos": (string)[],"depois": Json | null,"em": string,"evidencia_id": string,"id": number,"municipio_id": string
                   }
                   Insert: {
-                    "acao": string,"antes"?: Json | null,"autor_id"?: string | null,"autor_nome"?: string | null,"campos"?: (string)[],"depois"?: Json | null,"em"?: string,"evidencia_id": string,"id"?: never,"municipio_id": string
+                    "acao": string,"antes"?: Json | null,"arquivo_id"?: string | null,"autor_id"?: string | null,"autor_nome"?: string | null,"campos"?: (string)[],"depois"?: Json | null,"em"?: string,"evidencia_id": string,"id"?: never,"municipio_id": string
                   }
                   Update: {
-                    "acao"?: string,"antes"?: Json | null,"autor_id"?: string | null,"autor_nome"?: string | null,"campos"?: (string)[],"depois"?: Json | null,"em"?: string,"evidencia_id"?: string,"id"?: never,"municipio_id"?: string
+                    "acao"?: string,"antes"?: Json | null,"arquivo_id"?: string | null,"autor_id"?: string | null,"autor_nome"?: string | null,"campos"?: (string)[],"depois"?: Json | null,"em"?: string,"evidencia_id"?: string,"id"?: never,"municipio_id"?: string
                   }
                   Relationships: [
                     

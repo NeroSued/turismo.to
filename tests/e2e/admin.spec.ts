@@ -396,11 +396,22 @@ test.describe.serial("administração e usuários no celular", () => {
     await expect(historico.first()).toContainText(`Excluiu definitivamente um arquivo (lista de presença) a pedido do titular. Motivo: ${motivo}`);
     await expect(historico.first()).toContainText("[DEV] Admin da assessoria");
     await expect(historico.first()).toContainText(/\d{2}\/\d{2}\/\d{4} às \d{2}:\d{2}/);
-    await expect(historico.nth(1)).toContainText(`Retirou da evidência Lista de presença: ${legenda}`);
+    // Item 5.9: a legenda (pode ter o nome da pessoa) sai dos registros anteriores do histórico e da auditoria.
+    await expect(historico.nth(1)).toContainText("Retirou da evidência Lista de presença: [removido a pedido do titular]");
     await expect(historico.nth(1)).toContainText("[DEV] Gestor de Palmeirópolis");
+    await expect(admin.getByRole("region", { name: "Histórico de alterações" })).not.toContainText(legenda);
+    expect(sqlLocal(
+      `select count(*) from public.evidencias_historico where evidencia_id = '${evidencia}'
+         and (coalesce(antes::text, '') || coalesce(depois::text, '')) like '%Fulana ${SUF}%'`,
+    )).toBe("0");
+    expect(sqlLocal(
+      `select count(*) from public.auditoria where tabela = 'evidencias_arquivos' and registro_id = '${arquivo}'
+         and (coalesce(antes::text, '') || coalesce(depois::text, '')) like '%Fulana ${SUF}%'`,
+    )).toBe("0");
 
-    // O gestor vê o registro da exclusão no histórico.
+    // O gestor vê o registro da exclusão no histórico, sem a legenda.
     await page.reload();
     await expect(page.getByRole("region", { name: "Histórico de alterações" })).toContainText(motivo);
+    await expect(page.getByRole("region", { name: "Histórico de alterações" })).not.toContainText(legenda);
   });
 });
