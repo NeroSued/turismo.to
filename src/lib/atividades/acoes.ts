@@ -29,6 +29,7 @@ function camposAtividade(dados: FormData) {
     max_pessoas_por_voucher: dados.get("max_pessoas_por_voucher") ?? "",
     exige_responsavel: dados.get("exige_responsavel"),
     exige_contato: dados.get("exige_contato"),
+    prestador_id: dados.get("prestador_id"),
   };
 }
 
@@ -65,7 +66,10 @@ export async function salvarAtividade(id: string, _: Estado, dados: FormData): P
     .eq("municipio_id", ctx.municipio.id)
     .eq("id", id)
     .select("id");
-  if (error) return { ok: false, erro: ERRO_GENERICO };
+  if (error) {
+    if (error.code === "23503") return { ok: false, erro: "O prestador escolhido não pertence a este município.", campos: { prestador_id: "Escolha outro prestador." } };
+    return { ok: false, erro: ERRO_GENERICO };
+  }
   if (!data.length) return { ok: false, erro: "Atividade não encontrada neste município." };
   revalidatePath(`/admin/atividades/${id}`);
   return { ok: true, aviso: "Alterações salvas." };

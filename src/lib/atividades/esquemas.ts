@@ -25,6 +25,11 @@ export const esquemaAtividade = z.object({
     .max(50, "O máximo é 50 pessoas por voucher."),
   exige_responsavel: marcado,
   exige_contato: marcado,
+  // Ausente no formulário de criação: fica null (sem prestador).
+  prestador_id: z
+    .union([z.string(), z.null(), z.undefined()])
+    .transform((v) => (v ? v : null))
+    .pipe(z.uuid("Prestador inválido.").nullable()),
 });
 
 export const esquemaNovaAtividade = esquemaAtividade.extend({

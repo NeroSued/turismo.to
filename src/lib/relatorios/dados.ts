@@ -41,6 +41,39 @@ export async function relatorioDoPeriodo(municipioId: string, inicio: string, fi
   return esquemaRelatorio.parse(data);
 }
 
+const esquemaCompleto = esquemaRelatorio.extend({
+  origem: z.array(
+    z.object({ uf: z.string(), cidade: z.string(), vouchers: z.number(), pessoas: z.number(), participacoes_confirmadas: z.number() }),
+  ),
+  prestadores: z.array(
+    z.object({
+      nome: z.string(),
+      categoria: z.string(),
+      situacao_rede: z.string(),
+      atividades: z.number(),
+      vouchers: z.number(),
+      participacoes_confirmadas: z.number(),
+    }),
+  ),
+  rede: z.object({
+    participantes: z.number(),
+    adesoes: z.array(z.object({ nome: z.string(), categoria: z.string(), data_adesao: z.string() })),
+  }),
+});
+
+export type RelatorioCompleto = z.infer<typeof esquemaCompleto>;
+
+/**
+ * Relatório completo do período (item 3.1): números dos vouchers, origem por cidade e UF,
+ * prestadores envolvidos e rede. Só gestor do município ou admin (conferido no banco).
+ */
+export async function relatorioCompleto(municipioId: string, inicio: string, fim: string): Promise<RelatorioCompleto> {
+  const supabase = await criarClienteServidor();
+  const { data, error } = await supabase.rpc("relatorio_completo", { p_municipio_id: municipioId, p_inicio: inicio, p_fim: fim });
+  if (error) throw new Error(`Falha ao gerar o relatório: ${error.message}`);
+  return esquemaCompleto.parse(data);
+}
+
 const esquemaVoucherLinha = z.object({
   codigo: z.string(),
   status: z.enum(["emitido", "utilizado", "cancelado", "expirado"]),
@@ -56,7 +89,7 @@ const esquemaVoucherLinha = z.object({
 export type VoucherLinha = z.infer<typeof esquemaVoucherLinha>;
 
 /** Vouchers do período, sem nome nem contato (RLS: só gestor do município ou admin). */
-export async function vouchersDoPeriodo(municipioId: string, inicio: string, fim: string, limite = 200) {
+export async function vouchersDoPeriodo(municipioId: string, inicio: string, fim: string, limite = 200, deslocamento = 0) {
   const supabase = await criarClienteServidor();
   const { data, error } = await supabase
     .from("vouchers")
@@ -66,7 +99,19 @@ export async function vouchersDoPeriodo(municipioId: string, inicio: string, fim
     .lte("data_visita", fim)
     .order("data_visita", { ascending: false })
     .order("emitido_em", { ascending: false })
-    .limit(limite);
+    .order("codigo")
+    .range(deslocamento, deslocamento + limite - 1);
   if (error) throw new Error(`Falha ao listar vouchers: ${error.message}`);
   return z.array(esquemaVoucherLinha).parse(data);
+}
+
+/** Todos os vouchers do período para o CSV, em páginas de 1000 (limite da Data API). */
+export async function todosVouchersDoPeriodo(municipioId: string, inicio: string, fim: string, maximo = 50_000) {
+  const todos: VoucherLinha[] = [];
+  for (let d = 0; d < maximo; d += 1000) {
+    const pagina = await vouchersDoPeriodo(municipioId, inicio, fim, 1000, d);
+    todos.push(...pagina);
+    if (pagina.length < 1000) break;
+  }
+  return todos;
 }

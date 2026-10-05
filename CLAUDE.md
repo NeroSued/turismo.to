@@ -114,4 +114,10 @@ Se algum desses scripts ainda não existir, criá-lo faz parte da Fase 0.
 
 - Uma branch por fase: `fase-0-fundacao`, `fase-1-voucher` e assim por diante, criada a partir de `main`.
 - Commits pequenos, em português: `tipo(escopo): descrição` (`feat`, `fix`, `test`, `docs`, `chore`, `refactor`).
-- Ao concluir a fase: push da branch e abertura de PR para `main` com o resumo da fase e os critérios verificados. Não faça merge em `main`; isso é do Nero.
+- Ao concluir a fase: push da branch e abertura de PR para `main` com o resumo da fase e os critérios verificados.
+- Ao concluir a fase, com npm run verify em código 0 e todos os critérios da fase atendidos, faça o merge do PR em main você mesmo e apague a branch. Se o PR tiver conflito ou algum critério falhar, não faça merge: registre em Bloqueios e avise o Nero. A partir da Fase 6, quando a Vercel estiver ligada ao repositório, merge em main publica em produção e só acontece com aprovação explícita do Nero.
+
+## Ambiente
+
+- GitHub CLI: `C:\Program Files\GitHub CLI\gh.exe` (no Git Bash: `"/c/Program Files/GitHub CLI/gh.exe"`), versão 2.102.0, autenticado como NeroSued. Pode não estar no PATH de terminais abertos antes da instalação.
+- Docker Desktop instalado por usuário em `%LOCALAPPDATA%\Programs\DockerDesktop`.

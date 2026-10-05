@@ -4,7 +4,7 @@
  * limites (migration storage_buckets), então um envio que escape daqui ainda é recusado.
  */
 
-export type TipoArquivo = "foto" | "documento";
+export type TipoArquivo = "foto" | "documento" | "foto_interna";
 
 export type Mime = "image/jpeg" | "image/png" | "image/webp" | "application/pdf";
 
@@ -13,6 +13,8 @@ const MB = 1024 * 1024;
 export const REGRAS: Record<TipoArquivo, { bucket: "publico" | "interno"; tipos: Mime[]; maximo: number; descricao: string }> = {
   foto: { bucket: "publico", tipos: ["image/jpeg", "image/png", "image/webp"], maximo: 5 * MB, descricao: "JPEG, PNG ou WebP até 5 MB" },
   documento: { bucket: "interno", tipos: ["application/pdf", "image/jpeg", "image/png"], maximo: 10 * MB, descricao: "PDF, JPEG ou PNG até 10 MB" },
+  // Fotos de evidência: privadas (podem mostrar pessoas), no bucket interno.
+  foto_interna: { bucket: "interno", tipos: ["image/jpeg", "image/png"], maximo: 5 * MB, descricao: "JPEG ou PNG até 5 MB" },
 };
 
 export const EXTENSAO: Record<Mime, string> = {

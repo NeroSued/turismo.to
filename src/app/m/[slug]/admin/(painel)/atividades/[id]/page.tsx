@@ -6,6 +6,7 @@ import { MensagemEstado, Selo } from "@/components/formulario";
 import { Pagina } from "@/components/pagina";
 import { AcoesStatus, ControlesSessao, FormularioEditarAtividade, FormularioSessao } from "@/components/painel/atividades";
 import { buscarAtividade, listarSessoes } from "@/lib/atividades/dados";
+import { listarPrestadores } from "@/lib/cadastros/dados";
 import { ROTULO_MODO, ROTULO_STATUS } from "@/lib/atividades/esquemas";
 import { formatarDataComSemana, formatarHora, hojeLocal, jaPassou } from "@/lib/datas";
 import { exigirPainel } from "@/lib/painel/contexto";
@@ -18,7 +19,10 @@ export default async function EditarAtividade({ params, searchParams }: PageProp
   const { municipio } = await exigirPainel(slug, ["gestor"]);
   const atividade = await buscarAtividade(municipio.id, id);
   if (!atividade) notFound();
-  const sessoes = atividade.modo === "reserva" ? await listarSessoes(municipio.id, atividade.id) : [];
+  const [sessoes, prestadores] = await Promise.all([
+    atividade.modo === "reserva" ? listarSessoes(municipio.id, atividade.id) : Promise.resolve([]),
+    listarPrestadores(municipio.id),
+  ]);
   const futuras = sessoes.filter((s) => !jaPassou(s.fim));
   const passadas = sessoes.filter((s) => jaPassou(s.fim));
 
@@ -110,7 +114,9 @@ export default async function EditarAtividade({ params, searchParams }: PageProp
             max_pessoas_por_voucher: atividade.max_pessoas_por_voucher,
             exige_responsavel: atividade.exige_responsavel,
             exige_contato: atividade.exige_contato,
+            prestador_id: atividade.prestador_id,
           }}
+          prestadores={prestadores.filter((x) => x.status !== "arquivado" || x.id === atividade.prestador_id).map((x) => ({ id: x.id, nome: x.nome_publico }))}
         />
       </section>
     </Pagina>
