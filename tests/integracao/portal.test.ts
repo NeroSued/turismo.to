@@ -49,8 +49,9 @@ afterAll(async () => {
 });
 
 describe("portal: visibilidade pública pela Data API", () => {
+  const SINGULAR = { atrativos: "atrativo", eventos: "evento", prestadores: "prestador" } as const;
   for (const tabela of ["atrativos", "eventos", "prestadores"] as const) {
-    it(`anônimo recebe só o ${tabela.slice(0, -1)} publicado; rascunho e arquivado não vêm nem por id`, async () => {
+    it(`anônimo recebe só o ${SINGULAR[tabela]} publicado; rascunho e arquivado não vêm nem por id`, async () => {
       const anon = clienteAnonimo();
       const { data, error } = await anon.from(tabela).select("id, status").in("id", criados[tabela]);
       expect(error).toBeNull();
