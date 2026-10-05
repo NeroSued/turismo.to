@@ -59,7 +59,7 @@ A expiração roda no próprio banco com `pg_cron`. Confirmação, emissão assi
 
 ## Fase 0: Fundação
 
-- [ ] 0.1 Inspecionar o repositório, preservar o que existir e registrar o que foi encontrado.
+- [x] 0.1 Inspecionar o repositório, preservar o que existir e registrar o que foi encontrado.
 - [ ] 0.2 Verificar ferramentas: Node LTS, npm, git com remoto configurado, Docker em execução, Supabase CLI via `npx`. Docker ausente é bloqueio.
 - [ ] 0.3 Criar a aplicação Next.js (App Router, TypeScript strict, Tailwind, ESLint) com versões estáveis atuais e `package-lock.json`.
 - [ ] 0.4 Instalar shadcn/ui, lucide-react, Zod e as fontes; aplicar as cores do CLAUDE.md; criar o layout base para celular.
@@ -234,8 +234,8 @@ Primeira entrega completa: criar atividade, publicar, emitir voucher, confirmar 
 
 Pendências externas conhecidas. Atualize quando surgirem novas ou forem resolvidas.
 
-- [ ] Docker em execução na máquina do Nero (Supabase local e testes).
-- [ ] Senha do banco remoto: hoje no `.env` local; manter fora do git e, se algum dia foi commitada, trocar no painel do Supabase.
+- [ ] Docker em execução na máquina do Nero (Supabase local e testes). Em 2026-10-05: comando `docker` inexistente e WSL não instalado. Bloqueia 0.2 e a verificação de 0.5, 0.6, 0.7, 0.9, 0.10 e 0.11 (`supabase start`, `test:db`, integração e E2E com login). Nero precisa instalar o Docker Desktop (que instala o WSL 2), abri-lo e confirmar com `docker info`.
+- [ ] Senha do banco remoto: hoje no `.env` local; manter fora do git e, se algum dia foi commitada, trocar no painel do Supabase. Em 2026-10-05 o valor apareceu por engano na conversa do Claude Code (filtro de redação esperava `=` e o arquivo usa `chave:valor`). Nero deve trocar a senha em Project Settings → Database.
 - [ ] Acesso à Vercel (equipe e projeto).
 - [ ] Compra do domínio `turismo.to`.
 - [ ] Serviço de SMTP para e-mails de convite e recuperação de senha.
@@ -246,7 +246,13 @@ Pendências externas conhecidas. Atualize quando surgirem novas ou forem resolvi
 
 Registre aqui decisões tomadas durante a execução: data, decisão, motivo.
 
+- 2026-10-05: `main` recebeu um commit inicial só com `CLAUDE.md` e `docs/`, porque o repositório remoto estava vazio e a branch da fase precisa nascer de `main`. Todo o resto vai em `fase-0-fundacao`.
+- 2026-10-05: item 0.12 (`.gitignore`) feito antes de 0.3, para que nenhum commit pudesse incluir o `.env` existente.
+- 2026-10-05: `@types/node` em `^24` (Node 24 instalado), exigido pelo Vitest 5. `.gitattributes` fixa LF para evitar diferenças de fim de linha no Windows.
+- 2026-10-05: npm 11 bloqueia scripts de instalação; aprovados em `package.json > allowScripts` apenas `esbuild`, `supabase` (baixa o binário do CLI) e `unrs-resolver`. Atualizar a versão desses pacotes exige nova aprovação.
+
 ## Registro
 
 | Data | Item | Verificação |
 |:-|:-|:-|
+| 2026-10-05 | 0.1 | Pasta tinha só `CLAUDE.md`, `.env` (senha do banco remoto, não versionado) e `docs/` (PLANO, SPEC); sem git. Remoto `NeroSued/turismo.to` existe e estava vazio (API GitHub: 409 "Git Repository is empty"). Tudo preservado. |
