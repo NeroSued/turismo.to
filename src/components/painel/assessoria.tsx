@@ -50,14 +50,38 @@ export function ConcederAdmin() {
   );
 }
 
-export function RemoverAdmin({ userId, quem }: { userId: string; quem: string }) {
+export type AdminListado = { user_id: string; nome: string | null; email: string };
+
+/**
+ * Lista de administradores com "Remover acesso". O resultado fica acima da lista: depois da remoção
+ * a pessoa sai da lista, e a confirmação precisa continuar visível (item 5.8).
+ */
+export function ListaAdmins({ admins, userId }: { admins: AdminListado[]; userId: string }) {
   const { resultado, pendente, executar } = useAcao();
+  const remover = (a: AdminListado) =>
+    executar(async () => {
+      const r = await removerAdmin(a.user_id);
+      return r.ok ? { ok: true, aviso: `Acesso de administrador de ${a.nome ?? a.email} removido.` } : r;
+    });
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3">
       <MensagemEstado erro={resultado && !resultado.ok ? resultado.erro : null} aviso={resultado?.ok ? resultado.aviso : null} />
-      <Button variant="ghost" disabled={pendente} onClick={() => executar(() => removerAdmin(userId))} aria-label={`Remover o acesso de administrador de ${quem}`}>
-        Remover acesso de administrador
-      </Button>
+      <ul className="flex flex-col overflow-hidden rounded-2xl border bg-superficie">
+        {admins.map((a) => (
+          <li key={a.user_id} className="flex flex-col gap-2 border-b p-4 last:border-b-0">
+            <span className="font-bold">{a.nome ?? "[Nome não informado]"}</span>
+            <span className="text-sm break-all text-muted-foreground">{a.email}</span>
+            {a.user_id === userId ? (
+              <p className="text-sm text-muted-foreground">Você. Ninguém altera o próprio perfil administrativo.</p>
+            ) : (
+              <Button variant="ghost" disabled={pendente} onClick={() => remover(a)}
+                aria-label={`Remover o acesso de administrador de ${a.nome ?? a.email}`}>
+                Remover acesso de administrador
+              </Button>
+            )}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

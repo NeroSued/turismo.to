@@ -284,6 +284,34 @@ test.describe.serial("administração e usuários no celular", () => {
     expect(axe.violations.filter((v) => v.impact === "critical" || v.impact === "serious")).toEqual([]);
   });
 
+  test("assessoria: a confirmação continua na tela depois de remover o acesso de administrador (item 5.8)", async ({ page }) => {
+    const ehAdmin = () =>
+      sqlLocal(`select p.admin_assessoria from public.perfis p join auth.users u on u.id = p.user_id where u.email = '${USUARIOS_DEV.gestorPeixe}'`);
+    try {
+      await entrar(page, PALMEIROPOLIS, USUARIOS_DEV.admin);
+      await page.goto(`${PALMEIROPOLIS}/admin/assessoria`);
+      await page.getByLabel("E-mail da conta").fill(USUARIOS_DEV.gestorPeixe);
+      await page.getByRole("button", { name: "Tornar administrador" }).click();
+      await expect(page.getByRole("status").filter({ hasText: /administrador/i })).toBeVisible();
+      expect(ehAdmin()).toBe("t");
+
+      const regiao = page.getByRole("region", { name: "Administradores da assessoria" });
+      const remover = regiao.getByRole("button", { name: /Remover o acesso de administrador de .*Peixe/ });
+      await expect(remover).toBeVisible();
+      await remover.click();
+      // A pessoa sai da lista e a confirmação fica (antes da correção, sumia junto com o item).
+      await expect(remover).toHaveCount(0);
+      const confirmacao = regiao.getByRole("status").filter({ hasText: "removido." });
+      await expect(confirmacao).toBeVisible();
+      await page.waitForTimeout(1500);
+      await expect(confirmacao).toBeVisible();
+      await expect(confirmacao).toContainText(/Acesso de administrador de .*Peixe.* removido\./);
+      expect(ehAdmin()).toBe("f");
+    } finally {
+      sqlLocal(`update public.perfis p set admin_assessoria = false from auth.users u where u.id = p.user_id and u.email = '${USUARIOS_DEV.gestorPeixe}'`);
+    }
+  });
+
   test("auditoria com filtros por pessoa, período, área e tipo de ação, isolada por município", async ({ page, browser }) => {
     await entrar(page, PALMEIROPOLIS, USUARIOS_DEV.gestorPalmeiropolis);
     await page.goto(`${PALMEIROPOLIS}/admin/auditoria`);
