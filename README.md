@@ -1,66 +1,170 @@
 # Turismo.TO
 
-Portal de turismo para sete municípios do Tocantins: uma aplicação Next.js (Vercel) com Supabase (Postgres, Auth e Storage) e dados separados por município.
+Portal de turismo para sete municípios do Tocantins: uma aplicação Next.js (Vercel) com Supabase (Postgres, Auth e Storage) e dados separados por município. Cada município tem o seu portal em `<slug>.turismo.to` e o seu painel em `<slug>.turismo.to/admin`.
 
-- Requisitos: [docs/SPEC.md](docs/SPEC.md)
-- Plano, decisões e bloqueios: [docs/PLANO.md](docs/PLANO.md)
+| Documento | Para quê |
+|:-|:-|
+| [docs/SPEC.md](docs/SPEC.md) | Requisitos (manda em caso de dúvida) |
+| [docs/PLANO.md](docs/PLANO.md) | Plano por fases, decisões, bloqueios e registro do que foi verificado |
+| [docs/MANUAL.md](docs/MANUAL.md) | Manual para gestores e operadores |
+| [docs/PRIVACIDADE.md](docs/PRIVACIDADE.md) | Dados pessoais, retenção, acesso, pedidos do titular e aviso padrão |
+| [docs/BACKUP.md](docs/BACKUP.md) | Backup e restauração (banco e arquivos) |
+| [docs/CUSTOS.md](docs/CUSTOS.md) | Planos e custos mensais |
 
-> Este README cobre a Fase 0. A versão completa (Supabase remoto, domínio, Vercel) entra na Fase 5.
+## 1. Ambiente local
 
-## Pré-requisitos
+### Pré-requisitos
 
-- Node.js 24 LTS e npm
-- Docker Desktop em execução (Supabase local e testes)
+- Git.
+- Node.js 24 LTS com npm 11.
+- Docker Desktop **em execução**, com o comando `docker` no PATH (no Windows, reabra o terminal depois de instalar).
+- Porta 3000 livre e as portas 54321 a 54327 livres (Supabase local).
 
-## Instalação local
+### Instalação
 
 ```bash
-npm install
-npx supabase start            # sobe Postgres, Auth, Storage e Mailpit no Docker
-npx supabase status           # mostra a URL e as chaves locais
-cp .env.example .env.local    # preencha com os valores do status
-npx supabase db reset         # aplica migrations, seed.sql e seed.dev.sql
+git clone https://github.com/NeroSued/turismo.to.git
+cd turismo.to
+npm ci                                   # versões exatas do package-lock.json
+npx playwright install chromium          # navegador dos testes de ponta a ponta
+npx supabase start                       # sobe Postgres, Auth, Storage e Mailpit no Docker (a 1ª vez baixa as imagens)
+npm run env:local                        # cria .env.local com a URL e as chaves do Supabase local
+npx supabase db reset                    # aplica migrations, seed.sql (7 municípios) e seed.dev.sql (contas [DEV])
 npm run dev
 ```
 
-Em `.env.local`, use `Publishable key` em `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` e `Secret key` em `SUPABASE_SECRET_KEY`. A chave secreta nunca vai para variáveis `NEXT_PUBLIC_*`.
+`npm run env:local` lê `npx supabase status`, preenche `.env.local` a partir do `.env.example` e não mostra nenhuma chave. Ele se recusa a gravar valores que não sejam do Supabase local. O `.env.local` nunca vai para o Git (`.gitignore`).
 
-## Acessar cada município
+### Endereços
 
-| Ambiente | Hub | Município |
-|:-|:-|:-|
-| Local | http://localhost:3000 | http://palmeiropolis.localhost:3000 |
-| Preview da Vercel | URL do preview | URL do preview com `?municipio=palmeiropolis` |
-| Produção | https://turismo.to | https://palmeiropolis.turismo.to |
+| Ambiente | Hub | Município | Painel |
+|:-|:-|:-|:-|
+| Local | http://localhost:3000 | http://palmeiropolis.localhost:3000 | http://palmeiropolis.localhost:3000/admin |
+| Preview da Vercel | URL do preview | URL do preview + `?municipio=palmeiropolis` | idem + `/admin` |
+| Produção | https://turismo.to | https://palmeiropolis.turismo.to | https://palmeiropolis.turismo.to/admin |
 
-Subdomínios `*.localhost` funcionam sem configurar DNS. O parâmetro `?municipio=` grava um cookie de seleção e só vale quando `ALLOW_TENANT_OVERRIDE=true` (Development e Preview). Em produção a variável não existe e o parâmetro é ignorado. `?municipio=` vazio limpa a seleção.
+Subdomínios `*.localhost` funcionam sem configurar DNS. O parâmetro `?municipio=` grava um cookie de seleção e só vale quando `ALLOW_TENANT_OVERRIDE=true` (Development e Preview); em produção a variável não existe e o parâmetro é ignorado. `?municipio=` vazio limpa a seleção. Slug inexistente ou município desativado responde 404.
 
-O painel de cada município fica em `/admin` no endereço do município.
+E-mails locais (convites e recuperação de senha) chegam no Mailpit: http://127.0.0.1:54324.
 
-## Usuários de desenvolvimento
+### Contas de desenvolvimento
 
-`supabase/seed.dev.sql` cria, só no banco local, quatro contas `[DEV]` sem senha:
+`supabase/seed.dev.sql` cria, **só no banco local**, quatro contas `[DEV]` sem senha:
 
 - `admin@exemplo.test`: administrador da assessoria
 - `gestor.palmeiropolis@exemplo.test` e `operador.palmeiropolis@exemplo.test`
 - `gestor.peixe@exemplo.test`
 
-Para entrar com uma delas, use "Esqueci minha senha" em `/admin/login` e abra o e-mail no Mailpit (http://127.0.0.1:54324). Os testes E2E definem uma senha aleatória a cada execução.
+Para entrar com uma delas, use "Esqueci minha senha" em `/admin/login` e abra o e-mail no Mailpit. Os testes E2E definem uma senha aleatória a cada execução.
 
-## Criar o primeiro administrador
+### Verificação
+
+```bash
+npm run verify   # typecheck, lint, Vitest, pgTAP, Playwright (390x844, build de produção) e build
+```
+
+Precisa do Supabase local rodando. Leva alguns minutos: o Playwright faz um build de produção e percorre o portal e o painel no tamanho de um celular, inclusive com o axe (acessibilidade) em todas as páginas.
+
+Outros comandos:
+
+```bash
+npm run test:db          # só pgTAP (RLS, funções, Storage)
+npm run test:e2e         # só Playwright
+npx supabase db reset    # zera o banco local
+npx supabase migration new <nome>
+npx supabase gen types typescript --local > src/lib/database.types.ts   # depois de mudar o schema
+```
+
+## 2. Variáveis de ambiente
+
+| Variável | Onde | Valor |
+|:-|:-|:-|
+| `NEXT_PUBLIC_ROOT_DOMAIN` | Todos | `localhost:3000` local; `turismo.to` em produção; domínio do preview no Preview |
+| `NEXT_PUBLIC_SUPABASE_URL` | Todos | URL do projeto Supabase |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Todos | Chave publicável (`sb_publishable_...`). Pública por natureza |
+| `SUPABASE_SECRET_KEY` | Todos, **só servidor** | Chave secreta (`sb_secret_...`). Nunca em variável `NEXT_PUBLIC_*`, nunca no navegador, nunca em log |
+| `ALLOW_TENANT_OVERRIDE` | Development e **Preview** | `true`. **Não crie em Production** |
+
+A chave secreta só é usada por `src/lib/supabase/privilegiado.ts`, nas operações listadas em "Operações privilegiadas" (D8) do [PLANO](docs/PLANO.md). Um teste falha se outro arquivo importar esse módulo.
+
+## 3. Supabase remoto
+
+Projeto "Turismo.TO", ref `kytbiyiltfpyvwuumfds`, plano Pro (o Free pausa e não tem backup; ver [CUSTOS](docs/CUSTOS.md)).
+
+### Banco
+
+```bash
+npx supabase link --project-ref kytbiyiltfpyvwuumfds   # pede a senha do banco; não a escreva em arquivo
+npx supabase db push                                    # aplica as migrations de supabase/migrations
+```
+
+Depois, aplique **só** o `seed.sql` (os sete municípios), pelo SQL Editor do painel ou pelo `psql` com a connection string do projeto. **Nunca** rode `db push --include-seed`: ele aplicaria também o `seed.dev.sql`, com contas fictícias. Nunca altere o banco remoto à mão; toda mudança é uma migration.
+
+Confira em Advisors → Security que não há tabela sem RLS nem função exposta.
+
+### Auth
+
+Em Authentication → URL Configuration:
+
+- **Site URL:** `https://turismo.to`
+- **Redirect URLs:** `https://turismo.to/**` e `https://*.turismo.to/**` (e a URL de preview da Vercel, se for testar convites lá).
+
+Em Authentication → Email Templates, copie o assunto e o HTML de `supabase/templates/convite.html` (Invite user) e `supabase/templates/recuperacao.html` (Reset password). Eles usam `token_hash` e a rota `/auth/confirm`.
+
+Cadastro público fica desligado: Authentication → Sign In / Providers → desmarque "Allow new users to sign up". As contas entram só por convite.
+
+### E-mail transacional (Resend)
+
+Decisão do Nero: Resend, com o subdomínio de envio `envio.turismo.to`, ligado ao Supabase Auth como SMTP personalizado. O SMTP padrão do Supabase só envia para a equipe do projeto, 2 mensagens por hora, e não serve para produção. O domínio `turismo.to` usa os nameservers da Vercel, então **os registros DNS do Resend são criados no DNS da Vercel**.
+
+1. **Resend → Domains → Add Domain:** `envio.turismo.to`. Região: a mais próxima do Brasil entre as oferecidas.
+2. O Resend mostra os registros a criar (normalmente um TXT de DKIM em `resend._domainkey.envio`, e um MX e um TXT de SPF em `send.envio`). **Copie exatamente os nomes e valores que a tela do Resend mostrar.**
+3. **Vercel → Domains → turismo.to → DNS Records → Add**, um por um, com o tipo, o nome e o valor copiados. No campo de nome da Vercel, use a parte antes de `.turismo.to` (ex.: `resend._domainkey.envio`).
+4. Opcional e recomendado: um TXT `_dmarc.envio` com `v=DMARC1; p=none;` para começar a receber relatórios.
+5. Volte ao Resend e toque em **Verify DNS Records**. A verificação pode levar de minutos a algumas horas.
+6. **Resend → API Keys → Create API Key**, permissão **Sending access**, restrita ao domínio `envio.turismo.to`. Copie a chave uma única vez, direto para o passo seguinte; não a salve em arquivo do projeto nem cole em conversa.
+7. **Supabase → Authentication → Emails → SMTP Settings → Enable custom SMTP:**
+   - Sender email: `nao-responda@envio.turismo.to`
+   - Sender name: `Turismo.TO`
+   - Host: `smtp.resend.com` · Port: `465` · Username: `resend` · Password: a chave do passo 6
+8. Em Authentication → Rate Limits, confira o limite de e-mails por hora e ajuste ao volume esperado (o dia em que todas as equipes forem convidadas é o pico).
+9. Teste: convide uma conta sua pelo painel (Equipe → Convidar pessoa) e confira que o e-mail chega e que o link abre `https://<município>.turismo.to/conta/nova-senha`.
+
+Fontes: https://resend.com/docs/send-with-supabase-smtp e https://supabase.com/docs/guides/auth/auth-smtp (consultadas em 2026-10-05).
+
+## 4. Vercel e domínio
+
+### Projeto
+
+1. **Vercel → Add New → Project →** importe `NeroSued/turismo.to`. Framework: Next.js (detectado). Plano Pro (o Hobby é só para uso não comercial).
+2. **Settings → Environment Variables:** as variáveis da seção 2, separadas por ambiente. `ALLOW_TENANT_OVERRIDE=true` só em Preview (e Development). `SUPABASE_SECRET_KEY` marcada como "Sensitive".
+3. Cada push numa branch gera um preview; merge em `main` publica em produção.
+
+### Domínio `turismo.to` e curinga
+
+O domínio está registrado no Spaceship e os nameservers já apontam para a Vercel (`ns1.vercel-dns.com` e `ns2.vercel-dns.com`, conferido em 2026-10-05). O curinga `*.turismo.to` precisa disso: a Vercel emite o certificado do curinga pelo próprio DNS.
+
+1. **Project → Settings → Domains → Add:** `turismo.to`. Aceite também `www.turismo.to` redirecionando para `turismo.to`.
+2. **Add:** `*.turismo.to`. A Vercel emite o certificado do curinga automaticamente.
+3. Confira: `https://turismo.to` abre o hub; `https://palmeiropolis.turismo.to` abre o portal; `https://naoexiste.turismo.to` responde 404.
+4. Qualquer registro DNS novo (Resend, verificação do Google etc.) é criado em **Vercel → Domains → turismo.to → DNS Records**, não no Spaceship.
+5. No Spaceship, ative a renovação automática do domínio.
+
+## 5. Primeiro administrador
 
 ```bash
 npm run criar-admin -- pessoa@exemplo.gov.br
 ```
 
-O script convida a pessoa pelo Auth Admin API. Ela recebe um e-mail, abre o link e define a própria senha. Em seguida, o script marca o perfil como administrador da assessoria (`perfis.admin_assessoria`). Se a conta já existir, o script só faz a promoção, sem enviar convite.
+O script convida a pessoa pelo Auth Admin API. Ela recebe um e-mail, abre o link e define a própria senha; ninguém mais conhece essa senha. Em seguida, o script marca o perfil como administrador da assessoria. Se a conta já existir, só faz a promoção, sem convite.
 
-Ele lê `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SECRET_KEY` e `NEXT_PUBLIC_ROOT_DOMAIN` de `.env.local`. Para o ambiente remoto, rode com as variáveis do projeto remoto numa máquina confiável, nunca no navegador nem em CI público. Não existe cadastro público: as demais contas são criadas por convite.
+Ele lê `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SECRET_KEY` e `NEXT_PUBLIC_ROOT_DOMAIN` de `.env.local`. Para o ambiente remoto, rode numa máquina confiável com um `.env.local` temporário com os valores do projeto remoto (e `NEXT_PUBLIC_ROOT_DOMAIN=turismo.to`) e apague-o em seguida. Nunca rode em CI público.
 
-Os e-mails de convite e de recuperação usam os templates de `supabase/templates/`, que apontam para `/auth/confirm`. No projeto remoto, copie esses templates em Authentication → Email Templates.
+Os demais administradores são concedidos pela área **Assessoria** do painel; gestores e operadores, pela tela **Equipe** de cada município.
 
-## Verificação
+## 6. Operação
 
-```bash
-npm run verify   # typecheck, lint, test, test:db, test:e2e e build
-```
+- **Backup:** semanal, banco e arquivos, conforme [docs/BACKUP.md](docs/BACKUP.md). O backup diário do Supabase não inclui os arquivos.
+- **Anonimização:** nome e contato de visitantes são apagados automaticamente pelo próprio banco, todo dia, depois do prazo de cada município (padrão 90 dias).
+- **Expiração de vouchers:** rotina do banco a cada 10 minutos.
+- **Custos:** [docs/CUSTOS.md](docs/CUSTOS.md).
