@@ -23,7 +23,26 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            "atividades": {
+            "adesoes_prestador": {
+                  Row: {
+                    "atualizado_em": string,"comprovante_caminho": string | null,"contato_interno": string | null,"criado_em": string,"criado_por": string | null,"data_adesao": string,"id": string,"municipio_id": string,"observacoes": string | null,"prestador_id": string,"responsavel": string
+                  }
+                  Insert: {
+                    "atualizado_em"?: string,"comprovante_caminho"?: string | null,"contato_interno"?: string | null,"criado_em"?: string,"criado_por"?: string | null,"data_adesao": string,"id"?: string,"municipio_id": string,"observacoes"?: string | null,"prestador_id": string,"responsavel": string
+                  }
+                  Update: {
+                    "atualizado_em"?: string,"comprovante_caminho"?: string | null,"contato_interno"?: string | null,"criado_em"?: string,"criado_por"?: string | null,"data_adesao"?: string,"id"?: string,"municipio_id"?: string,"observacoes"?: string | null,"prestador_id"?: string,"responsavel"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "adesoes_prestador_municipio_id_prestador_id_fkey"
+      columns: ["municipio_id","prestador_id"]
+isOneToOne: false
+      referencedRelation: "prestadores"
+      referencedColumns: ["municipio_id","id"]
+    }
+                  ]
+                },"atividades": {
                   Row: {
                     "atrativo_id": string | null,"atualizado_em": string,"condicoes": string | null,"criado_em": string,"criado_por": string | null,"descricao": string | null,"exige_contato": boolean,"exige_responsavel": boolean,"id": string,"local_encontro": string | null,"max_pessoas_por_voucher": number,"modo": string,"municipio_id": string,"status": string,"titulo": string
                   }
@@ -35,7 +54,32 @@ export type Database = {
                   }
                   Relationships: [
                     {
+      foreignKeyName: "atividades_atrativo_fk"
+      columns: ["municipio_id","atrativo_id"]
+isOneToOne: false
+      referencedRelation: "atrativos"
+      referencedColumns: ["municipio_id","id"]
+    },{
       foreignKeyName: "atividades_municipio_id_fkey"
+      columns: ["municipio_id"]
+isOneToOne: false
+      referencedRelation: "municipios"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"atrativos": {
+                  Row: {
+                    "acessibilidade": string | null,"atualizado_em": string,"categoria": string,"condicoes_acesso": string | null,"contato": string | null,"criado_em": string,"criado_por": string | null,"descricao": string | null,"endereco": string | null,"horarios": string | null,"id": string,"latitude": number | null,"longitude": number | null,"municipio_id": string,"nome": string,"orientacoes_ambientais": string | null,"status": string
+                  }
+                  Insert: {
+                    "acessibilidade"?: string | null,"atualizado_em"?: string,"categoria": string,"condicoes_acesso"?: string | null,"contato"?: string | null,"criado_em"?: string,"criado_por"?: string | null,"descricao"?: string | null,"endereco"?: string | null,"horarios"?: string | null,"id"?: string,"latitude"?: number | null,"longitude"?: number | null,"municipio_id": string,"nome": string,"orientacoes_ambientais"?: string | null,"status"?: string
+                  }
+                  Update: {
+                    "acessibilidade"?: string | null,"atualizado_em"?: string,"categoria"?: string,"condicoes_acesso"?: string | null,"contato"?: string | null,"criado_em"?: string,"criado_por"?: string | null,"descricao"?: string | null,"endereco"?: string | null,"horarios"?: string | null,"id"?: string,"latitude"?: number | null,"longitude"?: number | null,"municipio_id"?: string,"nome"?: string,"orientacoes_ambientais"?: string | null,"status"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "atrativos_municipio_id_fkey"
       columns: ["municipio_id"]
 isOneToOne: false
       referencedRelation: "municipios"
@@ -57,13 +101,13 @@ isOneToOne: false
                   ]
                 },"configuracoes_municipio": {
                   Row: {
-                    "atualizado_em": string,"aviso_privacidade": string | null,"contato_secretaria": string | null,"cor_primaria": string,"dias_anonimizacao": number,"logo_caminho": string | null,"municipio_id": string,"nome_exibicao": string | null,"ouvidoria_url": string | null,"referencia_icms": string
+                    "atualizado_em": string,"aviso_privacidade": string | null,"capa_caminho": string | null,"contato_secretaria": string | null,"cor_primaria": string,"dias_anonimizacao": number,"logo_caminho": string | null,"municipio_id": string,"nome_exibicao": string | null,"ouvidoria_url": string | null,"referencia_icms": string
                   }
                   Insert: {
-                    "atualizado_em"?: string,"aviso_privacidade"?: string | null,"contato_secretaria"?: string | null,"cor_primaria"?: string,"dias_anonimizacao"?: number,"logo_caminho"?: string | null,"municipio_id": string,"nome_exibicao"?: string | null,"ouvidoria_url"?: string | null,"referencia_icms"?: string
+                    "atualizado_em"?: string,"aviso_privacidade"?: string | null,"capa_caminho"?: string | null,"contato_secretaria"?: string | null,"cor_primaria"?: string,"dias_anonimizacao"?: number,"logo_caminho"?: string | null,"municipio_id": string,"nome_exibicao"?: string | null,"ouvidoria_url"?: string | null,"referencia_icms"?: string
                   }
                   Update: {
-                    "atualizado_em"?: string,"aviso_privacidade"?: string | null,"contato_secretaria"?: string | null,"cor_primaria"?: string,"dias_anonimizacao"?: number,"logo_caminho"?: string | null,"municipio_id"?: string,"nome_exibicao"?: string | null,"ouvidoria_url"?: string | null,"referencia_icms"?: string
+                    "atualizado_em"?: string,"aviso_privacidade"?: string | null,"capa_caminho"?: string | null,"contato_secretaria"?: string | null,"cor_primaria"?: string,"dias_anonimizacao"?: number,"logo_caminho"?: string | null,"municipio_id"?: string,"nome_exibicao"?: string | null,"ouvidoria_url"?: string | null,"referencia_icms"?: string
                   }
                   Relationships: [
                     {
@@ -72,6 +116,68 @@ isOneToOne: false
 isOneToOne: true
       referencedRelation: "municipios"
       referencedColumns: ["id"]
+    }
+                  ]
+                },"eventos": {
+                  Row: {
+                    "atrativo_id": string | null,"atualizado_em": string,"criado_em": string,"criado_por": string | null,"descricao": string | null,"fim": string,"id": string,"inicio": string,"local": string | null,"municipio_id": string,"organizador": string | null,"status": string,"titulo": string
+                  }
+                  Insert: {
+                    "atrativo_id"?: string | null,"atualizado_em"?: string,"criado_em"?: string,"criado_por"?: string | null,"descricao"?: string | null,"fim": string,"id"?: string,"inicio": string,"local"?: string | null,"municipio_id": string,"organizador"?: string | null,"status"?: string,"titulo": string
+                  }
+                  Update: {
+                    "atrativo_id"?: string | null,"atualizado_em"?: string,"criado_em"?: string,"criado_por"?: string | null,"descricao"?: string | null,"fim"?: string,"id"?: string,"inicio"?: string,"local"?: string | null,"municipio_id"?: string,"organizador"?: string | null,"status"?: string,"titulo"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "eventos_municipio_id_atrativo_id_fkey"
+      columns: ["municipio_id","atrativo_id"]
+isOneToOne: false
+      referencedRelation: "atrativos"
+      referencedColumns: ["municipio_id","id"]
+    },{
+      foreignKeyName: "eventos_municipio_id_fkey"
+      columns: ["municipio_id"]
+isOneToOne: false
+      referencedRelation: "municipios"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"fotos": {
+                  Row: {
+                    "atrativo_id": string | null,"caminho": string,"criado_em": string,"criado_por": string | null,"evento_id": string | null,"id": string,"legenda": string,"municipio_id": string,"ordem": number,"prestador_id": string | null
+                  }
+                  Insert: {
+                    "atrativo_id"?: string | null,"caminho": string,"criado_em"?: string,"criado_por"?: string | null,"evento_id"?: string | null,"id"?: string,"legenda": string,"municipio_id": string,"ordem"?: number,"prestador_id"?: string | null
+                  }
+                  Update: {
+                    "atrativo_id"?: string | null,"caminho"?: string,"criado_em"?: string,"criado_por"?: string | null,"evento_id"?: string | null,"id"?: string,"legenda"?: string,"municipio_id"?: string,"ordem"?: number,"prestador_id"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "fotos_municipio_id_atrativo_id_fkey"
+      columns: ["municipio_id","atrativo_id"]
+isOneToOne: false
+      referencedRelation: "atrativos"
+      referencedColumns: ["municipio_id","id"]
+    },{
+      foreignKeyName: "fotos_municipio_id_evento_id_fkey"
+      columns: ["municipio_id","evento_id"]
+isOneToOne: false
+      referencedRelation: "eventos"
+      referencedColumns: ["municipio_id","id"]
+    },{
+      foreignKeyName: "fotos_municipio_id_fkey"
+      columns: ["municipio_id"]
+isOneToOne: false
+      referencedRelation: "municipios"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "fotos_municipio_id_prestador_id_fkey"
+      columns: ["municipio_id","prestador_id"]
+isOneToOne: false
+      referencedRelation: "prestadores"
+      referencedColumns: ["municipio_id","id"]
     }
                   ]
                 },"limites_requisicao": {
@@ -112,6 +218,25 @@ isOneToOne: true
                   }
                   Relationships: [
                     
+                  ]
+                },"prestadores": {
+                  Row: {
+                    "atualizado_em": string,"categoria": string,"contatos_publicos": string | null,"criado_em": string,"criado_por": string | null,"id": string,"localizacao": string | null,"municipio_id": string,"nome_publico": string,"servicos": string | null,"situacao_rede": string,"status": string
+                  }
+                  Insert: {
+                    "atualizado_em"?: string,"categoria": string,"contatos_publicos"?: string | null,"criado_em"?: string,"criado_por"?: string | null,"id"?: string,"localizacao"?: string | null,"municipio_id": string,"nome_publico": string,"servicos"?: string | null,"situacao_rede"?: string,"status"?: string
+                  }
+                  Update: {
+                    "atualizado_em"?: string,"categoria"?: string,"contatos_publicos"?: string | null,"criado_em"?: string,"criado_por"?: string | null,"id"?: string,"localizacao"?: string | null,"municipio_id"?: string,"nome_publico"?: string,"servicos"?: string | null,"situacao_rede"?: string,"status"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "prestadores_municipio_id_fkey"
+      columns: ["municipio_id"]
+isOneToOne: false
+      referencedRelation: "municipios"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"sessoes": {
                   Row: {

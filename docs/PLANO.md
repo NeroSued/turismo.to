@@ -8,7 +8,7 @@ Como usar este arquivo:
 
 ## Estado
 
-- Fase ativa: **1**
+- Fase ativa: **2**
 - Última atualização: 2026-10-05
 
 ---
@@ -120,7 +120,7 @@ Primeira entrega completa: criar atividade, publicar, emitir voucher, confirmar 
 
 ## Fase 2: Portal público e cadastros
 
-- [ ] 2.1 Migrations: `atrativos`, `eventos` (atrativo opcional), `prestadores`, `adesoes_prestador` (data, responsável, comprovante privado), `fotos` com legenda. Estados rascunho, publicado e arquivado.
+- [x] 2.1 Migrations: `atrativos`, `eventos` (atrativo opcional), `prestadores`, `adesoes_prestador` (data, responsável, comprovante privado), `fotos` com legenda. Estados rascunho, publicado e arquivado.
 - [ ] 2.2 Buckets `publico` e `interno` com políticas por pasta `<municipio_id>/`; limites: fotos JPEG, PNG ou WebP até 5 MB; documentos PDF, JPEG ou PNG até 10 MB.
 - [ ] 2.3 Painel: cadastro de atrativos, eventos e prestadores com formulários curtos, upload de fotos e estados vazios úteis.
 - [ ] 2.4 Configurações do município: nome de exibição, logo, cor primária (com validação de contraste), contato da Secretaria de Turismo, link da Ouvidoria oficial, texto do aviso de privacidade, referência da cartilha do ICMS Ecológico.
@@ -276,6 +276,11 @@ Registre aqui decisões tomadas durante a execução: data, decisão, motivo.
 - 2026-10-05: QR gerado com `uqr` (sem dependências) contendo só `XXXX-XXXX-XXXX`; teste decodifica a matriz com `jsqr` (dependência de desenvolvimento). Leitura pela câmera com `barcode-detector` (ponyfill da API BarcodeDetector sobre zxing-wasm, mantido): o `.wasm` fica em `public/vendor/` (servido pelo próprio site, sem CDN) e um teste confere o SHA-256 com a versão instalada. `.wasm` entrou na exclusão do matcher do proxy.
 - 2026-10-05: o operador cai direto em `/admin/atendimento` e a barra inferior dele tem só Atendimento, Emitir voucher e Mais (a restrição completa das rotas é a Fase 4.3; as páginas de atividades já exigem gestor). A câmera só liga com toque em "Ler QR Code com a câmera" (permissão do navegador e privacidade); a digitação aceita minúsculas e hífens.
 - 2026-10-05: o E2E testa a leitura real do QR: o Chromium recebe uma câmera falsa (`--use-file-for-fake-video-capture`) com um vídeo Y4M gerado em `tests/e2e/camera.ts` a partir da matriz do QR da própria aplicação. No Windows o Chromium não tem BarcodeDetector nativo, então o caminho testado é o ponyfill com o `.wasm` local. O estado "expirado" no E2E é forçado por `psql` no banco local (o prazo real é coberto no pgTAP).
+- 2026-10-05: `fase-2-portal` criada a partir de `fase-1-voucher`, não de `main`: após `git fetch`, `main` ainda não contém a Fase 1 (PRs #1 e #2 abertos). O PR da Fase 2 fica empilhado sobre o #2.
+- 2026-10-05: contatos internos e comprovante ficam numa tabela separada, `adesoes_prestador` (só gestor e admin leem; sem `GRANT` para `anon`), em vez de colunas escondidas em `prestadores`. Assim nenhuma consulta pública alcança esses dados, nem por engano de `select *`. `prestadores.contatos_publicos` guarda só o que o prestador autorizou divulgar.
+- 2026-10-05: caminhos de arquivo sempre `<municipio_id>/<pasta>/<arquivo>`, conferidos por `privado.caminho_do_municipio` em `fotos`, `adesoes_prestador` e `configuracoes_municipio` (logo e capa), e pela pasta nas políticas do Storage. Cor primária recusada no banco com contraste < 4.5:1 (`privado.contraste_com_branco`), além da validação no servidor.
+- 2026-10-05: configurações ganharam `capa_caminho` (foto de capa do portal), para a imagem do topo da tela "Portal municipal" não depender de foto inventada.
+- 2026-10-05: o bucket `publico` não tem política de leitura em `storage.objects`: as fotos saem pela URL pública do bucket e o anônimo não consegue listar a pasta. Uma foto de conteúdo em rascunho tem URL pública, mas imprevisível (UUID) e só aparece no painel; a tabela `fotos` só mostra ao público as de conteúdo publicado.
 
 ## Registro
 
@@ -303,3 +308,4 @@ Registre aqui decisões tomadas durante a execução: data, decisão, motivo.
 | 2026-10-05 | 1.8 | `/admin/relatorios` (gestor/admin; período pelo dia da atividade, padrão = ano-base) com blocos "Reservas gratuitas" e "Registros voluntários", resumo por atividade e lista de vouchers sem nome/contato; Visão geral com os indicadores do canvas, "Hoje" e pendências. E2E: relatório mostra o voucher reservado como "Utilizado" com "3 reservadas · 2 atendidas", o cancelado, o expirado e o assistido; resumo da atividade "4 emitidos · 2 utilizados · 1 cancelados · 1 expirados" e "6 pessoas reservadas · 4 participações confirmadas"; notas "reservas feitas, não visitas", "não são turistas únicos", "adesões, não o fluxo total". Teste de coerência (integração) confere os números com os vouchers criados. E2E completo: 20/20. |
 | 2026-10-05 | 1.9 | Triggers de auditoria em `atividades`, `sessoes` (só mudanças do gestor) e `vouchers` (sem nome, contato, token e chave). pgTAP 127/127: emissão assistida, confirmação, cancelamento pelo painel (operador) e pelo visitante (sem usuário), mudança de vagas com o gestor, nenhuma linha de sessão por emissão, gestor de B não lê a auditoria de A. Integração pela API: o gestor lê a trilha `atividades:INSERT/UPDATE (gestor) · vouchers:INSERT (operador) · UPDATE utilizado (operador) · UPDATE cancelado (gestor)`, sem o nome do responsável; operador e gestor de Peixe não leem. |
 | 2026-10-05 | Fase 1 | `npm run verify` com código 0: typecheck, lint, Vitest 43/43, pgTAP 127/127, Playwright 20/20 (390x844, build de produção), build. Integração do voucher 9/9 (concorrência, idempotência, confirmação repetida, cancelado, outro município, anônimo/operador sem leitura direta, token errado, coerência do relatório, auditoria). Seletor do E2E da emissão assistida passou a ignorar o anunciador de rotas do Next (falha intermitente de seletor, não da tela). |
+| 2026-10-05 | 2.1 | Migration `portal_cadastros` aplicada por `npx supabase db reset`; tipos regenerados. pgTAP `004_portal.test.sql` (47) e suíte completa 174/174 PASS: RLS nas 5 tabelas; anônimo vê só atrativo, evento, prestador e fotos publicados de município ativo; arquivar tira atrativo e foto das consultas anônimas; anônimo e operador não leem `adesoes_prestador`; gestor de B não vê rascunhos de A nem altera nada de A; FKs compostas recusam evento, foto, atividade e adesão apontando para outro município (23503); foto com caminho de outra pasta ou com `..` recusada; cor com contraste baixo recusada; auditoria grava o gestor. |
