@@ -8,8 +8,9 @@ import { envPublico } from "@/lib/env";
  * passam pela RLS. Crie um por requisição.
  */
 export async function criarClienteServidor() {
-  const env = envPublico();
+  // cookies() primeiro: torna a rota dinâmica antes de qualquer leitura de ambiente.
   const loja = await cookies();
+  const env = envPublico();
   return createServerClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
     cookies: {
       getAll() {
