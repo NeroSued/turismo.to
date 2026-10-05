@@ -58,7 +58,7 @@ export default async function Comprovante({ params }: PageProps<"/m/[slug]/vouch
         Apresente este código à equipe no local. A presença só é confirmada por um operador da prefeitura.
       </p>
       <BotoesComprovante urlImagem={`/voucher/${token}/comprovante`} nomeArquivo={`voucher-${formatarCodigo(v.codigo)}.png`} />
-      {v.status === "emitido" ? <CancelarPeloVisitante token={token} /> : null}
+      <CancelarPeloVisitante token={token} cancelavel={v.status === "emitido"} />
       <Link href="/" className="flex min-h-11 items-center font-bold print:hidden">
         Voltar ao portal de {v.municipio}
       </Link>

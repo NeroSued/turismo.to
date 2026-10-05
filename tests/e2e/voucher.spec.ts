@@ -1,6 +1,8 @@
 import { randomBytes } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
+import { execSync } from "node:child_process";
 import { USUARIOS_DEV } from "../ambiente";
+import { ARQUIVO_CAMERA, gravarCamera } from "./camera";
 
 // Fluxo de ponta a ponta da Fase 1, no celular (390x844, do playwright.config.ts):
 // gestor cria e publica atividade com horário; visitante reserva; operador confirma;
@@ -9,6 +11,27 @@ import { USUARIOS_DEV } from "../ambiente";
 const PALMEIROPOLIS = "http://palmeiropolis.localhost:3000";
 const TITULO = `[E2E] Trilha guiada ${randomBytes(3).toString("hex")}`;
 let codigoReservado = "";
+let codigoCancelado = "";
+let codigoExpirado = "";
+
+// Câmera falsa para o leitor de QR do operador (ver camera.ts).
+gravarCamera(null);
+test.use({
+  permissions: ["camera"],
+  launchOptions: {
+    args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream", `--use-file-for-fake-video-capture=${ARQUIVO_CAMERA}`],
+  },
+});
+
+/** Só no banco LOCAL (D11): marca um voucher como expirado, simulando o fim do prazo. */
+function expirarNoBancoLocal(codigo: string) {
+  const c = codigo.replace(/-/g, "");
+  if (!/^[2-9A-Z]{12}$/.test(c)) throw new Error("código inválido");
+  execSync(
+    `docker exec supabase_db_turismo-to psql -U postgres -q -c "update public.vouchers set status = 'expirado', expirado_em = now() where codigo = '${c}'"`,
+    { stdio: "ignore" },
+  );
+}
 
 /** Dia e horários locais (America/Araguaina) para uma sessão que começa daqui a alguns minutos, hoje. */
 function horarioDeHoje() {
@@ -31,6 +54,11 @@ function horarioDeHoje() {
     inicio: `${hh(h)}:${hh(m)}`,
     fim: `${hh(Math.floor(fimMin / 60))}:${hh(fimMin % 60)}`,
   };
+}
+
+/** Alerta da tela (o anunciador de rotas do Next também usa role="alert"). */
+function alerta(page: Page, texto: string) {
+  return page.locator('[role="alert"]:not(#__next-route-announcer__)').filter({ hasText: texto });
 }
 
 async function entrar(page: Page, email: string) {
@@ -160,6 +188,7 @@ test.describe.serial("voucher de ponta a ponta no celular", () => {
     await page.getByRole("button", { name: "Emitir voucher gratuito" }).click();
     await expect(page).toHaveURL(/\/voucher\/[0-9a-f]{64}$/);
     const urlVoucher = page.url();
+    codigoCancelado = (await page.getByTestId("codigo-voucher").innerText()).trim();
 
     await page.getByRole("button", { name: "Não vou mais: liberar minhas vagas" }).click();
     await page.getByRole("button", { name: "Cancelar voucher" }).click();
@@ -171,9 +200,82 @@ test.describe.serial("voucher de ponta a ponta no celular", () => {
     await page.getByRole("link", { name: TITULO }).click();
     await expect(page.getByText("Restam 12 vagas neste horário.")).toBeVisible();
 
+    // Um terceiro voucher, de 1 pessoa, que o banco local marca como expirado para o teste do operador.
+    await page.getByLabel("Cidade").fill("Peixe");
+    await page.getByRole("button", { name: "Emitir voucher gratuito" }).click();
+    await expect(page).toHaveURL(/\/voucher\/[0-9a-f]{64}$/);
+    codigoExpirado = (await page.getByTestId("codigo-voucher").innerText()).trim();
+    expirarNoBancoLocal(codigoExpirado);
+
     await page.goto(`${PALMEIROPOLIS}/voucher/${"f".repeat(64)}`);
     await expect(page.getByRole("heading", { name: "Voucher não encontrado" })).toBeVisible();
     await page.goto(`${PALMEIROPOLIS}/voucher/qualquer-coisa`);
     await expect(page.getByRole("heading", { name: "Voucher não encontrado" })).toBeVisible();
+  });
+
+  test("operador lê o QR pela câmera, confere e confirma 2 de 3 pessoas; nova leitura dá já utilizado", async ({ page }) => {
+    await entrar(page, USUARIOS_DEV.operadorPalmeiropolis);
+    await expect(page).toHaveURL(`${PALMEIROPOLIS}/admin/atendimento`);
+    const nav = page.getByRole("navigation", { name: "Navegação do painel" });
+    await expect(nav.getByRole("link")).toHaveText(["Atendimento", "Emitir voucher", "Mais"]);
+
+    gravarCamera(codigoReservado);
+    await page.getByRole("button", { name: "Ler QR Code com a câmera" }).click();
+    await expect(page).toHaveURL(`${PALMEIROPOLIS}/admin/atendimento/${codigoReservado.replace(/-/g, "")}`, { timeout: 20_000 });
+
+    await expect(page.getByText("Reservado · válido para hoje")).toBeVisible();
+    await expect(page.getByRole("heading", { name: codigoReservado })).toBeVisible();
+    await expect(page.getByText(TITULO)).toBeVisible();
+    await expect(page.getByText("3 pessoas")).toBeVisible();
+    await expect(page.getByText("Gurupi/TO")).toBeVisible();
+    await page.getByRole("button", { name: "Diminuir pessoas atendidas" }).click();
+    await page.getByRole("button", { name: "Confirmar participação" }).click();
+    await expect(page.getByRole("status").filter({ hasText: "Participação confirmada" })).toBeVisible();
+    await expect(page.getByText("2 de 3")).toBeVisible();
+    await expect(page.getByText("[DEV] Operador de Palmeirópolis")).toBeVisible();
+
+    // Nova leitura (digitando) não conta de novo.
+    await page.getByRole("link", { name: "Ler próximo voucher" }).click();
+    await page.getByLabel("Ou digite o código").fill(codigoReservado.toLowerCase());
+    await page.getByRole("button", { name: "Buscar" }).click();
+    const jaUtilizado = alerta(page, "Voucher já utilizado");
+    await expect(jaUtilizado).toBeVisible();
+    await expect(jaUtilizado).toContainText("com 2 pessoas");
+    await expect(jaUtilizado).toContainText("Nenhuma nova contagem foi registrada");
+  });
+
+  test("operador vê as telas de cancelado, expirado e código inexistente", async ({ page }) => {
+    await entrar(page, USUARIOS_DEV.operadorPalmeiropolis);
+    for (const [codigo, titulo] of [
+      [codigoCancelado, "Voucher cancelado"],
+      [codigoExpirado, "Voucher expirado"],
+      ["ZZZZ-ZZZZ-ZZZZ", "Código não encontrado"],
+    ]) {
+      await page.goto(`${PALMEIROPOLIS}/admin/atendimento`);
+      await page.getByLabel("Ou digite o código").fill(codigo);
+      await page.getByRole("button", { name: "Buscar" }).click();
+      await expect(alerta(page, titulo)).toBeVisible();
+      await expect(page.getByRole("button", { name: "Confirmar participação" })).toHaveCount(0);
+    }
+    await page.goto(`${PALMEIROPOLIS}/admin/atendimento`);
+    await page.getByLabel("Ou digite o código").fill("ABC");
+    await page.getByRole("button", { name: "Buscar" }).click();
+    await expect(page.getByText("Código inválido.")).toBeVisible();
+  });
+
+  test("gestor de Peixe recebe voucher de outro município, sem detalhes", async ({ page }) => {
+    const PEIXE = "http://peixe.localhost:3000";
+    await page.goto(`${PEIXE}/admin/login`);
+    await page.getByLabel("E-mail").fill(USUARIOS_DEV.gestorPeixe);
+    await page.getByLabel("Senha").fill(process.env.E2E_SENHA!);
+    await page.getByRole("button", { name: "Entrar" }).click();
+    await expect(page).toHaveURL(`${PEIXE}/admin`);
+    await page.goto(`${PEIXE}/admin/atendimento`);
+    await page.getByLabel("Ou digite o código").fill(codigoCancelado);
+    await page.getByRole("button", { name: "Buscar" }).click();
+    const outro = alerta(page, "Voucher de outro município");
+    await expect(outro).toBeVisible();
+    await expect(outro).toContainText("não pertence a Peixe");
+    await expect(page.getByText(TITULO)).toHaveCount(0);
   });
 });

@@ -27,7 +27,8 @@ export function BotoesComprovante({ urlImagem, nomeArquivo }: { urlImagem: strin
   );
 }
 
-export function CancelarPeloVisitante({ token }: { token: string }) {
+/** Fica montado mesmo depois do cancelamento, para a confirmação não sumir quando a página atualiza. */
+export function CancelarPeloVisitante({ token, cancelavel }: { token: string; cancelavel: boolean }) {
   const [aberto, setAberto] = useState(false);
   const [estado, acao, pendente] = useActionState(cancelarReserva.bind(null, token), undefined);
   const router = useRouter();
@@ -38,6 +39,7 @@ export function CancelarPeloVisitante({ token }: { token: string }) {
   if (estado?.cancelado) {
     return <MensagemEstado aviso="Voucher cancelado. As vagas voltaram para a atividade. Obrigado por avisar." />;
   }
+  if (!cancelavel) return null;
   return (
     <div className="flex flex-col gap-2 border-t pt-3 print:hidden">
       <p className="text-sm text-muted-foreground">
