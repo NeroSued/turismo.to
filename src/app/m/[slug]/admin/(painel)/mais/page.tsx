@@ -21,6 +21,8 @@ export default async function Mais({ params }: PageProps<"/m/[slug]/admin/mais">
             {[
               { href: "/admin/configuracoes", titulo: "Configurações", texto: "Nome, logo, cor, contato, Ouvidoria e privacidade." },
               { href: "/admin/conteudo", titulo: "Conteúdo do portal", texto: "Atrativos, eventos, atividades e prestadores." },
+              { href: "/admin/evidencias", titulo: "Evidências", texto: "Ações realizadas, com fotos, listas de presença e atas." },
+              { href: "/admin/relatorios/minuta", titulo: "Minuta do relatório de implantação", texto: "Atividades, indicadores e evidências do ano-base." },
             ].map((l) => (
               <li key={l.href} className="border-b last:border-b-0">
                 <Link href={l.href} className="flex min-h-16 items-center gap-3 px-4 py-3 text-foreground no-underline hover:bg-background">

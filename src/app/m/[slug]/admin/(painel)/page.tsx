@@ -1,10 +1,11 @@
-import { ArrowRight, Layers, ScanLine, Ticket } from "lucide-react";
+import { ArrowRight, Camera, ScanLine, Ticket } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Pagina } from "@/components/pagina";
 import { IndicadoresReserva } from "@/components/painel/indicadores";
 import { listarAtividades, listarSessoesDoPeriodo } from "@/lib/atividades/dados";
 import { formatarHora, hojeLocal, instanteLocal, somarDias } from "@/lib/datas";
+import { evidenciasSemAnexo } from "@/lib/evidencias/dados";
 import { exigirPainel } from "@/lib/painel/contexto";
 import { relatorioDoPeriodo } from "@/lib/relatorios/dados";
 
@@ -20,12 +21,23 @@ export default async function VisaoGeral({ params }: PageProps<"/m/[slug]/admin"
 
   const hoje = hojeLocal();
   const ano = hoje.slice(0, 4);
-  const [r, sessoesHoje, atividades] = await Promise.all([
+  const [r, sessoesHoje, atividades, semAnexo] = await Promise.all([
     relatorioDoPeriodo(municipio.id, `${ano}-01-01`, `${ano}-12-31`),
     listarSessoesDoPeriodo(municipio.id, instanteLocal(hoje, "00:00"), instanteLocal(somarDias(hoje, 1), "00:00")),
     listarAtividades(municipio.id),
+    evidenciasSemAnexo(municipio.id, Number(ano)),
   ]);
   const emElaboracao = atividades.filter((a) => a.status === "rascunho").length;
+  const pendencias = [
+    emElaboracao > 0 && {
+      href: "/admin/atividades",
+      texto: emElaboracao === 1 ? "1 atividade em elaboração" : `${emElaboracao} atividades em elaboração`,
+    },
+    semAnexo > 0 && {
+      href: "/admin/evidencias",
+      texto: semAnexo === 1 ? "1 evidência sem anexo" : `${semAnexo} evidências sem anexo`,
+    },
+  ].filter((x): x is { href: string; texto: string } => Boolean(x));
 
   return (
     <Pagina className="gap-6 pt-1">
@@ -37,8 +49,8 @@ export default async function VisaoGeral({ params }: PageProps<"/m/[slug]/admin"
         <Link href="/admin/vouchers/emitir" className={`${atalho} border bg-superficie text-foreground hover:text-foreground`}>
           <Ticket aria-hidden="true" className="size-6" /> Emitir voucher assistido
         </Link>
-        <Link href="/admin/atividades/nova" className={`${atalho} border bg-superficie text-foreground hover:text-foreground`}>
-          <Layers aria-hidden="true" className="size-6" /> Nova atividade
+        <Link href="/admin/evidencias/nova" className={`${atalho} border bg-superficie text-foreground hover:text-foreground`}>
+          <Camera aria-hidden="true" className="size-6" /> Nova evidência
         </Link>
       </section>
 
@@ -49,7 +61,7 @@ export default async function VisaoGeral({ params }: PageProps<"/m/[slug]/admin"
         </div>
         <IndicadoresReserva r={r} />
         <Link href="/admin/relatorios" className="flex min-h-11 items-center gap-1.5 font-bold">
-          Abrir relatório completo <ArrowRight aria-hidden="true" className="size-[18px]" />
+          Abrir relatório completo e exportar <ArrowRight aria-hidden="true" className="size-[18px]" />
         </Link>
       </section>
 
@@ -78,18 +90,19 @@ export default async function VisaoGeral({ params }: PageProps<"/m/[slug]/admin"
         )}
       </section>
 
-      {emElaboracao > 0 ? (
+      {pendencias.length > 0 ? (
         <section aria-labelledby="pendencias" className="flex flex-col gap-2.5">
           <h2 id="pendencias" className="text-[21px] font-bold">Pendências</h2>
-          <Link
-            href="/admin/atividades"
-            className="flex min-h-[52px] items-center gap-3 rounded-[14px] border bg-superficie px-3.5 text-foreground no-underline hover:text-foreground"
-          >
-            <span aria-hidden="true" className="size-2.5 shrink-0 rounded-full bg-[#B07A14]" />
-            <span className="flex-1">
-              {emElaboracao === 1 ? "1 atividade em elaboração" : `${emElaboracao} atividades em elaboração`}
-            </span>
-          </Link>
+          {pendencias.map((p) => (
+            <Link
+              key={p.href}
+              href={p.href}
+              className="flex min-h-[52px] items-center gap-3 rounded-[14px] border bg-superficie px-3.5 text-foreground no-underline hover:text-foreground"
+            >
+              <span aria-hidden="true" className="size-2.5 shrink-0 rounded-full bg-[#B07A14]" />
+              <span className="flex-1">{p.texto}</span>
+            </Link>
+          ))}
         </section>
       ) : null}
     </Pagina>
