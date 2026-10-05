@@ -58,6 +58,7 @@ export default async function Atrativo({ params }: PageProps<"/m/[slug]/atrativo
     a.latitude !== null && a.longitude !== null
       ? `https://www.openstreetmap.org/?mlat=${a.latitude}&mlon=${a.longitude}#map=16/${a.latitude}/${a.longitude}`
       : null;
+  const temInfo = Boolean(a.endereco || mapa || a.horarios || a.contato || a.condicoes_acesso || a.acessibilidade || a.orientacoes_ambientais);
 
   return (
     <>
@@ -80,6 +81,7 @@ export default async function Atrativo({ params }: PageProps<"/m/[slug]/atrativo
           <h1 className="text-[32px] leading-tight font-bold">{a.nome}</h1>
           {a.descricao ? <p className="text-[17px] whitespace-pre-line">{a.descricao}</p> : null}
         </div>
+        {temInfo ? (
         <dl className="flex flex-col gap-3.5 rounded-2xl border bg-superficie p-4">
           {a.endereco ? <Info titulo="Endereço ou como chegar">{a.endereco}</Info> : null}
           {mapa ? (
@@ -95,10 +97,13 @@ export default async function Atrativo({ params }: PageProps<"/m/[slug]/atrativo
           {a.condicoes_acesso ? <Info titulo="Condições de acesso">{a.condicoes_acesso}</Info> : null}
           {a.acessibilidade ? <Info titulo="Acessibilidade">{a.acessibilidade}</Info> : null}
           {a.orientacoes_ambientais ? <Info titulo="Orientações ambientais">{a.orientacoes_ambientais}</Info> : null}
-          {!a.endereco && !mapa && !a.horarios && !a.contato && !a.condicoes_acesso && !a.acessibilidade && !a.orientacoes_ambientais ? (
-            <p className="text-muted-foreground">Horários e orientações de visita ainda não foram informados. Fale com a Secretaria de Turismo antes de ir.</p>
-          ) : null}
         </dl>
+        ) : (
+          // Fora do <dl>: lista de definição só aceita pares de termo e descrição.
+          <p className="rounded-2xl border bg-superficie p-4 text-muted-foreground">
+            Horários e orientações de visita ainda não foram informados. Fale com a Secretaria de Turismo antes de ir.
+          </p>
+        )}
         {ligadas.length ? (
           <section aria-labelledby="atividades-atrativo" className="flex flex-col gap-2">
             <h2 id="atividades-atrativo" className="text-xl font-bold">Atividades gratuitas aqui</h2>
