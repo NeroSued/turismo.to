@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { describe, expect, it } from "vitest";
 import { ambienteLocal } from "../ambiente";
@@ -42,7 +43,7 @@ describe("API pública com a chave publishable (visitante anônimo)", () => {
   it("não existe cadastro público de contas", async () => {
     const { data, error } = await anon.auth.signUp({
       email: `intruso-${Date.now()}@exemplo.test`,
-      password: "Senha-de-teste-123",
+      password: randomBytes(16).toString("base64url"),
     });
     expect(data.user).toBeNull();
     expect(error?.code).toBe("signup_disabled");
