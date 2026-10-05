@@ -285,7 +285,7 @@ test.describe.serial("voucher de ponta a ponta no celular", () => {
     await page.getByRole("link", { name: "Emitir voucher para visitante sem celular" }).click();
     await expect(page.getByRole("heading", { name: "Emitir voucher para visitante sem celular" })).toBeVisible();
     await page.getByRole("link", { name: TITULO }).click();
-    await expect(page.getByText("Emissão assistida")).toBeVisible();
+    await expect(page.getByRole("main").getByText("Emissão assistida")).toBeVisible();
     await expect(page.getByText("Restam 11 vagas neste horário.")).toBeVisible();
     await page.getByRole("button", { name: "Aumentar quantidade" }).click();
     await page.getByLabel("Cidade").fill("Arraias");
