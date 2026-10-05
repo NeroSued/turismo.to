@@ -8,6 +8,7 @@ import { USUARIOS_DEV } from "../ambiente";
 
 const PALMEIROPOLIS = "http://palmeiropolis.localhost:3000";
 const TITULO = `[E2E] Trilha guiada ${randomBytes(3).toString("hex")}`;
+let codigoReservado = "";
 
 /** Dia e horários locais (America/Araguaina) para uma sessão que começa daqui a alguns minutos, hoje. */
 function horarioDeHoje() {
@@ -98,5 +99,81 @@ test.describe.serial("voucher de ponta a ponta no celular", () => {
     await expect(page.getByRole("status").filter({ hasText: "Atividade arquivada" })).toBeVisible();
     await page.goto(PALMEIROPOLIS);
     await expect(page.getByText(titulo)).toHaveCount(0);
+  });
+
+  test("visitante reserva no portal e recebe o comprovante com QR, salvar, imprimir e link para cancelar", async ({ page }) => {
+    await page.goto(PALMEIROPOLIS);
+    await page.getByRole("link", { name: TITULO }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Reserva gratuita" })).toBeVisible();
+    await expect(page.getByText("Restam 15 vagas neste horário.")).toBeVisible();
+
+    await page.getByRole("button", { name: "Aumentar quantidade" }).click();
+    await page.getByRole("button", { name: "Aumentar quantidade" }).click();
+    await expect(page.getByRole("status", { name: "Pessoas" })).toContainText("3");
+    await page.getByLabel("Cidade").fill("Gurupi");
+    await page.getByLabel("UF").selectOption("TO");
+    await page.getByRole("button", { name: "Emitir voucher gratuito" }).click();
+
+    await expect(page).toHaveURL(/\/voucher\/[0-9a-f]{64}$/);
+    await expect(page.getByRole("status").filter({ hasText: "Voucher emitido. Guarde este comprovante." })).toBeVisible();
+    const cartao = page.getByRole("article", { name: "Voucher turístico" });
+    await expect(cartao.getByText("Palmeirópolis · TO")).toBeVisible();
+    await expect(cartao.getByText("Gratuito", { exact: true })).toBeVisible();
+    await expect(cartao.getByText(TITULO)).toBeVisible();
+    await expect(cartao.getByText("Gurupi/TO")).toBeVisible();
+    await expect(cartao.locator("dd").filter({ hasText: /^3$/ })).toBeVisible();
+    codigoReservado = (await page.getByTestId("codigo-voucher").innerText()).trim();
+    expect(codigoReservado).toMatch(/^[2-9A-HJKMNP-Z]{4}-[2-9A-HJKMNP-Z]{4}-[2-9A-HJKMNP-Z]{4}$/);
+    await expect(page.getByRole("img", { name: `QR Code do voucher ${codigoReservado}` })).toBeVisible();
+
+    // Página do token: privada, sem cache e sem referrer.
+    const resposta = await page.reload();
+    expect(resposta?.headers()["cache-control"]).toContain("no-store");
+    expect(resposta?.headers()["referrer-policy"]).toBe("no-referrer");
+
+    // Salvar: PNG do comprovante (buscado pelo navegador, que resolve *.localhost).
+    const href = await page.getByRole("link", { name: "Salvar" }).getAttribute("href");
+    const png = await page.evaluate(async (u) => {
+      const r = await fetch(u!);
+      const bytes = new Uint8Array(await r.arrayBuffer());
+      return { status: r.status, tipo: r.headers.get("content-type"), cache: r.headers.get("cache-control"), assinatura: Array.from(bytes.slice(1, 4)) };
+    }, href);
+    expect(png.status).toBe(200);
+    expect(png.tipo).toBe("image/png");
+    expect(png.cache).toContain("no-store");
+    expect(String.fromCharCode(...png.assinatura)).toBe("PNG");
+
+    // Imprimir: na mídia de impressão, botões e link de cancelamento somem; o cartão fica.
+    await page.emulateMedia({ media: "print" });
+    await expect(page.getByRole("button", { name: "Imprimir" })).toBeHidden();
+    await expect(page.getByRole("button", { name: "Não vou mais: liberar minhas vagas" })).toBeHidden();
+    await expect(cartao).toBeVisible();
+    await page.emulateMedia({ media: "screen" });
+    await expect(page.getByRole("button", { name: "Imprimir" })).toBeVisible();
+  });
+
+  test("visitante cancela pelo link e as vagas voltam; token errado não revela nada", async ({ page }) => {
+    await page.goto(PALMEIROPOLIS);
+    await page.getByRole("link", { name: TITULO }).click();
+    await expect(page.getByText("Restam 12 vagas neste horário.")).toBeVisible();
+    await page.getByLabel("Cidade").fill("Palmas");
+    await page.getByRole("button", { name: "Emitir voucher gratuito" }).click();
+    await expect(page).toHaveURL(/\/voucher\/[0-9a-f]{64}$/);
+    const urlVoucher = page.url();
+
+    await page.getByRole("button", { name: "Não vou mais: liberar minhas vagas" }).click();
+    await page.getByRole("button", { name: "Cancelar voucher" }).click();
+    await expect(page.getByRole("status").filter({ hasText: "Voucher cancelado" })).toBeVisible();
+    await page.goto(urlVoucher);
+    await expect(page.getByText("Cancelado", { exact: true })).toBeVisible();
+
+    await page.goto(PALMEIROPOLIS);
+    await page.getByRole("link", { name: TITULO }).click();
+    await expect(page.getByText("Restam 12 vagas neste horário.")).toBeVisible();
+
+    await page.goto(`${PALMEIROPOLIS}/voucher/${"f".repeat(64)}`);
+    await expect(page.getByRole("heading", { name: "Voucher não encontrado" })).toBeVisible();
+    await page.goto(`${PALMEIROPOLIS}/voucher/qualquer-coisa`);
+    await expect(page.getByRole("heading", { name: "Voucher não encontrado" })).toBeVisible();
   });
 });

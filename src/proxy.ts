@@ -81,8 +81,13 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  if (/^\/(admin|auth|conta)(\/|$)/.test(pathname)) {
+  if (/^\/(admin|auth|conta|voucher)(\/|$)/.test(pathname)) {
     resposta.headers.set("Cache-Control", "private, no-store");
+  }
+  // O link do visitante carrega o token: não vaza por Referer nem é indexado.
+  if (/^\/voucher(\/|$)/.test(pathname)) {
+    resposta.headers.set("Referrer-Policy", "no-referrer");
+    resposta.headers.set("X-Robots-Tag", "noindex");
   }
 
   return resposta;
@@ -91,6 +96,6 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     // Tudo, exceto arquivos estáticos e imagens otimizadas.
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt|xml)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt|xml|wasm)$).*)",
   ],
 };

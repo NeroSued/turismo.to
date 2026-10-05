@@ -124,3 +124,18 @@
     outline-offset: 2px;
   }
 }
+
+/* Impressão do comprovante: fundo branco, sem navegação nem botões (classes print:hidden). */
+@media print {
+  @page {
+    margin: 12mm;
+  }
+  html,
+  body {
+    background: #ffffff !important;
+  }
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
