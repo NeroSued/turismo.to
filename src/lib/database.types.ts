@@ -176,13 +176,13 @@ isOneToOne: false
                   ]
                 },"evidencias_arquivos": {
                   Row: {
-                    "caminho": string,"criado_em": string,"criado_por": string | null,"evidencia_id": string,"id": string,"legenda": string,"mime": string,"municipio_id": string,"tamanho": number,"tipo": string
+                    "caminho": string,"criado_em": string,"criado_por": string | null,"evidencia_id": string,"id": string,"legenda": string,"mime": string,"municipio_id": string,"retirado": boolean,"retirado_em": string | null,"retirado_por": string | null,"tamanho": number,"tipo": string
                   }
                   Insert: {
-                    "caminho": string,"criado_em"?: string,"criado_por"?: string | null,"evidencia_id": string,"id"?: string,"legenda": string,"mime": string,"municipio_id": string,"tamanho": number,"tipo": string
+                    "caminho": string,"criado_em"?: string,"criado_por"?: string | null,"evidencia_id": string,"id"?: string,"legenda": string,"mime": string,"municipio_id": string,"retirado"?: boolean,"retirado_em"?: string | null,"retirado_por"?: string | null,"tamanho": number,"tipo": string
                   }
                   Update: {
-                    "caminho"?: string,"criado_em"?: string,"criado_por"?: string | null,"evidencia_id"?: string,"id"?: string,"legenda"?: string,"mime"?: string,"municipio_id"?: string,"tamanho"?: number,"tipo"?: string
+                    "caminho"?: string,"criado_em"?: string,"criado_por"?: string | null,"evidencia_id"?: string,"id"?: string,"legenda"?: string,"mime"?: string,"municipio_id"?: string,"retirado"?: boolean,"retirado_em"?: string | null,"retirado_por"?: string | null,"tamanho"?: number,"tipo"?: string
                   }
                   Relationships: [
                     {
@@ -395,7 +395,22 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "cancelar_voucher_painel":
+            "admins_assessoria":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "email": string,"nome": string,"user_id": string
+            }[]
+                           },
+"auditoria_consultar":
+{ Args: { "p_antes_de": number,"p_fim": string,"p_inicio": string,"p_limite": number,"p_municipio_id": string,"p_operacao": string,"p_tabela": string,"p_usuario_id": string }; Returns: {
+              "campos": (string)[],"em": string,"id": number,"municipio_id": string,"municipio_nome": string,"operacao": string,"registro_id": string,"tabela": string,"usuario_id": string,"usuario_nome": string
+            }[]
+                           },
+"auditoria_usuarios":
+{ Args: { "p_municipio_id": string }; Returns: {
+              "nome": string,"usuario_id": string
+            }[]
+                           },
+"cancelar_voucher_painel":
 { Args: { "p_codigo": string,"p_municipio_id": string }; Returns: Json
                            },
 "cancelar_voucher_token":
@@ -423,11 +438,22 @@ isOneToOne: false
               "codigo": string,"repetido": boolean,"token": string,"voucher_id": string
             }[]
                            },
+"equipe_do_municipio":
+{ Args: { "p_municipio_id": string }; Returns: {
+              "ativo": boolean,"convite_pendente": boolean,"criado_em": string,"email": string,"nome": string,"papel": string,"user_id": string,"vinculo_id": string
+            }[]
+                           },
+"excluir_arquivo_evidencia_lgpd":
+{ Args: { "p_arquivo_id": string,"p_motivo": string }; Returns: undefined
+                           },
 "relatorio_completo":
 { Args: { "p_fim": string,"p_inicio": string,"p_municipio_id": string }; Returns: Json
                            },
 "relatorio_vouchers":
 { Args: { "p_fim": string,"p_inicio": string,"p_municipio_id": string }; Returns: Json
+                           },
+"usuario_por_email":
+{ Args: { "p_email": string }; Returns: string
                            }
           }
           Enums: {

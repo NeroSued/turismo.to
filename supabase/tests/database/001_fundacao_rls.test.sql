@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(43);
+select plan(44);
 
 -- ---------------------------------------------------------------------------
 -- Estrutura: RLS ativa e com políticas em todas as tabelas de public
@@ -168,7 +168,11 @@ select is(
 
 -- Tenta mudar o próprio vínculo e o de outro usuário (RLS filtra: zero linhas, conferido abaixo)
 update public.vinculos set ativo = false where id = '30000000-0000-4000-8000-000000000001';
-update public.vinculos set municipio_id = '10000000-0000-4000-8000-000000000002' where id = '30000000-0000-4000-8000-000000000002';
+-- Fase 4: vínculo não muda de usuário nem de município (só papel e situação são alteráveis).
+select throws_ok(
+  $$update public.vinculos set municipio_id = '10000000-0000-4000-8000-000000000002' where id = '30000000-0000-4000-8000-000000000002'$$,
+  '42501', null, 'gestora não move vínculo para outro município'
+);
 select throws_ok(
   $$insert into public.vinculos (user_id, municipio_id, papel) values ('20000000-0000-4000-8000-000000000004', '10000000-0000-4000-8000-000000000002', 'gestor')$$,
   '42501', null, 'gestora não cria vínculo em outro município'
@@ -197,7 +201,7 @@ select ok(
 select is(
   (select municipio_id::text from public.vinculos where id = '30000000-0000-4000-8000-000000000002'),
   '10000000-0000-4000-8000-000000000001',
-  'gestora não move vínculo de outro usuário (só admin grava vínculos)'
+  'o vínculo continua no município A'
 );
 select is(
   (select nome_exibicao from public.configuracoes_municipio where municipio_id = '10000000-0000-4000-8000-000000000001'),
