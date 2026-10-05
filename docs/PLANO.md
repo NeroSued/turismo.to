@@ -8,7 +8,7 @@ Como usar este arquivo:
 
 ## Estado
 
-- Fase ativa: **6** (Fase 5 concluída; PRs das fases 0 a 5 mesclados em `main`)
+- Fase ativa: **6** (Fase 5 concluída e verificada; PR #6 aguarda a aprovação do Nero para o merge, porque a Vercel já publica `main` em produção)
 - Última atualização: 2026-10-05
 
 ---
@@ -249,6 +249,7 @@ Pendências externas conhecidas. Atualize quando surgirem novas ou forem resolvi
 - [x] Apontar os nameservers de `turismo.to` para a Vercel. Resolvido pelo Nero em 2026-10-05; conferido no servidor do `.to` (`ns01.trs-dns.net`), que delega para `ns1.vercel-dns.com` e `ns2.vercel-dns.com`. Resolvedores públicos ainda mostravam os nameservers antigos do Spaceship por cache.
 - [x] Conta no Resend para o e-mail transacional (decisão do Nero em 2026-10-05: Resend, subdomínio de envio `envio.turismo.to`, configurado como SMTP personalizado no Supabase Auth; registros DNS do Resend no DNS da Vercel). Conta criada pelo Nero em 2026-10-05.
 - [ ] Configurar o Resend: adicionar o domínio `envio.turismo.to`, copiar os registros DNS que o Resend mostrar para o DNS da Vercel, esperar a verificação, criar uma chave de API só de envio e colá-la no SMTP do Supabase Auth. Passo a passo em `README.md`. Faz parte da Fase 6.2 (precisa do Nero, porque a chave é secreta).
+- [ ] Aprovação do Nero para mesclar o PR #6 (Fase 5) em `main`. Em 2026-10-05 o PR estava sem conflito e com `npm run verify` em código 0, mas já tem o check "Vercel" (o projeto da Vercel está ligado ao repositório), então o merge publica em produção e, pela regra do CLAUDE.md, só acontece com aprovação explícita.
 - [ ] Logos, fotos e textos oficiais de cada prefeitura.
 - [ ] Revisão jurídica do aviso de privacidade pelas prefeituras.
 
