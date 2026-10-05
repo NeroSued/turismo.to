@@ -8,7 +8,7 @@ Como usar este arquivo:
 
 ## Estado
 
-- Fase ativa: **5** (Fase 4 concluída; PRs das fases 0 a 3 mesclados em `main`)
+- Fase ativa: **5** (Fase 4 concluída; PRs das fases 0 a 4 mesclados em `main`)
 - Última atualização: 2026-10-05
 
 ---
@@ -191,13 +191,15 @@ Primeira entrega completa: criar atividade, publicar, emitir voucher, confirmar 
 
 ## Fase 5: Privacidade, qualidade e documentação
 
-- [ ] 5.1 Rotina de anonimização (D10) com prazo configurável por município.
+- [x] 5.1 Rotina de anonimização (D10) com prazo configurável por município.
 - [ ] 5.2 `docs/PRIVACIDADE.md`: finalidade, dados coletados, retenção, quem acessa, procedimento de exclusão e anonimização. Texto padrão do aviso de privacidade, marcado para revisão jurídica da prefeitura.
 - [ ] 5.3 Revisão de acessibilidade e desempenho no celular em todas as telas, incluindo o painel.
 - [ ] 5.4 `README.md`: instalação, Supabase local e remoto, variáveis, domínio, implantação na Vercel, criação do primeiro admin.
 - [ ] 5.5 `docs/MANUAL.md`: manual curto para gestores e operadores, com o passo a passo de cada tarefa comum.
 - [ ] 5.6 `docs/CUSTOS.md`: planos e custos recorrentes (Vercel, Supabase, domínio, SMTP), sem presumir que plano gratuito serve ao uso comercial. Conferir preços atuais nas páginas oficiais e citar a data.
 - [ ] 5.7 `docs/BACKUP.md`: backups do Supabase conforme o plano contratado, exportação periódica do banco e do Storage, procedimento de restauração testado localmente.
+- [ ] 5.8 Corrigir a confirmação que some da tela ao remover o acesso de administrador de alguém.
+- [ ] 5.9 Na exclusão a pedido do titular (LGPD), substituir também a legenda do arquivo nos registros do histórico por "[removido a pedido do titular]", com teste.
 
 **Pronto quando:**
 
@@ -241,8 +243,8 @@ Pendências externas conhecidas. Atualize quando surgirem novas ou forem resolvi
 - [ ] Senha do banco remoto: hoje no `.env` local; manter fora do git e, se algum dia foi commitada, trocar no painel do Supabase. Em 2026-10-05 o valor apareceu por engano na conversa do Claude Code (filtro de redação esperava `=` e o arquivo usa `chave:valor`). Nero deve trocar a senha em Project Settings → Database.
 - [ ] Chave secreta (`sb_secret_...`) e chave publicável do projeto remoto apareceram na conversa do Claude Code em 2026-10-05, no início da Fase 4: o `.env` passou a ter as chaves soltas, sem nome, e o comando de mascaramento só cobria linhas com `=` ou `:`. Nero deve revogar a chave secreta e criar outra em Project Settings → API Keys. O arquivo também deixou de ser lido pelo Supabase CLI (formato inválido) e foi renomeado, sem mudar o conteúdo, para `.env.chaves-remotas` (continua fora do git pelo `.gitignore`).
 - [ ] Acesso à Vercel (equipe e projeto).
-- [ ] Compra do domínio `turismo.to`.
-- [ ] Serviço de SMTP para e-mails de convite e recuperação de senha.
+- [ ] Compra do domínio `turismo.to` (com os nameservers da Vercel, por causa do curinga `*.turismo.to`). Passo a passo em `README.md` e custos em `docs/CUSTOS.md`.
+- [ ] Conta no Resend para o e-mail transacional (decisão do Nero em 2026-10-05: Resend, subdomínio de envio `envio.turismo.to`, configurado como SMTP personalizado no Supabase Auth; registros DNS do Resend no DNS da Vercel). Depende do domínio.
 - [ ] Logos, fotos e textos oficiais de cada prefeitura.
 - [ ] Revisão jurídica do aviso de privacidade pelas prefeituras.
 
@@ -310,6 +312,8 @@ Registre aqui decisões tomadas durante a execução: data, decisão, motivo.
 - 2026-10-05: área da assessoria (4.1) em `/admin/assessoria`, aberta no painel de qualquer município ativo (o admin passa em todos). Configurações e equipe de cada município, inclusive desativado, em `/admin/assessoria/<slug>`, sem trocar de subdomínio (a sessão é por host). Município desativado continua respondendo 404 no portal e no painel, como manda o CLAUDE.md; o admin não desativa o município em cujo painel está. Conceder ou remover admin só para conta existente e nunca para si (o trigger da Fase 0 confere de novo); conta nova continua pelo `criar-admin`.
 - 2026-10-05: auditoria (4.4) em `/admin/auditoria` pela função `auditoria_consultar`: gestor vê só o município do painel (parâmetro `municipio` ignorado); admin escolhe um município ou "Todos". Filtros por pessoa, período (fuso America/Araguaina, padrão últimos 30 dias), área (tabela) e tipo de ação (inclusão, alteração, exclusão), 50 por página. Mostra os campos alterados, não os valores (podem ter dados pessoais).
 - 2026-10-05: o "teste de rota" do convite e da promoção a admin reenvia a requisição real da server action: o formulário do gestor é enviado com o `municipio_id` de Peixe ou com o campo `admin_assessoria`, e a action "Tornar administrador", capturada do painel do admin, é reenviada com os cookies do gestor (para ele mesmo e para outra pessoa). As três respostas trazem "sem permissão", e o banco confirma que nenhuma conta, vínculo ou perfil de admin mudou.
+- 2026-10-05: início da Fase 5: `main` atualizada, `fase-5-qualidade` criada a partir dela e banco local zerado com `npx supabase db reset`. Itens 5.8 e 5.9 incluídos a pedido do Nero no `/goal` da fase. Decisão do Nero sobre e-mail: Resend com subdomínio de envio (`envio.turismo.to`) como SMTP personalizado do Supabase Auth; o domínio usará os nameservers da Vercel e os registros DNS do Resend vão no DNS da Vercel.
+- 2026-10-05: anonimização (5.1) pela função `privado.anonimizar_vouchers()`, agendada no `pg_cron` todo dia às 00:15 de Araguaína: apaga `nome_responsavel` e `contato` e grava `anonimizado_em` quando o dia da atividade (`data_visita`) somado ao prazo do município (`dias_anonimizacao`, padrão 90) chega a hoje, em qualquer estado do voucher. Cidade, UF, pessoas, atendidas e estado ficam, então os relatórios não mudam. O gestor edita o prazo em Configurações; a tela aceita de 7 a 3650 dias (o banco aceita de 1 a 3650), para o contato não sumir antes de resolver pendências da visita.
 
 ## Registro
 
@@ -357,3 +361,4 @@ Registre aqui decisões tomadas durante a execução: data, decisão, motivo.
 | 2026-10-05 | 4.4 | `/admin/auditoria` com `auditoria_consultar`. pgTAP: gestora de A vê só A; filtros por pessoa, área e tipo com o nome do autor; campos alterados; período fora exclui; período invertido recusado; gestor de B e operador recebem `sem_permissao`; admin consulta todos. E2E: filtro área "Equipe e acessos" + "Inclusão" + pessoa mostra só inclusões do gestor; "Alteração" mostra "Campos: ativo"; período vazio explica o que fazer; gestor de Peixe pedindo Palmeirópolis pelo parâmetro vê só os registros de Peixe (contagem confere com o banco); admin em "Todos" vê o nome do município; axe ok. |
 | 2026-10-05 | 4.5 | pgTAP: ninguém tem DELETE em `evidencias_arquivos`; gestora e operadora recebem `sem_permissao` na função; exclusão sem motivo recusada; com o arquivo ainda no Storage recusada; depois do Storage, o admin exclui e o histórico guarda autor, horário, tipo e motivo, sem a legenda. Integração (Storage local): gestor não apaga nem sobrescreve o arquivo em uso; admin apaga e a função registra. E2E: gestor só "Retira" (arquivo continua no Storage, URL dá 404 para ele); admin vê a seção LGPD com o arquivo retirado, motivo curto recusado, exclusão confirmada → download no Storage falha, linha some e o histórico mostra "Excluiu definitivamente um arquivo (lista de presença) a pedido do titular. Motivo: ...", "[DEV] Admin da assessoria" e o horário. |
 | 2026-10-05 | Fase 4 | `npm run verify` com código 0: typecheck, lint, Vitest 89/89 (15 arquivos; novo: integração `administracao` 5), pgTAP 270/270 (6 arquivos; `006_administracao` 48), Playwright 41/41 (390x844, build de produção; `admin.spec` 6), build. Corrigido no caminho: a mensagem de sucesso da exclusão LGPD sumia junto com o item da lista. |
+| 2026-10-05 | 5.1 | Migration `privacidade_anonimizacao`; tipos regenerados. pgTAP `007_privacidade` 14/14: função definer com `search_path=''`, sem `EXECUTE` para anon/authenticated, agendada no `pg_cron`; anonimiza os vouchers com 91 e 90 dias (A, prazo 90) e 31 dias (B, prazo 30), apaga nome e contato, mantém o de 89 dias; cidade, UF, pessoas, atendidas, estado e dia iguais nos 4; relatório completo do gestor idêntico antes e depois; auditoria sem nome nem contato; segunda execução = 0; prazo 60 alcança o de 89 dias. E2E `portal.spec` 8/8: prazo 3 recusado pelo servidor ("Use de 7 a 3650 dias."), 120 gravado no banco. |

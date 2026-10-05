@@ -17,6 +17,7 @@ type Valores = {
   ouvidoria_url: string | null;
   aviso_privacidade: string | null;
   referencia_icms: string;
+  dias_anonimizacao: number | string;
 };
 
 const SUGESTOES = ["#1F4D3A", "#2B4A6B", "#7A3B2E", "#4A5320"];
@@ -71,6 +72,9 @@ export function FormularioConfiguracoes({ municipioId, v: v0, nomeOficial }: { m
         erro={campos?.aviso_privacidade} ajuda="Texto mostrado em Aviso de privacidade no portal. Precisa de revisão jurídica da prefeitura." />
       <Campo id="referencia_icms" rotulo="Referência da cartilha do ICMS Ecológico" defaultValue={v.referencia_icms} required maxLength={200}
         erro={campos?.referencia_icms} ajuda="Ex.: item 6.1.4. Atualize se a cartilha mudar a numeração." />
+      <Campo id="dias_anonimizacao" rotulo="Prazo para apagar nome e contato dos visitantes (dias)" type="number" inputMode="numeric"
+        min={7} max={3650} defaultValue={String(v.dias_anonimizacao)} required erro={campos?.dias_anonimizacao}
+        ajuda="Contado a partir do dia da atividade. Depois dele, ficam só cidade, UF e quantidades. Padrão: 90 dias." />
       <Button type="submit" size="lg" disabled={pendente}>
         {pendente ? "Salvando…" : "Salvar configurações"}
       </Button>

@@ -19,6 +19,7 @@ const esquemaMunicipio = z.object({
       capa_caminho: z.string().nullable(),
       aviso_privacidade: z.string().nullable(),
       referencia_icms: z.string(),
+      dias_anonimizacao: z.number().int(),
     })
     .nullable(),
 });
@@ -34,7 +35,7 @@ export const buscarMunicipioPorSlug = cache(async (slug: string): Promise<Munici
   const supabase = await criarClienteServidor();
   const { data, error } = await supabase
     .from("municipios")
-    .select("id, slug, nome, ativo, configuracoes_municipio (nome_exibicao, cor_primaria, contato_secretaria, ouvidoria_url, logo_caminho, capa_caminho, aviso_privacidade, referencia_icms)")
+    .select("id, slug, nome, ativo, configuracoes_municipio (nome_exibicao, cor_primaria, contato_secretaria, ouvidoria_url, logo_caminho, capa_caminho, aviso_privacidade, referencia_icms, dias_anonimizacao)")
     .eq("slug", slug)
     .maybeSingle();
   if (error) throw new Error(`Falha ao carregar o município: ${error.message}`);
@@ -45,7 +46,7 @@ export const buscarMunicipioPorSlug = cache(async (slug: string): Promise<Munici
 });
 
 const COLUNAS_MUNICIPIO =
-  "id, slug, nome, ativo, configuracoes_municipio (nome_exibicao, cor_primaria, contato_secretaria, ouvidoria_url, logo_caminho, capa_caminho, aviso_privacidade, referencia_icms)";
+  "id, slug, nome, ativo, configuracoes_municipio (nome_exibicao, cor_primaria, contato_secretaria, ouvidoria_url, logo_caminho, capa_caminho, aviso_privacidade, referencia_icms, dias_anonimizacao)";
 
 /**
  * Município pelo id, mesmo inativo, para o painel (RLS: inativo só aparece para membros e admin).
