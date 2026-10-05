@@ -60,16 +60,16 @@ A expiração roda no próprio banco com `pg_cron`. Confirmação, emissão assi
 ## Fase 0: Fundação
 
 - [x] 0.1 Inspecionar o repositório, preservar o que existir e registrar o que foi encontrado.
-- [ ] 0.2 Verificar ferramentas: Node LTS, npm, git com remoto configurado, Docker em execução, Supabase CLI via `npx`. Docker ausente é bloqueio.
+- [x] 0.2 Verificar ferramentas: Node LTS, npm, git com remoto configurado, Docker em execução, Supabase CLI via `npx`. Docker ausente é bloqueio.
 - [x] 0.3 Criar a aplicação Next.js (App Router, TypeScript strict, Tailwind, ESLint) com versões estáveis atuais e `package-lock.json`.
 - [x] 0.4 Instalar shadcn/ui, lucide-react, Zod e as fontes; aplicar as cores do CLAUDE.md; criar o layout base para celular.
-- [ ] 0.5 Inicializar o Supabase local e criar os clientes: navegador, servidor (cookies) e privilegiado (`server-only`).
-- [ ] 0.6 Migrations: `municipios`, `configuracoes_municipio`, `perfis`, `vinculos`, `auditoria` com trigger genérico, funções `eh_admin` e `tem_papel`, políticas RLS.
-- [ ] 0.7 `seed.sql` com os sete municípios (nome e slug da SPEC). `seed.dev.sql` com usuários `[DEV]`: admin da assessoria, gestor e operador de Palmeirópolis, gestor de Peixe.
-- [ ] 0.8 Resolução de município por host, override restrito a dev e preview, hub com os municípios ativos, 404 para slug inválido.
-- [ ] 0.9 Autenticação: login por e-mail e senha em `/admin/login`, recuperação de senha, logout, nenhum cadastro público; `/admin` exige vínculo com o município do host.
-- [ ] 0.10 Script `npm run criar-admin -- <email>`: convida pelo Auth Admin API e marca o perfil como admin. Documentar no README.
-- [ ] 0.11 Infra de testes: Vitest, pgTAP, Playwright (390x844), script `verify` e teste que falha se `privilegiado.ts` for importado fora dos arquivos permitidos.
+- [x] 0.5 Inicializar o Supabase local e criar os clientes: navegador, servidor (cookies) e privilegiado (`server-only`).
+- [x] 0.6 Migrations: `municipios`, `configuracoes_municipio`, `perfis`, `vinculos`, `auditoria` com trigger genérico, funções `eh_admin` e `tem_papel`, políticas RLS.
+- [x] 0.7 `seed.sql` com os sete municípios (nome e slug da SPEC). `seed.dev.sql` com usuários `[DEV]`: admin da assessoria, gestor e operador de Palmeirópolis, gestor de Peixe.
+- [x] 0.8 Resolução de município por host, override restrito a dev e preview, hub com os municípios ativos, 404 para slug inválido.
+- [x] 0.9 Autenticação: login por e-mail e senha em `/admin/login`, recuperação de senha, logout, nenhum cadastro público; `/admin` exige vínculo com o município do host.
+- [x] 0.10 Script `npm run criar-admin -- <email>`: convida pelo Auth Admin API e marca o perfil como admin. Documentar no README.
+- [x] 0.11 Infra de testes: Vitest, pgTAP, Playwright (390x844), script `verify` e teste que falha se `privilegiado.ts` for importado fora dos arquivos permitidos.
 - [x] 0.12 `.gitignore` cobrindo `.env*` (exceto `.env.example`) e `.env.example` sem segredos.
 
 **Pronto quando:**
@@ -234,7 +234,7 @@ Primeira entrega completa: criar atividade, publicar, emitir voucher, confirmar 
 
 Pendências externas conhecidas. Atualize quando surgirem novas ou forem resolvidas.
 
-- [ ] Docker em execução na máquina do Nero (Supabase local e testes). Em 2026-10-05: comando `docker` inexistente e WSL não instalado; `npx supabase start` falha com `DockerLifecycleInspectError: docker: command not found`. Bloqueia 0.2 e a verificação de 0.5 a 0.11 (`supabase start`/`db reset`, `test:db`, integração, E2E com login, convite real do `criar-admin`) e a geração de `src/lib/database.types.ts`. O código desses itens está escrito e commitado. Nero precisa instalar o Docker Desktop (que instala o WSL 2), abri-lo e confirmar com `docker info`; depois: `npx supabase start`, `npx supabase db reset`, `.env.local` a partir do `npx supabase status` e `npm run verify`.
+- [x] Docker em execução na máquina do Nero. Resolvido em 2026-10-05: Docker Desktop 4.94 (engine 29.8.2) instalado por usuário em `%LOCALAPPDATA%ProgramsDockerDesktop`. Sessões de terminal abertas antes da instalação precisam do caminho `resourcesin` no PATH (ou reabrir o terminal).
 - [ ] Senha do banco remoto: hoje no `.env` local; manter fora do git e, se algum dia foi commitada, trocar no painel do Supabase. Em 2026-10-05 o valor apareceu por engano na conversa do Claude Code (filtro de redação esperava `=` e o arquivo usa `chave:valor`). Nero deve trocar a senha em Project Settings → Database.
 - [ ] Acesso à Vercel (equipe e projeto).
 - [ ] Compra do domínio `turismo.to`.
@@ -257,7 +257,10 @@ Registre aqui decisões tomadas durante a execução: data, decisão, motivo.
 - 2026-10-05: a árvore interna `/m/<slug>` responde 404 quando acessada diretamente; só a reescrita do proxy chega nela.
 - 2026-10-05: usuários `[DEV]` do `seed.dev.sql` não têm senha no repositório. O global-setup do Playwright define uma senha aleatória por execução via Admin API, e as chaves locais vêm de `supabase status` (nunca de arquivo versionado). `tests/ambiente.ts` recusa URLs que não sejam `127.0.0.1`/`localhost` (D11).
 - 2026-10-05: sem Docker, a migration, os seeds e o teste pgTAP foram pré-checados num PGlite (Postgres em WASM, no scratchpad, fora do repositório) com um esboço do schema `auth` e um shim de pgTAP: 43/43. Isso NÃO conta como verificação dos itens, que seguem abertos até rodar `npm run test:db` no Supabase local.
-- 2026-10-05: enquanto `database.types.ts` não pode ser gerado (sem banco local), as consultas validam o resultado com Zod. Gerar os tipos é a primeira tarefa depois do Docker.
+- 2026-10-05: enquanto `database.types.ts` não pode ser gerado (sem banco local), as consultas validam o resultado com Zod. Tipos gerados em 2026-10-05 e ligados aos três clientes.
+- 2026-10-05: no `config.toml`, `[auth] enable_signup = false` bloqueia o cadastro público; `[auth.email] enable_signup` precisa ficar `true`, porque desligá-lo desativa o login por e-mail ("Email logins are disabled"). Teste de integração prova `signup_disabled`.
+- 2026-10-05: migration `privilegios_service_role`: `usage` em `privado` para o `service_role` (os triggers falhavam no criar-admin) e `revoke` de escrita na `auditoria` (os privilégios padrão do Supabase davam tudo ao `service_role`). Coberto por `002_service_role.test.sql`.
+- 2026-10-05: o E2E roda contra `next build && next start`, não `next dev`: em dev o Next sobrescreve `Cache-Control` com `no-cache, must-revalidate`; em produção as páginas dinâmicas saem com `private, no-cache, no-store, max-age=0, must-revalidate`.
 - 2026-10-05: `package.json` com `"type": "module"` (Vitest avisava sobre ESM carregado como CommonJS). O `criar-admin` roda com `--conditions=react-server` para que `server-only` resolva fora do Next.
 
 ## Registro
@@ -268,3 +271,11 @@ Registre aqui decisões tomadas durante a execução: data, decisão, motivo.
 | 2026-10-05 | 0.3 | `create-next-app@16.3.8` (App Router, TS strict, Tailwind 4, ESLint 9, src/); `package-lock.json` gerado. `npm run typecheck` (com `next typegen`), `npm run lint` e `npm run build` saíram com código 0. |
 | 2026-10-05 | 0.4 | shadcn/ui (base-nova, Base UI) com button, input e label ajustados para 44px+/16px; lucide-react e Zod instalados; Atkinson Hyperlegible e Bricolage Grotesque via `next/font`; paleta e foco dourado de 3px em `globals.css`. `tests/unit/cores.test.ts` (4 testes) passa; typecheck, lint e build com código 0; captura em 390x844 confirmou fontes e fundo `rgb(238,240,234)`. |
 | 2026-10-05 | 0.12 | `.gitignore` com `.env*` e `!.env.example`; `.env.example` só com valores públicos e chaves vazias. `tests/unit/segredos.test.ts` (4 testes) passa: só `.env.example` versionado, `git check-ignore` ignora `.env`, `.env.local` e `.env.production`, nenhum arquivo versionado com chave, JWT, URL com senha ou senha literal. Detector provado com um arquivo de vazamento simulado (falhou e voltou a passar após removê-lo). |
+| 2026-10-05 | 0.2 | Node 24.18.0 (LTS), npm 11.16.0, git 2.56 com `origin` = github.com/NeroSued/turismo.to, Docker 29.8.2 (`docker info` responde, Docker Desktop 4.94), Supabase CLI 2.119.0 via `npx`. |
+| 2026-10-05 | 0.5 | `npx supabase start` subiu a stack local; `npx supabase db reset` aplicou as 2 migrations e os 2 seeds. Clientes navegador, servidor (cookies, `@supabase/ssr`) e privilegiado (`server-only`) tipados com `database.types.ts` gerado por `supabase gen types --local`; servidor e privilegiado exercitados pelo E2E e pelo criar-admin. |
+| 2026-10-05 | 0.6 | `npm run test:db`: 2 arquivos, 47 testes, PASS (RLS e políticas em todas as tabelas, funções definer com `search_path=''`, isolamento entre municípios, ninguém altera o próprio perfil/vínculo, auditoria por trigger com autor, service_role). `tests/integracao/api-publica.test.ts` confirma pela Data API que anônimo não lê perfis, vínculos e auditoria (42501). |
+| 2026-10-05 | 0.7 | `db reset` aplicou `seed.sql` (7 municípios) e `seed.dev.sql` (4 usuários `[DEV]` com perfis e vínculos). Integração lista os 7 slugs pela API; E2E entra com os usuários `[DEV]`. |
+| 2026-10-05 | 0.8 | E2E (build de produção, 390x844): hub lista os 7; `palmeiropolis.localhost:3000` abre o portal; `naoexiste.localhost` e `/m/palmeiropolis` direto respondem 404; `?municipio=peixe` ignorado sem `ALLOW_TENANT_OVERRIDE`, sem gravar cookie. Unitários do resolver (4 testes) cobrem override, preview e hosts maliciosos. |
+| 2026-10-05 | 0.9 | E2E: `/admin` sem login redireciona para `/admin/login` com `Cache-Control` `private`+`no-store`; senha errada mostra erro; gestor de Palmeirópolis entra, vê "Painel · Gestor" e sai; gestor de Peixe em Palmeirópolis recebe "Sem acesso a este painel"; recuperação responde igual para conta existente e inexistente; rotas de cadastro dão 404; integração prova `signup_disabled`. |
+| 2026-10-05 | 0.10 | `npm run criar-admin -- nova.admin@exemplo.test` no banco local: convite enviado (Mailpit recebeu "Convite para o painel Turismo.TO"), perfil marcado admin e registrado na auditoria; segunda execução idempotente. Link do e-mail → `/conta/nova-senha` → senha salva → login em Palmeirópolis mostra "Painel · Assessoria"; reuso do link → `/conta/link-expirado`. Documentado no README. |
+| 2026-10-05 | 0.11 | Vitest (unidade + integração, 26 testes), pgTAP (47), Playwright 390x844 (11) e `npm run verify` encadeando typecheck, lint, test, test:db, test:e2e e build. `tests/unit/privilegiado.test.ts` falhou com uma importação proibida simulada e voltou a passar depois de removê-la. |
