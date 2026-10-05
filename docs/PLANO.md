@@ -70,7 +70,7 @@ A expiração roda no próprio banco com `pg_cron`. Confirmação, emissão assi
 - [ ] 0.9 Autenticação: login por e-mail e senha em `/admin/login`, recuperação de senha, logout, nenhum cadastro público; `/admin` exige vínculo com o município do host.
 - [ ] 0.10 Script `npm run criar-admin -- <email>`: convida pelo Auth Admin API e marca o perfil como admin. Documentar no README.
 - [ ] 0.11 Infra de testes: Vitest, pgTAP, Playwright (390x844), script `verify` e teste que falha se `privilegiado.ts` for importado fora dos arquivos permitidos.
-- [ ] 0.12 `.gitignore` cobrindo `.env*` (exceto `.env.example`) e `.env.example` sem segredos.
+- [x] 0.12 `.gitignore` cobrindo `.env*` (exceto `.env.example`) e `.env.example` sem segredos.
 
 **Pronto quando:**
 
@@ -258,3 +258,4 @@ Registre aqui decisões tomadas durante a execução: data, decisão, motivo.
 | 2026-10-05 | 0.1 | Pasta tinha só `CLAUDE.md`, `.env` (senha do banco remoto, não versionado) e `docs/` (PLANO, SPEC); sem git. Remoto `NeroSued/turismo.to` existe e estava vazio (API GitHub: 409 "Git Repository is empty"). Tudo preservado. |
 | 2026-10-05 | 0.3 | `create-next-app@16.3.8` (App Router, TS strict, Tailwind 4, ESLint 9, src/); `package-lock.json` gerado. `npm run typecheck` (com `next typegen`), `npm run lint` e `npm run build` saíram com código 0. |
 | 2026-10-05 | 0.4 | shadcn/ui (base-nova, Base UI) com button, input e label ajustados para 44px+/16px; lucide-react e Zod instalados; Atkinson Hyperlegible e Bricolage Grotesque via `next/font`; paleta e foco dourado de 3px em `globals.css`. `tests/unit/cores.test.ts` (4 testes) passa; typecheck, lint e build com código 0; captura em 390x844 confirmou fontes e fundo `rgb(238,240,234)`. |
+| 2026-10-05 | 0.12 | `.gitignore` com `.env*` e `!.env.example`; `.env.example` só com valores públicos e chaves vazias. `tests/unit/segredos.test.ts` (4 testes) passa: só `.env.example` versionado, `git check-ignore` ignora `.env`, `.env.local` e `.env.production`, nenhum arquivo versionado com chave, JWT, URL com senha ou senha literal. Detector provado com um arquivo de vazamento simulado (falhou e voltou a passar após removê-lo). |
