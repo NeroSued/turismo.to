@@ -30,14 +30,20 @@ export async function entrarComo(email: string): Promise<Cliente> {
   if (error) throw new Error(`Falha ao listar usuários locais: ${error.message}`);
   const usuario = data.users.find((u) => u.email === email);
   if (!usuario) throw new Error(`Usuário ${email} não existe. Rode \`npx supabase db reset\`.`);
-  const senha = randomBytes(18).toString("base64url");
-  const r = await admin.auth.admin.updateUserById(usuario.id, { password: senha });
-  if (r.error) throw new Error(`Falha ao definir senha de ${email}: ${r.error.message}`);
-
-  const cliente = createClient<Database>(url, publishable, semSessao);
-  const login = await cliente.auth.signInWithPassword({ email, password: senha });
-  if (login.error) throw new Error(`Falha no login de ${email}: ${login.error.message}`);
-  return cliente;
+  // Arquivos de teste rodam em paralelo e cada um define a sua senha aleatória: se outro arquivo
+  // trocar a senha entre a definição e o login, tenta de novo. A sessão obtida continua válida.
+  let ultimoErro = "";
+  for (let tentativa = 0; tentativa < 6; tentativa++) {
+    const senha = randomBytes(18).toString("base64url");
+    const r = await admin.auth.admin.updateUserById(usuario.id, { password: senha });
+    if (r.error) throw new Error(`Falha ao definir senha de ${email}: ${r.error.message}`);
+    const cliente = createClient<Database>(url, publishable, semSessao);
+    const login = await cliente.auth.signInWithPassword({ email, password: senha });
+    if (!login.error) return cliente;
+    ultimoErro = login.error.message;
+    await new Promise((ok) => setTimeout(ok, 50 + Math.random() * 200));
+  }
+  throw new Error(`Falha no login de ${email}: ${ultimoErro}`);
 }
 
 export async function idDoMunicipio(slug: string): Promise<string> {
