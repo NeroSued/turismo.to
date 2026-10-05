@@ -108,6 +108,16 @@ test.describe.serial("acessibilidade e desempenho em todas as telas (5.3)", () =
     const page = await novaPagina(browser);
     const resultados: Resultado[] = [];
     resultados.push(await auditar(page, `${HUB}/`));
+    // Fontes servidas pelo próprio site (next/font/local): texto e títulos carregados, sem Google.
+    const fontes = await page.evaluate(async () => {
+      await document.fonts.ready;
+      await Promise.all([document.fonts.load("400 16px var(--font-texto)"), document.fonts.load("700 16px var(--font-titulo)")]).catch(() => null);
+      return [...document.fonts].filter((f) => f.status === "loaded").map((f) => `${f.family} ${f.weight}`);
+    });
+    expect(fontes.length, `fontes carregadas: ${fontes.join(", ")}`).toBeGreaterThanOrEqual(2);
+    expect(await page.locator('link[href*="fonts.googleapis"], link[href*="fonts.gstatic"]').count()).toBe(0);
+    const familias = await page.evaluate(() => [getComputedStyle(document.body).fontFamily, getComputedStyle(document.querySelector("h1")!).fontFamily]);
+    console.log(`fontes: ${fontes.join(", ")} | corpo: ${familias[0]} | título: ${familias[1]}`);
     resultados.push(await auditar(page, `${PALMEIROPOLIS}/`));
     resultados.push(await auditar(page, `${PALMEIROPOLIS}/atrativos`));
     resultados.push(await auditar(page, `${PALMEIROPOLIS}/atrativos/${ids.atrativo}`));

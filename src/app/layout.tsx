@@ -1,17 +1,26 @@
 import type { Metadata, Viewport } from "next";
-import { Atkinson_Hyperlegible, Bricolage_Grotesque } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const fonteTexto = Atkinson_Hyperlegible({
+// Fontes servidas pelo próprio site a partir dos pacotes @fontsource (OFL-1.1), sem baixar do Google
+// no build: no clone limpo o download falhou e o build parou. O subconjunto latin cobre o português.
+// (os caminhos precisam ser literais, exigência do next/font)
+const fonteTexto = localFont({
   variable: "--font-texto",
-  weight: ["400", "700"],
-  subsets: ["latin", "latin-ext"],
+  display: "swap",
+  src: [
+    { path: "../../node_modules/@fontsource/atkinson-hyperlegible/files/atkinson-hyperlegible-latin-400-normal.woff2", weight: "400", style: "normal" },
+    { path: "../../node_modules/@fontsource/atkinson-hyperlegible/files/atkinson-hyperlegible-latin-700-normal.woff2", weight: "700", style: "normal" },
+  ],
 });
 
-const fonteTitulo = Bricolage_Grotesque({
+const fonteTitulo = localFont({
   variable: "--font-titulo",
-  weight: ["500", "700"],
-  subsets: ["latin", "latin-ext"],
+  display: "swap",
+  src: [
+    { path: "../../node_modules/@fontsource/bricolage-grotesque/files/bricolage-grotesque-latin-500-normal.woff2", weight: "500", style: "normal" },
+    { path: "../../node_modules/@fontsource/bricolage-grotesque/files/bricolage-grotesque-latin-700-normal.woff2", weight: "700", style: "normal" },
+  ],
 });
 
 export const metadata: Metadata = {
