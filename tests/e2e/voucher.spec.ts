@@ -13,6 +13,7 @@ const TITULO = `[E2E] Trilha guiada ${randomBytes(3).toString("hex")}`;
 let codigoReservado = "";
 let codigoCancelado = "";
 let codigoExpirado = "";
+let codigoAssistido = "";
 
 // Câmera falsa para o leitor de QR do operador (ver camera.ts).
 gravarCamera(null);
@@ -277,5 +278,38 @@ test.describe.serial("voucher de ponta a ponta no celular", () => {
     await expect(outro).toBeVisible();
     await expect(outro).toContainText("não pertence a Peixe");
     await expect(page.getByText(TITULO)).toHaveCount(0);
+  });
+
+  test("operador emite voucher assistido para visitante sem celular e imprime o comprovante", async ({ page }) => {
+    await entrar(page, USUARIOS_DEV.operadorPalmeiropolis);
+    await page.getByRole("link", { name: "Emitir voucher para visitante sem celular" }).click();
+    await expect(page.getByRole("heading", { name: "Emitir voucher para visitante sem celular" })).toBeVisible();
+    await page.getByRole("link", { name: TITULO }).click();
+    await expect(page.getByText("Emissão assistida")).toBeVisible();
+    await expect(page.getByText("Restam 11 vagas neste horário.")).toBeVisible();
+    await page.getByRole("button", { name: "Aumentar quantidade" }).click();
+    await page.getByLabel("Cidade").fill("Arraias");
+    await page.getByRole("button", { name: "Emitir voucher" }).click();
+
+    await expect(page).toHaveURL(/\/admin\/vouchers\/[2-9A-HJKMNP-Z]{12}\?emitido=1$/);
+    await expect(page.getByRole("status").filter({ hasText: "Voucher emitido. Imprima o comprovante" })).toBeVisible();
+    const cartao = page.getByRole("article", { name: "Voucher turístico" });
+    await expect(cartao.getByText("Arraias/TO")).toBeVisible();
+    await expect(cartao.locator("dd").filter({ hasText: /^2$/ })).toBeVisible();
+    codigoAssistido = (await page.getByTestId("codigo-voucher").innerText()).trim();
+    await expect(page.getByRole("img", { name: `QR Code do voucher ${codigoAssistido}` })).toBeVisible();
+
+    await page.emulateMedia({ media: "print" });
+    await expect(page.getByRole("navigation", { name: "Navegação do painel" })).toBeHidden();
+    await expect(page.getByRole("button", { name: "Imprimir" })).toBeHidden();
+    await expect(cartao).toBeVisible();
+    await page.emulateMedia({ media: "screen" });
+
+    // O voucher assistido é atendido como qualquer outro.
+    await page.goto(`${PALMEIROPOLIS}/admin/atendimento`);
+    await page.getByLabel("Ou digite o código").fill(codigoAssistido);
+    await page.getByRole("button", { name: "Buscar" }).click();
+    await page.getByRole("button", { name: "Confirmar participação" }).click();
+    await expect(page.getByText("2 de 2")).toBeVisible();
   });
 });
