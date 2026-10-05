@@ -10,6 +10,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "criar-admin": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/criar-admin.ts",
+    "backup:storage": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/backup-storage.ts",
     "test:db": "supabase test db",
     "test:e2e": "playwright test",
     "verify": "npm run typecheck && npm run lint && npm run test && npm run test:db && npm run test:e2e && npm run build"
