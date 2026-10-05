@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { listarAtividades } from "@/lib/atividades/dados";
 import { envPublico, overrideDeMunicipioPermitido } from "@/lib/env";
 import { buscarMunicipioPorSlug } from "@/lib/municipio/dados";
 import { urlDoHub } from "@/lib/municipio/resolver";
@@ -11,6 +12,8 @@ export default async function PortalMunicipal({ params }: PageProps<"/m/[slug]">
   const nome = municipio.configuracoes_municipio?.nome_exibicao ?? municipio.nome;
   const contato = municipio.configuracoes_municipio?.contato_secretaria;
   const ouvidoria = municipio.configuracoes_municipio?.ouvidoria_url;
+  // Só as publicadas, mesmo para um membro logado que enxergue rascunhos pela RLS.
+  const atividades = await listarAtividades(municipio.id, true);
 
   return (
     <>
@@ -46,10 +49,35 @@ export default async function PortalMunicipal({ params }: PageProps<"/m/[slug]">
 
         <section aria-labelledby="atividades" className="flex flex-col gap-3">
           <h2 id="atividades" className="text-[23px] font-bold">Atividades com voucher</h2>
-          <p className="rounded-2xl border bg-superficie p-4 text-muted-foreground">
-            Nenhuma atividade publicada ainda. Quando a Secretaria de Turismo abrir reservas gratuitas
-            ou registros de visita, elas aparecem aqui.
-          </p>
+          {atividades.length === 0 ? (
+            <p className="rounded-2xl border bg-superficie p-4 text-muted-foreground">
+              Nenhuma atividade publicada ainda. Quando a Secretaria de Turismo abrir reservas gratuitas
+              ou registros de visita, elas aparecem aqui.
+            </p>
+          ) : (
+            <ul className="flex flex-col gap-2.5">
+              {atividades.map((a) => (
+                <li key={a.id}>
+                  <Link
+                    href={`/atividades/${a.id}`}
+                    className="flex min-h-16 items-center gap-3 rounded-2xl border bg-superficie p-3.5 text-foreground no-underline hover:border-primary hover:text-foreground"
+                  >
+                    <span className="flex min-w-0 flex-1 flex-col gap-1">
+                      <span className="text-[17px] font-bold">{a.titulo}</span>
+                      <span className="text-sm text-muted-foreground">
+                        {a.modo === "reserva" ? "Reserva gratuita com data e horário" : "Registro voluntário · acesso livre"}
+                        {a.local_encontro ? ` · ${a.local_encontro}` : ""}
+                      </span>
+                      <span className="w-fit rounded-full bg-dourado-suave px-2 py-0.5 text-xs font-bold text-dourado-texto">
+                        Gratuito
+                      </span>
+                    </span>
+                    <span className="shrink-0 font-bold text-primary">{a.modo === "reserva" ? "Reservar" : "Registrar"}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
         <section aria-labelledby="eventos" className="flex flex-col gap-3">

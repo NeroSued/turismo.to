@@ -7,7 +7,10 @@ import { describe, expect, it } from "vitest";
  * (operações privilegiadas do docs/PLANO.md, D8). Acrescentar aqui exige
  * registrar a operação no PLANO.
  */
-const PERMITIDOS = new Set(["scripts/criar-admin.ts"]);
+const PERMITIDOS = new Set([
+  "scripts/criar-admin.ts", // D8.3: script criar-admin
+  "src/lib/voucher/publico.ts", // D8.1 e D8.2: emissão pública e consulta/cancelamento por token
+]);
 
 const PASTAS = ["src", "scripts", "tests"];
 const EXTENSOES = /\.(ts|tsx|js|jsx|mjs|cjs)$/;

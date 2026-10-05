@@ -1,3 +1,4 @@
+import { execSync } from "node:child_process";
 import { createClient } from "@supabase/supabase-js";
 import { ambienteLocal, USUARIOS_DEV } from "../ambiente";
 
@@ -17,4 +18,10 @@ export default async function globalSetup() {
     const r = await admin.auth.admin.updateUserById(u.id, { password: senha });
     if (r.error) throw new Error(`Falha ao definir a senha de ${email}: ${r.error.message}`);
   }
+
+  // Execuções seguidas do E2E saem do mesmo IP (127.0.0.1) e esbarrariam no limite de
+  // emissões públicas (D9). Zera a contagem só no banco LOCAL (url conferida em ambienteLocal).
+  execSync(`docker exec supabase_db_turismo-to psql -U postgres -q -c "delete from public.limites_requisicao"`, {
+    stdio: "ignore",
+  });
 }
