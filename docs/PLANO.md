@@ -8,7 +8,7 @@ Como usar este arquivo:
 
 ## Estado
 
-- Fase ativa: **6** (Fase 5 concluída e verificada; PR #6 aguarda a aprovação do Nero para o merge, porque a Vercel já publica `main` em produção)
+- Fase ativa: **6** (Fase 5 concluída; PRs das fases 0 a 5 mesclados em `main`; o merge da Fase 5 foi aprovado pelo Nero porque a Vercel publica `main` em produção)
 - Última atualização: 2026-10-05
 
 ---
@@ -249,7 +249,7 @@ Pendências externas conhecidas. Atualize quando surgirem novas ou forem resolvi
 - [x] Apontar os nameservers de `turismo.to` para a Vercel. Resolvido pelo Nero em 2026-10-05; conferido no servidor do `.to` (`ns01.trs-dns.net`), que delega para `ns1.vercel-dns.com` e `ns2.vercel-dns.com`. Resolvedores públicos ainda mostravam os nameservers antigos do Spaceship por cache.
 - [x] Conta no Resend para o e-mail transacional (decisão do Nero em 2026-10-05: Resend, subdomínio de envio `envio.turismo.to`, configurado como SMTP personalizado no Supabase Auth; registros DNS do Resend no DNS da Vercel). Conta criada pelo Nero em 2026-10-05.
 - [ ] Configurar o Resend: adicionar o domínio `envio.turismo.to`, copiar os registros DNS que o Resend mostrar para o DNS da Vercel, esperar a verificação, criar uma chave de API só de envio e colá-la no SMTP do Supabase Auth. Passo a passo em `README.md`. Faz parte da Fase 6.2 (precisa do Nero, porque a chave é secreta).
-- [ ] Aprovação do Nero para mesclar o PR #6 (Fase 5) em `main`. Em 2026-10-05 o PR estava sem conflito e com `npm run verify` em código 0, mas já tem o check "Vercel" (o projeto da Vercel está ligado ao repositório), então o merge publica em produção e, pela regra do CLAUDE.md, só acontece com aprovação explícita.
+- [x] Aprovação do Nero para mesclar o PR #6 (Fase 5) em `main`. Em 2026-10-05 o PR estava sem conflito e com `npm run verify` em código 0, mas já tem o check "Vercel" (o projeto da Vercel está ligado ao repositório), então o merge publica em produção e, pela regra do CLAUDE.md, só acontece com aprovação explícita. Resolvido: o Nero aprovou ("Pode publicar") em 2026-10-05.
 - [ ] Logos, fotos e textos oficiais de cada prefeitura.
 - [ ] Revisão jurídica do aviso de privacidade pelas prefeituras.
 
@@ -383,3 +383,4 @@ Registre aqui decisões tomadas durante a execução: data, decisão, motivo.
 | 2026-10-05 | 5.5 | `docs/MANUAL.md`: entrar, primeiro acesso e senha; barra do gestor e do operador; operador (conferir pela câmera ou código, tabela de avisos, cancelar, emitir sem celular); gestor (atividade com reserva e registro voluntário, horários e vagas, atrativos, eventos, prestadores, vouchers, relatórios com leitura correta dos números, evidências, minuta, equipe, configurações com o prazo de anonimização, auditoria) e problemas comuns. Rótulos de botões e menus conferidos no código (`grep` em `src/`), e os fluxos são os mesmos percorridos pelos E2E. |
 | 2026-10-05 | 5.4 | README reescrito (ambiente local, endereços, contas de desenvolvimento, verificação, variáveis por ambiente, Supabase remoto sem `--include-seed`, Auth, Resend com `envio.turismo.to` e DNS na Vercel, Vercel, domínio e curinga, primeiro admin, operação) e `npm run env:local`. Validado em clone limpo do GitHub numa pasta temporária, com o Supabase local apagado antes (`supabase stop --no-backup`): `git clone` → `npm ci` → `npx playwright install chromium` → `npx supabase start` → `npm run env:local` → `npx supabase db reset` → `npm run verify` com código 0 (Vitest 89/89, pgTAP 296/296, Playwright 46/46, build) no commit `0056e6a`. As três rodadas anteriores acharam e corrigiram: fontes baixadas do Google no build, contraste do botão principal no hover e uma corrida no E2E da assessoria. |
 | 2026-10-05 | Fase 5 | `npm run verify` com código 0 depois de `npx supabase db reset`: typecheck, lint, Vitest 89/89 (15 arquivos), pgTAP 296/296 (8 arquivos; novos `007_privacidade` 14 e `008_lgpd_legenda` 12), Playwright 46/46 (390x844, build de produção; novo `acessibilidade.spec` 4 com axe em 58 avaliações de páginas públicas e do painel, 0 violações críticas ou sérias, e orçamento de desempenho), build. Mesmo resultado no clone limpo. |
+| 2026-10-05 | Merge da Fase 5 | Aprovado pelo Nero ("Pode publicar"). PR #6 sem conflito e com `npm run verify` em código 0, mesclado em `main` e branch `fase-5-qualidade` apagada. |
