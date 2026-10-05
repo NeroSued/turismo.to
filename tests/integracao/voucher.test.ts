@@ -296,3 +296,62 @@ describe("coerência do relatório", () => {
     }
   });
 });
+
+describe("auditoria", () => {
+  it("registra emissão assistida, confirmação, cancelamento e alteração de atividade com autor, sem dados pessoais", async () => {
+    const titulo = `[TESTE] Auditoria ${sufixo()}`;
+    const atividade = await criarAtividade(titulo, "registro_voluntario");
+    await gestor.from("atividades").update({ exige_responsavel: true }).eq("id", atividade);
+
+    const hoje = hojeEmAraguaina();
+    const emitir = (pessoas: number) =>
+      operador.rpc("emitir_voucher_assistido", {
+        p_municipio_id: palmeiropolis,
+        p_atividade_id: atividade,
+        p_sessao_id: null as unknown as string,
+        p_data_visita: hoje,
+        p_pessoas: pessoas,
+        p_cidade: "Paranã",
+        p_uf: "TO",
+        p_nome_responsavel: "Responsável Sigiloso",
+        p_contato: null as unknown as string,
+        p_chave_idempotencia: randomUUID(),
+      });
+    const [a, b] = await Promise.all([emitir(2), emitir(1)]);
+    if (a.error || b.error) throw new Error(a.error?.message ?? b.error?.message);
+    const [confirmado, cancelado] = [a.data![0], b.data![0]];
+    await operador.rpc("confirmar_voucher", { p_municipio_id: palmeiropolis, p_codigo: confirmado.codigo, p_pessoas_atendidas: 2 });
+    await gestor.rpc("cancelar_voucher_painel", { p_municipio_id: palmeiropolis, p_codigo: cancelado.codigo });
+
+    const { data: ids } = await servico.auth.admin.listUsers({ perPage: 200 });
+    const idDe = (email: string) => ids.users.find((u) => u.email === email)!.id;
+    const [idOperador, idGestor] = [idDe(USUARIOS_DEV.operadorPalmeiropolis), idDe(USUARIOS_DEV.gestorPalmeiropolis)];
+
+    // O gestor lê a auditoria do próprio município pela API (RLS).
+    const { data: trilha, error } = await gestor
+      .from("auditoria")
+      .select("tabela, operacao, usuario_id, registro_id, antes, depois")
+      .in("registro_id", [atividade, confirmado.voucher_id, cancelado.voucher_id])
+      .order("id");
+    expect(error).toBeNull();
+    type Linha = { tabela: string; operacao: string; usuario_id: string | null; registro_id: string; antes: Record<string, unknown> | null; depois: Record<string, unknown> | null };
+    const linhas = trilha as Linha[];
+    const tem = (f: (l: Linha) => boolean) => linhas.some(f);
+
+    const resumo = linhas.map((l) => `${l.tabela}:${l.operacao}:${(l.depois?.status as string) ?? ""}:${l.usuario_id === idOperador ? "operador" : l.usuario_id === idGestor ? "gestor" : l.usuario_id}`);
+    console.info(`[auditoria] ${resumo.join(" | ")}`);
+
+    expect(tem((l) => l.tabela === "atividades" && l.operacao === "UPDATE" && l.usuario_id === idGestor && l.depois?.exige_responsavel === true)).toBe(true);
+    expect(tem((l) => l.tabela === "vouchers" && l.operacao === "INSERT" && l.usuario_id === idOperador && l.depois?.origem === "assistida")).toBe(true);
+    expect(tem((l) => l.tabela === "vouchers" && l.registro_id === confirmado.voucher_id && l.depois?.status === "utilizado" && l.usuario_id === idOperador)).toBe(true);
+    expect(tem((l) => l.tabela === "vouchers" && l.registro_id === cancelado.voucher_id && l.depois?.status === "cancelado" && l.usuario_id === idGestor)).toBe(true);
+    expect(JSON.stringify(linhas)).not.toContain("Responsável Sigiloso");
+    expect(JSON.stringify(linhas)).not.toContain("token_hash");
+
+    // Operador e gestor de outro município não leem essa trilha.
+    const op = await operador.from("auditoria").select("id").in("registro_id", [confirmado.voucher_id]);
+    const outro = await gestorPeixe.from("auditoria").select("id").in("registro_id", [confirmado.voucher_id]);
+    expect(op.data).toEqual([]);
+    expect(outro.data).toEqual([]);
+  });
+});

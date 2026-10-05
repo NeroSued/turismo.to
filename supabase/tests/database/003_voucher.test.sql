@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(75);
+select plan(80);
 
 -- ---------------------------------------------------------------------------
 -- Dados de teste: municípios A e B, admin, gestor e operador de A, gestor de B
@@ -427,6 +427,46 @@ select ok(
   'auditoria registra a alteração de atividade com o gestor'
 );
 
+reset role;
+
+-- ---------------------------------------------------------------------------
+-- Auditoria (item 1.9): cancelamentos, horários e nada de ruído nas emissões
+-- ---------------------------------------------------------------------------
+
+select ok(
+  exists (select 1 from public.auditoria where tabela = 'vouchers' and operacao = 'UPDATE'
+          and registro_id = '61000000-0000-4000-8000-000000000002'
+          and usuario_id = '21000000-0000-4000-8000-000000000003'
+          and antes ->> 'status' = 'emitido' and depois ->> 'status' = 'cancelado' and depois ->> 'cancelado_via' = 'painel'),
+  'auditoria registra o cancelamento pelo painel com o operador'
+);
+select ok(
+  exists (select 1 from public.auditoria a join emitidos e on a.registro_id = e.voucher_id::text
+          where e.rotulo = 'p2' and a.tabela = 'vouchers' and a.operacao = 'UPDATE' and a.usuario_id is null
+            and a.depois ->> 'status' = 'cancelado' and a.depois ->> 'cancelado_via' = 'visitante'),
+  'auditoria registra o cancelamento pelo visitante (sem usuário do painel)'
+);
+select is(
+  (select count(*)::int from public.auditoria where tabela = 'sessoes' and operacao = 'UPDATE'
+     and registro_id = '51000000-0000-4000-8000-000000000001'),
+  0, 'emissões e cancelamentos não geram auditoria de sessão só por mudar pessoas_reservadas'
+);
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"21000000-0000-4000-8000-000000000002","role":"authenticated"}', true);
+update public.sessoes set capacidade_pessoas = 30 where id = '51000000-0000-4000-8000-000000000001';
+select ok(
+  exists (select 1 from public.auditoria where tabela = 'sessoes' and operacao = 'UPDATE'
+          and registro_id = '51000000-0000-4000-8000-000000000001' and usuario_id = '21000000-0000-4000-8000-000000000002'
+          and antes ->> 'capacidade_pessoas' = '15' and depois ->> 'capacidade_pessoas' = '30'),
+  'auditoria registra a mudança de vagas com o gestor (e o gestor lê a auditoria do município)'
+);
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"21000000-0000-4000-8000-000000000004","role":"authenticated"}', true);
+select is(
+  (select count(*)::int from public.auditoria where municipio_id = '11000000-0000-4000-8000-000000000001'),
+  0, 'gestor de B não lê a auditoria de A'
+);
 reset role;
 
 -- ---------------------------------------------------------------------------
