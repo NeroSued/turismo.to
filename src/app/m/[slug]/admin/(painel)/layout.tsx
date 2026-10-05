@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Pagina } from "@/components/pagina";
-import { acessoAoMunicipio, type Papel } from "@/lib/auth/acesso";
+import { NavegacaoPainel } from "@/components/painel/navegacao";
+import type { Papel } from "@/lib/auth/acesso";
 import { sair } from "@/lib/auth/acoes";
-import { buscarMunicipioPorSlug } from "@/lib/municipio/dados";
+import { contextoDoSlug } from "@/lib/painel/contexto";
 
 export const metadata: Metadata = { title: "Painel", robots: { index: false } };
 
@@ -17,10 +18,7 @@ const ROTULO_PAPEL: Record<Papel, string> = {
 /** Todo o painel exige sessão e vínculo ativo com o município do recurso. */
 export default async function LayoutPainel({ params, children }: LayoutProps<"/m/[slug]/admin">) {
   const { slug } = await params;
-  const municipio = await buscarMunicipioPorSlug(slug);
-  if (!municipio) notFound();
-
-  const acesso = await acessoAoMunicipio(municipio.id);
+  const { municipio, acesso } = await contextoDoSlug(slug);
   if (acesso.status === "anonimo") redirect("/admin/login");
 
   if (acesso.status === "sem_acesso") {
@@ -44,8 +42,8 @@ export default async function LayoutPainel({ params, children }: LayoutProps<"/m
   }
 
   return (
-    <div className="flex flex-1 flex-col">
-      <header className="mx-auto flex w-full max-w-xl items-center justify-between gap-3 px-4 py-3">
+    <div className="flex flex-1 flex-col pb-[88px] print:pb-0">
+      <header className="mx-auto flex w-full max-w-xl items-center justify-between gap-3 px-4 py-3 print:hidden">
         <div className="flex flex-col leading-tight">
           <span className="text-xs tracking-[0.06em] text-muted-foreground uppercase">
             Painel · {ROTULO_PAPEL[acesso.papel]}
@@ -59,6 +57,7 @@ export default async function LayoutPainel({ params, children }: LayoutProps<"/m
         </form>
       </header>
       {children}
+      <NavegacaoPainel papel={acesso.papel} />
     </div>
   );
 }
