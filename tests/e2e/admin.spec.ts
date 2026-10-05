@@ -279,6 +279,10 @@ test.describe.serial("administração e usuários no celular", () => {
     await page.getByLabel("Nome de exibição").fill("");
     await page.getByRole("button", { name: "Salvar configurações" }).click();
     await expect(page.getByRole("status").filter({ hasText: "Configurações salvas" })).toBeVisible();
+    // A mensagem do primeiro salvamento continua na tela: espera o segundo terminar antes do axe,
+    // senão ele avalia o botão desativado ("Salvando…"), isento de contraste pela WCAG 1.4.3.
+    await expect(page.getByRole("button", { name: "Salvar configurações" })).toBeEnabled();
+    expect(sqlLocal(`select coalesce(c.nome_exibicao, 'vazio') from public.configuracoes_municipio c join public.municipios m on m.id = c.municipio_id where m.slug = 'ananas'`)).toBe("vazio");
 
     const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
     expect(axe.violations.filter((v) => v.impact === "critical" || v.impact === "serious")).toEqual([]);
