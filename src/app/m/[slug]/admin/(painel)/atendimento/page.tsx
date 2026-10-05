@@ -17,7 +17,7 @@ export default async function Atendimento({ params }: PageProps<"/m/[slug]/admin
       <LeitorQr />
       <Link
         href="/admin/vouchers/emitir"
-        className={buttonVariants({ variant: "outline", size: "lg", className: "border-[1.5px] border-foreground no-underline" })}
+        className={buttonVariants({ variant: "contorno", size: "lg", className: "no-underline" })}
       >
         <Plus aria-hidden="true" className="size-5" /> Emitir voucher para visitante sem celular
       </Link>
