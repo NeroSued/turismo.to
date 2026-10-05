@@ -61,7 +61,7 @@ A expiração roda no próprio banco com `pg_cron`. Confirmação, emissão assi
 
 - [x] 0.1 Inspecionar o repositório, preservar o que existir e registrar o que foi encontrado.
 - [ ] 0.2 Verificar ferramentas: Node LTS, npm, git com remoto configurado, Docker em execução, Supabase CLI via `npx`. Docker ausente é bloqueio.
-- [ ] 0.3 Criar a aplicação Next.js (App Router, TypeScript strict, Tailwind, ESLint) com versões estáveis atuais e `package-lock.json`.
+- [x] 0.3 Criar a aplicação Next.js (App Router, TypeScript strict, Tailwind, ESLint) com versões estáveis atuais e `package-lock.json`.
 - [ ] 0.4 Instalar shadcn/ui, lucide-react, Zod e as fontes; aplicar as cores do CLAUDE.md; criar o layout base para celular.
 - [ ] 0.5 Inicializar o Supabase local e criar os clientes: navegador, servidor (cookies) e privilegiado (`server-only`).
 - [ ] 0.6 Migrations: `municipios`, `configuracoes_municipio`, `perfis`, `vinculos`, `auditoria` com trigger genérico, funções `eh_admin` e `tem_papel`, políticas RLS.
@@ -256,3 +256,4 @@ Registre aqui decisões tomadas durante a execução: data, decisão, motivo.
 | Data | Item | Verificação |
 |:-|:-|:-|
 | 2026-10-05 | 0.1 | Pasta tinha só `CLAUDE.md`, `.env` (senha do banco remoto, não versionado) e `docs/` (PLANO, SPEC); sem git. Remoto `NeroSued/turismo.to` existe e estava vazio (API GitHub: 409 "Git Repository is empty"). Tudo preservado. |
+| 2026-10-05 | 0.3 | `create-next-app@16.3.8` (App Router, TS strict, Tailwind 4, ESLint 9, src/); `package-lock.json` gerado. `npm run typecheck` (com `next typegen`), `npm run lint` e `npm run build` saíram com código 0. |
