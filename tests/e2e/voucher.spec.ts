@@ -312,4 +312,32 @@ test.describe.serial("voucher de ponta a ponta no celular", () => {
     await page.getByRole("button", { name: "Confirmar participação" }).click();
     await expect(page.getByText("2 de 2")).toBeVisible();
   });
+
+  test("relatório do gestor mostra o voucher utilizado com a quantidade atendida, sem confundir reserva com visita", async ({ page }) => {
+    await entrar(page, USUARIOS_DEV.gestorPalmeiropolis);
+    await expect(page.getByRole("heading", { name: "Indicadores" })).toBeVisible();
+    await expect(page.getByText("reservas feitas, não visitas")).toBeVisible();
+    await expect(page.getByText(TITULO).first()).toBeVisible(); // seção "Hoje"
+
+    await page.getByRole("navigation", { name: "Navegação do painel" }).getByRole("link", { name: "Relatórios" }).click();
+    await expect(page.getByRole("heading", { name: "Relatório de vouchers" })).toBeVisible();
+
+    const linha = page.locator(`li[data-codigo="${codigoReservado.replace(/-/g, "")}"]`);
+    await expect(linha.getByText("Utilizado", { exact: true })).toBeVisible();
+    await expect(linha).toContainText("3 reservadas · 2 atendidas");
+    await expect(page.locator(`li[data-codigo="${codigoCancelado.replace(/-/g, "")}"]`).getByText("Cancelado", { exact: true })).toBeVisible();
+    await expect(page.locator(`li[data-codigo="${codigoExpirado.replace(/-/g, "")}"]`).getByText("Expirado", { exact: true })).toBeVisible();
+    await expect(page.locator(`li[data-codigo="${codigoAssistido.replace(/-/g, "")}"]`)).toContainText("2 atendidas · emissão assistida");
+
+    // Resumo da atividade: 4 vouchers (2 utilizados, 1 cancelado, 1 expirado); 6 pessoas reservadas; 4 participações.
+    const atividade = page.locator("li").filter({ hasText: TITULO }).filter({ hasText: "emitidos" });
+    await expect(atividade).toContainText("4 emitidos · 2 utilizados · 1 cancelados · 1 expirados");
+    await expect(atividade).toContainText("6 pessoas reservadas · 4 participações confirmadas");
+
+    for (const nota of ["reservas feitas, não visitas", "pessoas atendidas; não são turistas únicos", "adesões, não o fluxo total"]) {
+      await expect(page.getByText(nota)).toBeVisible();
+    }
+    // Nenhum dado pessoal no relatório.
+    await expect(page.getByText("[DEV]")).toHaveCount(0);
+  });
 });
