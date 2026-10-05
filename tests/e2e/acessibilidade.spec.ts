@@ -115,6 +115,8 @@ test.describe.serial("acessibilidade e desempenho em todas as telas (5.3)", () =
     resultados.push(await auditar(page, `${PALMEIROPOLIS}/eventos/${ids.evento}`));
     resultados.push(await auditar(page, `${PALMEIROPOLIS}/prestadores`));
     resultados.push(await auditar(page, `${PALMEIROPOLIS}/privacidade`));
+    // Sem aviso configurado, a página informa o prazo de apagamento do município (D10, item 5.2).
+    await expect(page.getByText(/Nome e telefone são apagados \d+ dias depois da data da atividade/)).toBeVisible();
     resultados.push(await auditar(page, `${PALMEIROPOLIS}/atividades/${ids.atividade}`));
     resultados.push(await auditar(page, `${PALMEIROPOLIS}/voucher/${token}`));
     resultados.push(await auditar(page, `${PALMEIROPOLIS}/voucher/token-invalido-${SUF}`, { titulo: /Voucher não encontrado/ }));

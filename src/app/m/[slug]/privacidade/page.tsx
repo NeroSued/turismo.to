@@ -15,6 +15,7 @@ export default async function Privacidade({ params }: PageProps<"/m/[slug]/priva
   const municipio = await buscarMunicipioPorSlug(slug);
   if (!municipio) notFound();
   const aviso = municipio.configuracoes_municipio?.aviso_privacidade;
+  const prazo = municipio.configuracoes_municipio?.dias_anonimizacao ?? 90;
 
   return (
     <>
@@ -30,6 +31,10 @@ export default async function Privacidade({ params }: PageProps<"/m/[slug]/priva
             <ul className="flex list-disc flex-col gap-1.5 pl-5">
               <li>Para reservar ou registrar uma visita: cidade e UF de origem e a quantidade de pessoas.</li>
               <li>Nome do responsável e telefone só quando a atividade exige, para a organização do grupo.</li>
+              <li>
+                Nome e telefone são apagados {prazo} dias depois da data da atividade. Ficam só cidade, UF e quantidades, para as
+                estatísticas de turismo do município.
+              </li>
               <li>Nunca pedimos CPF, documento ou endereço, e não é preciso criar conta.</li>
             </ul>
             <p className="text-muted-foreground">Dúvidas sobre os seus dados: fale com a Secretaria de Turismo pelo contato no fim da página.</p>
