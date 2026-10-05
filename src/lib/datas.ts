@@ -58,6 +58,21 @@ export function formatarHora(v: Instante): string {
   return fmtHora.format(comoData(v));
 }
 
+const fmtMes = new Intl.DateTimeFormat("pt-BR", { timeZone: FUSO, month: "short" });
+const fmtMesAno = new Intl.DateTimeFormat("pt-BR", { timeZone: FUSO, month: "long", year: "numeric" });
+
+/** Dia do mês e mês abreviado de um instante, para blocos de calendário: { dia: "12", mes: "OUT" }. */
+export function diaEMes(v: Instante): { dia: string; mes: string } {
+  const d = comoData(v);
+  return { dia: diaLocal(d).slice(8, 10), mes: fmtMes.format(d).replace(".", "").toUpperCase() };
+}
+
+/** "Outubro de 2026" (agrupamento do calendário). */
+export function formatarMesAno(v: Instante): string {
+  const s = fmtMesAno.format(comoData(v));
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 /** "12/10/2026 às 08:00". */
 export function formatarDataHora(v: Instante): string {
   return `${formatarData(v)} às ${formatarHora(v)}`;

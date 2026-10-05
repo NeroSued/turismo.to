@@ -125,6 +125,12 @@
   }
 }
 
+/* Espaço reservado para foto oficial ainda não enviada (tela "Portal municipal" do canvas). */
+.marcador-foto {
+  background-color: #c9d2c2;
+  background-image: repeating-linear-gradient(135deg, rgb(22 33 27 / 0.08) 0 2px, transparent 2px 12px);
+}
+
 /* Impressão do comprovante: fundo branco, sem navegação nem botões (classes print:hidden). */
 @media print {
   @page {

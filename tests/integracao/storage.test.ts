@@ -33,7 +33,7 @@ afterAll(async () => {
   }
 });
 
-async function enviar(cliente: Cliente, bucket: string, caminho: string, corpo: Uint8Array, contentType: string) {
+async function enviar(cliente: Cliente, bucket: string, caminho: string, corpo: Uint8Array<ArrayBuffer>, contentType: string) {
   const r = await cliente.storage.from(bucket).upload(caminho, new Blob([corpo], { type: contentType }), { contentType });
   if (!r.error) criados.push({ bucket, caminho });
   return r;
