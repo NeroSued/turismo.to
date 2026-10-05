@@ -8,7 +8,7 @@ Como usar este arquivo:
 
 ## Estado
 
-- Fase ativa: **0**
+- Fase ativa: **1**
 - Última atualização: 2026-10-05
 
 ---
@@ -90,8 +90,8 @@ A expiração roda no próprio banco com `pg_cron`. Confirmação, emissão assi
 
 Primeira entrega completa: criar atividade, publicar, emitir voucher, confirmar participação e gerar relatório.
 
-- [ ] 1.1 Migrations: `atividades` (modo, status rascunho/publicado/arquivado, condições, `exige_responsavel`, `exige_contato`, atrativo opcional por FK composta), `sessoes`, `vouchers`, `limites_requisicao`.
-- [ ] 1.2 Funções no banco: emissão (D4, D5, D6), confirmação, cancelamento pelo painel, consulta e cancelamento por token, expiração com `pg_cron`.
+- [x] 1.1 Migrations: `atividades` (modo, status rascunho/publicado/arquivado, condições, `exige_responsavel`, `exige_contato`, atrativo opcional por FK composta), `sessoes`, `vouchers`, `limites_requisicao`.
+- [x] 1.2 Funções no banco: emissão (D4, D5, D6), confirmação, cancelamento pelo painel, consulta e cancelamento por token, expiração com `pg_cron`.
 - [ ] 1.3 Painel do gestor: criar, editar, publicar e arquivar atividades; gerenciar sessões e capacidade.
 - [ ] 1.4 Portal público: lista de atividades publicadas e fluxo de reserva conforme a tela "Reserva gratuita" do canvas.
 - [ ] 1.5 Comprovante conforme a tela "Voucher emitido": código, QR, município, atividade, horário, pessoas, gratuidade; salvar e imprimir (CSS de impressão); link com token para consultar e cancelar.
@@ -262,6 +262,14 @@ Registre aqui decisões tomadas durante a execução: data, decisão, motivo.
 - 2026-10-05: migration `privilegios_service_role`: `usage` em `privado` para o `service_role` (os triggers falhavam no criar-admin) e `revoke` de escrita na `auditoria` (os privilégios padrão do Supabase davam tudo ao `service_role`). Coberto por `002_service_role.test.sql`.
 - 2026-10-05: o E2E roda contra `next build && next start`, não `next dev`: em dev o Next sobrescreve `Cache-Control` com `no-cache, must-revalidate`; em produção as páginas dinâmicas saem com `private, no-cache, no-store, max-age=0, must-revalidate`.
 - 2026-10-05: `package.json` com `"type": "module"` (Vitest avisava sobre ESM carregado como CommonJS). O `criar-admin` roda com `--conditions=react-server` para que `server-only` resolva fora do Next.
+- 2026-10-05: o PR da Fase 0 não tinha sido aberto (faltava o `gh`) e `main` ainda não tem a fundação. Aberto o PR #1 (`fase-0-fundacao` → `main`) e `fase-1-voucher` foi criada a partir de `fase-0-fundacao`, não de `main`: sem a fundação nada da Fase 1 funciona. O PR da Fase 1 fica empilhado sobre o #1; depois do merge do #1 ele mostra só os commits da Fase 1.
+- 2026-10-05: `atividades.atrativo_id` existe desde já, mas a FK composta `(municipio_id, atrativo_id)` entra na Fase 2.1, junto com a tabela `atrativos`.
+- 2026-10-05: regra no `privado` (security definer) e invólucros `security invoker` em `public` para a Data API; `EXECUTE` decide quem chama (service_role: emissão pública, token e limite; authenticated: assistida, conferência, confirmação, cancelamento e relatório). Erros de regra saem como `P0001` com uma chave curta (`sem_vagas`, `atividade_indisponivel`...), traduzida no servidor.
+- 2026-10-05: D5 na prática: repetição da mesma chave devolve o mesmo voucher e **troca o token** (só o hash é guardado, então não dá para devolver o anterior). O link mais recente vale; a resposta anterior pode ter se perdido, que é o motivo da repetição. Requisições com a mesma chave são serializadas com `pg_advisory_xact_lock`.
+- 2026-10-05: registro voluntário não tem sessões (trigger recusa); o visitante escolhe o dia (`data_visita`, hoje até 365 dias). Todo voucher grava `data_visita` no fuso America/Araguaina; confirmação só nesse dia e expiração no fim dele (reserva: fim da sessão + 2 h). Horário de sessão com vouchers não pode mudar.
+- 2026-10-05: operador não lê a tabela `vouchers` (RLS só para gestor/admin). Ele confere pela função `conferir_voucher`, que devolve só os campos necessários, sem nome, contato ou token. A conferência e a confirmação expiram na hora um voucher vencido que o `pg_cron` (a cada 10 min) ainda não pegou.
+- 2026-10-05: relatório filtra o período pelo dia da atividade (`data_visita`) e separa dois blocos: reservas (emitidos, utilizados, cancelados, expirados, pessoas reservadas, participações confirmadas) e registros voluntários (adesões e pessoas declaradas). Os totais do bloco de reservas são a soma das atividades em modo reserva (teste de coerência).
+- 2026-10-05: auditoria de vouchers por trigger, sem `nome_responsavel`, `contato`, `token_hash` e `chave_idempotencia` (o trigger genérico ganhou um 2º argumento com colunas omitidas). Emissão e cancelamento não geram linha de auditoria de sessão só por mudar `pessoas_reservadas`.
 
 ## Registro
 
@@ -279,3 +287,5 @@ Registre aqui decisões tomadas durante a execução: data, decisão, motivo.
 | 2026-10-05 | 0.9 | E2E: `/admin` sem login redireciona para `/admin/login` com `Cache-Control` `private`+`no-store`; senha errada mostra erro; gestor de Palmeirópolis entra, vê "Painel · Gestor" e sai; gestor de Peixe em Palmeirópolis recebe "Sem acesso a este painel"; recuperação responde igual para conta existente e inexistente; rotas de cadastro dão 404; integração prova `signup_disabled`. |
 | 2026-10-05 | 0.10 | `npm run criar-admin -- nova.admin@exemplo.test` no banco local: convite enviado (Mailpit recebeu "Convite para o painel Turismo.TO"), perfil marcado admin e registrado na auditoria; segunda execução idempotente. Link do e-mail → `/conta/nova-senha` → senha salva → login em Palmeirópolis mostra "Painel · Assessoria"; reuso do link → `/conta/link-expirado`. Documentado no README. |
 | 2026-10-05 | 0.11 | Vitest (unidade + integração, 26 testes), pgTAP (47), Playwright 390x844 (11) e `npm run verify` encadeando typecheck, lint, test, test:db, test:e2e e build. `tests/unit/privilegiado.test.ts` falhou com uma importação proibida simulada e voltou a passar depois de removê-la. |
+| 2026-10-05 | 1.1 | Migration `voucher_tabelas` aplicada por `npx supabase db reset`. pgTAP `003_voucher.test.sql`: RLS ativa nas 4 tabelas; anônimo não lê `vouchers` nem `limites_requisicao` (42501), vê só atividades publicadas e sessões de publicadas; gestor de B não cria atividade em A; gestor não altera `pessoas_reservadas`; capacidade não fica abaixo do reservado (23514). |
+| 2026-10-05 | 1.2 | `npm run test:db`: 3 arquivos, 122 testes, PASS (75 do voucher: emissão, idempotência, sem vagas, token só como hash, token errado = inexistente, cancelamento devolve as pessoas, confirmação repetida, cancelado, expirado, fora do dia, outro município, `pg_cron` agendado). `tests/integracao/voucher.test.ts` (8) pela Data API: 30 emissões simultâneas → 8 aceitas, 15 pessoas = `pessoas_reservadas`; mesma chave 10× → 1 voucher; coerência do relatório. |

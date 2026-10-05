@@ -23,7 +23,26 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            "auditoria": {
+            "atividades": {
+                  Row: {
+                    "atrativo_id": string | null,"atualizado_em": string,"condicoes": string | null,"criado_em": string,"criado_por": string | null,"descricao": string | null,"exige_contato": boolean,"exige_responsavel": boolean,"id": string,"local_encontro": string | null,"max_pessoas_por_voucher": number,"modo": string,"municipio_id": string,"status": string,"titulo": string
+                  }
+                  Insert: {
+                    "atrativo_id"?: string | null,"atualizado_em"?: string,"condicoes"?: string | null,"criado_em"?: string,"criado_por"?: string | null,"descricao"?: string | null,"exige_contato"?: boolean,"exige_responsavel"?: boolean,"id"?: string,"local_encontro"?: string | null,"max_pessoas_por_voucher"?: number,"modo": string,"municipio_id": string,"status"?: string,"titulo": string
+                  }
+                  Update: {
+                    "atrativo_id"?: string | null,"atualizado_em"?: string,"condicoes"?: string | null,"criado_em"?: string,"criado_por"?: string | null,"descricao"?: string | null,"exige_contato"?: boolean,"exige_responsavel"?: boolean,"id"?: string,"local_encontro"?: string | null,"max_pessoas_por_voucher"?: number,"modo"?: string,"municipio_id"?: string,"status"?: string,"titulo"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "atividades_municipio_id_fkey"
+      columns: ["municipio_id"]
+isOneToOne: false
+      referencedRelation: "municipios"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"auditoria": {
                   Row: {
                     "antes": Json | null,"depois": Json | null,"em": string,"id": number,"municipio_id": string | null,"operacao": string,"registro_id": string | null,"tabela": string,"usuario_id": string | null
                   }
@@ -55,6 +74,19 @@ isOneToOne: true
       referencedColumns: ["id"]
     }
                   ]
+                },"limites_requisicao": {
+                  Row: {
+                    "alvo": string,"chave": string,"contagem": number,"escopo": string,"janela": string
+                  }
+                  Insert: {
+                    "alvo": string,"chave": string,"contagem"?: number,"escopo": string,"janela": string
+                  }
+                  Update: {
+                    "alvo"?: string,"chave"?: string,"contagem"?: number,"escopo"?: string,"janela"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"municipios": {
                   Row: {
                     "ativo": boolean,"atualizado_em": string,"criado_em": string,"id": string,"nome": string,"slug": string
@@ -81,6 +113,25 @@ isOneToOne: true
                   Relationships: [
                     
                   ]
+                },"sessoes": {
+                  Row: {
+                    "ativa": boolean,"atividade_id": string,"atualizado_em": string,"capacidade_pessoas": number | null,"criado_em": string,"fim": string,"id": string,"inicio": string,"municipio_id": string,"pessoas_reservadas": number
+                  }
+                  Insert: {
+                    "ativa"?: boolean,"atividade_id": string,"atualizado_em"?: string,"capacidade_pessoas"?: number | null,"criado_em"?: string,"fim": string,"id"?: string,"inicio": string,"municipio_id": string,"pessoas_reservadas"?: number
+                  }
+                  Update: {
+                    "ativa"?: boolean,"atividade_id"?: string,"atualizado_em"?: string,"capacidade_pessoas"?: number | null,"criado_em"?: string,"fim"?: string,"id"?: string,"inicio"?: string,"municipio_id"?: string,"pessoas_reservadas"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "sessoes_municipio_id_atividade_id_fkey"
+      columns: ["municipio_id","atividade_id"]
+isOneToOne: false
+      referencedRelation: "atividades"
+      referencedColumns: ["municipio_id","id"]
+    }
+                  ]
                 },"vinculos": {
                   Row: {
                     "ativo": boolean,"atualizado_em": string,"criado_em": string,"id": string,"municipio_id": string,"papel": string,"user_id": string
@@ -106,13 +157,68 @@ isOneToOne: false
       referencedColumns: ["user_id"]
     }
                   ]
+                },"vouchers": {
+                  Row: {
+                    "atividade_id": string,"cancelado_em": string | null,"cancelado_por": string | null,"cancelado_via": string | null,"chave_idempotencia": string,"cidade": string,"codigo": string,"contato": string | null,"data_visita": string,"emitido_em": string,"emitido_por": string | null,"expirado_em": string | null,"id": string,"municipio_id": string,"nome_responsavel": string | null,"origem": string,"pessoas": number,"pessoas_atendidas": number | null,"sessao_id": string | null,"status": string,"token_hash": string,"uf": string,"utilizado_em": string | null,"utilizado_por": string | null
+                  }
+                  Insert: {
+                    "atividade_id": string,"cancelado_em"?: string | null,"cancelado_por"?: string | null,"cancelado_via"?: string | null,"chave_idempotencia": string,"cidade": string,"codigo": string,"contato"?: string | null,"data_visita": string,"emitido_em"?: string,"emitido_por"?: string | null,"expirado_em"?: string | null,"id"?: string,"municipio_id": string,"nome_responsavel"?: string | null,"origem": string,"pessoas": number,"pessoas_atendidas"?: number | null,"sessao_id"?: string | null,"status"?: string,"token_hash": string,"uf": string,"utilizado_em"?: string | null,"utilizado_por"?: string | null
+                  }
+                  Update: {
+                    "atividade_id"?: string,"cancelado_em"?: string | null,"cancelado_por"?: string | null,"cancelado_via"?: string | null,"chave_idempotencia"?: string,"cidade"?: string,"codigo"?: string,"contato"?: string | null,"data_visita"?: string,"emitido_em"?: string,"emitido_por"?: string | null,"expirado_em"?: string | null,"id"?: string,"municipio_id"?: string,"nome_responsavel"?: string | null,"origem"?: string,"pessoas"?: number,"pessoas_atendidas"?: number | null,"sessao_id"?: string | null,"status"?: string,"token_hash"?: string,"uf"?: string,"utilizado_em"?: string | null,"utilizado_por"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "vouchers_municipio_id_atividade_id_fkey"
+      columns: ["municipio_id","atividade_id"]
+isOneToOne: false
+      referencedRelation: "atividades"
+      referencedColumns: ["municipio_id","id"]
+    },{
+      foreignKeyName: "vouchers_municipio_id_atividade_id_sessao_id_fkey"
+      columns: ["municipio_id","atividade_id","sessao_id"]
+isOneToOne: false
+      referencedRelation: "sessoes"
+      referencedColumns: ["municipio_id","atividade_id","id"]
+    }
+                  ]
                 }
           }
           Views: {
             [_ in never]: never
           }
           Functions: {
-            [_ in never]: never
+            "cancelar_voucher_painel":
+{ Args: { "p_codigo": string,"p_municipio_id": string }; Returns: Json
+                           },
+"cancelar_voucher_token":
+{ Args: { "p_municipio_id": string,"p_token": string }; Returns: Json
+                           },
+"conferir_voucher":
+{ Args: { "p_codigo": string,"p_municipio_id": string }; Returns: Json
+                           },
+"confirmar_voucher":
+{ Args: { "p_codigo": string,"p_municipio_id": string,"p_pessoas_atendidas": number }; Returns: Json
+                           },
+"consultar_voucher_token":
+{ Args: { "p_municipio_id": string,"p_token": string }; Returns: Json
+                           },
+"consumir_limite_requisicao":
+{ Args: { "p_alvo": string,"p_chave": string,"p_escopo": string,"p_janela_segundos": number,"p_maximo": number }; Returns: boolean
+                           },
+"emitir_voucher_assistido":
+{ Args: { "p_atividade_id": string,"p_chave_idempotencia": string,"p_cidade": string,"p_contato": string,"p_data_visita": string,"p_municipio_id": string,"p_nome_responsavel": string,"p_pessoas": number,"p_sessao_id": string,"p_uf": string }; Returns: {
+              "codigo": string,"repetido": boolean,"voucher_id": string
+            }[]
+                           },
+"emitir_voucher_publico":
+{ Args: { "p_atividade_id": string,"p_chave_idempotencia": string,"p_cidade": string,"p_contato": string,"p_data_visita": string,"p_municipio_id": string,"p_nome_responsavel": string,"p_pessoas": number,"p_sessao_id": string,"p_uf": string }; Returns: {
+              "codigo": string,"repetido": boolean,"token": string,"voucher_id": string
+            }[]
+                           },
+"relatorio_vouchers":
+{ Args: { "p_fim": string,"p_inicio": string,"p_municipio_id": string }; Returns: Json
+                           }
           }
           Enums: {
             [_ in never]: never
