@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState, useTransition } from "react";
-import { AreaTexto, CaixaMarcacao, Campo, MensagemEstado } from "@/components/formulario";
+import { AreaTexto, CaixaMarcacao, Campo, MensagemEstado, Selecao } from "@/components/formulario";
 import { Button } from "@/components/ui/button";
 import {
   adicionarSessao,
@@ -22,7 +22,10 @@ type Valores = {
   max_pessoas_por_voucher: number;
   exige_responsavel: boolean;
   exige_contato: boolean;
+  prestador_id?: string | null;
 };
+
+type OpcaoPrestador = { id: string; nome: string };
 
 function CamposComuns({ v, campos }: { v?: Valores; campos?: Record<string, string> }) {
   return (
@@ -84,12 +87,26 @@ export function FormularioNovaAtividade() {
   );
 }
 
-export function FormularioEditarAtividade({ id, valores }: { id: string; valores: Valores }) {
+export function FormularioEditarAtividade({ id, valores, prestadores = [] }: { id: string; valores: Valores; prestadores?: OpcaoPrestador[] }) {
   const [estado, acao, pendente] = useActionState(salvarAtividade.bind(null, id), undefined);
+  const campos = estado && !estado.ok ? estado.campos : undefined;
   return (
     <form action={acao} className="flex flex-col gap-5">
       <MensagemEstado erro={estado && !estado.ok ? estado.erro : null} aviso={estado?.ok ? estado.aviso : null} />
-      <CamposComuns v={valores} campos={estado && !estado.ok ? estado.campos : undefined} />
+      <CamposComuns v={valores} campos={campos} />
+      <div className="flex flex-col gap-1.5">
+        <Selecao id="prestador_id" rotulo="Prestador responsável (opcional)" defaultValue={valores.prestador_id ?? ""} erro={campos?.prestador_id}>
+          <option value="">Nenhum (a Secretaria conduz)</option>
+          {prestadores.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.nome}
+            </option>
+          ))}
+        </Selecao>
+        <span className="text-sm text-muted-foreground">
+          Guia, agência ou outro prestador da rede que conduz a atividade. Aparece em &quot;Prestadores envolvidos&quot; nos relatórios.
+        </span>
+      </div>
       <Button type="submit" size="lg" variant="outline" disabled={pendente}>
         {pendente ? "Salvando…" : "Salvar alterações"}
       </Button>

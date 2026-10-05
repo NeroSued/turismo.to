@@ -22,6 +22,7 @@ const esquemaAtividadeLinha = z.object({
   exige_responsavel: z.boolean(),
   exige_contato: z.boolean(),
   max_pessoas_por_voucher: z.number(),
+  prestador_id: z.uuid().nullable(),
   atualizado_em: z.string(),
 });
 
@@ -29,7 +30,7 @@ export type AtividadeLinha = z.infer<typeof esquemaAtividadeLinha>;
 export type SessaoLinha = z.infer<typeof esquemaSessaoLinha>;
 
 const COLUNAS_ATIVIDADE =
-  "id, titulo, descricao, local_encontro, condicoes, modo, status, exige_responsavel, exige_contato, max_pessoas_por_voucher, atualizado_em";
+  "id, titulo, descricao, local_encontro, condicoes, modo, status, exige_responsavel, exige_contato, max_pessoas_por_voucher, prestador_id, atualizado_em";
 
 /** Atividades do município (RLS: membros veem todas; o público só as publicadas). */
 export async function listarAtividades(municipioId: string, apenasPublicadas = false) {
