@@ -77,7 +77,9 @@ test("senha errada mostra erro claro", async ({ page }) => {
   await page.getByLabel("E-mail").fill(USUARIOS_DEV.gestorPalmeiropolis);
   await page.getByLabel("Senha").fill("senha-errada-123");
   await page.getByRole("button", { name: "Entrar" }).click();
-  await expect(page.getByRole("alert")).toContainText("E-mail ou senha incorretos");
+  // filter: o Next também renderiza um anunciador de rota com role="alert".
+  await expect(page.getByRole("alert").filter({ hasText: "E-mail ou senha incorretos" })).toBeVisible();
+  await expect(page).toHaveURL(`${PALMEIROPOLIS}/admin/login`);
 });
 
 test("gestor de Palmeirópolis entra no painel do seu município e sai", async ({ page }) => {

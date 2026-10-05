@@ -29,7 +29,8 @@ export default defineConfig({
     timezoneId: "America/Araguaina",
   },
   webServer: {
-    command: `npx next dev -p ${PORTA}`,
+    // Build de produção: cabeçalhos de cache e comportamento iguais aos da Vercel.
+    command: `npx next build && npx next start -p ${PORTA}`,
     url: `http://localhost:${PORTA}`,
     reuseExistingServer: false,
     timeout: 180_000,

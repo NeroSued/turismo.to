@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/database.types";
 import { envPublico } from "@/lib/env";
 
 /**
@@ -15,7 +16,7 @@ import { envPublico } from "@/lib/env";
 export function criarClientePrivilegiado() {
   const chave = process.env.SUPABASE_SECRET_KEY;
   if (!chave) throw new Error("SUPABASE_SECRET_KEY não definida no servidor.");
-  return createClient(envPublico().NEXT_PUBLIC_SUPABASE_URL, chave, {
+  return createClient<Database>(envPublico().NEXT_PUBLIC_SUPABASE_URL, chave, {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
   });
 }

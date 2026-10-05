@@ -25,7 +25,8 @@ async function principal() {
   const email = z.email().safeParse(process.argv[2]?.trim().toLowerCase());
   if (!email.success) {
     console.error("Uso: npm run criar-admin -- <email>");
-    process.exit(2);
+    process.exitCode = 2;
+    return;
   }
 
   const raiz = process.env.NEXT_PUBLIC_ROOT_DOMAIN;
@@ -62,5 +63,5 @@ async function principal() {
 
 principal().catch((e: unknown) => {
   console.error(e instanceof Error ? e.message : e);
-  process.exit(1);
+  process.exitCode = 1;
 });

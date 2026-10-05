@@ -39,6 +39,15 @@ describe("API pública com a chave publishable (visitante anônimo)", () => {
     expect(error?.code).toBe("42501");
   });
 
+  it("não existe cadastro público de contas", async () => {
+    const { data, error } = await anon.auth.signUp({
+      email: `intruso-${Date.now()}@exemplo.test`,
+      password: "Senha-de-teste-123",
+    });
+    expect(data.user).toBeNull();
+    expect(error?.code).toBe("signup_disabled");
+  });
+
   it("não chama funções privadas pela API", async () => {
     const { error } = await anon.rpc("eh_admin");
     expect(error).not.toBeNull();
