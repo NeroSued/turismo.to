@@ -74,22 +74,22 @@ test.describe.serial("acessibilidade e desempenho em todas as telas (5.3)", () =
     const m = sqlLocal(`select id from public.municipios where slug = 'palmeiropolis'`);
     sqlLocal(`
       insert into public.atrativos (id, municipio_id, nome, categoria, status, descricao)
-        values ('${ids.atrativo}', '${m}', '[DEV] Mirante a11y ${SUF}', 'natureza', 'publicado', 'Mirante com vista para a serra.');
+        values ('${ids.atrativo}', '${m}', '[E2E] Mirante a11y ${SUF}', 'natureza', 'publicado', 'Mirante com vista para a serra.');
       insert into public.eventos (id, municipio_id, titulo, inicio, fim, status, atrativo_id)
-        values ('${ids.evento}', '${m}', '[DEV] Festival a11y ${SUF}', now() + interval '3 days', now() + interval '3 days 4 hours', 'publicado', '${ids.atrativo}');
+        values ('${ids.evento}', '${m}', '[E2E] Festival a11y ${SUF}', now() + interval '3 days', now() + interval '3 days 4 hours', 'publicado', '${ids.atrativo}');
       insert into public.prestadores (id, municipio_id, nome_publico, categoria, situacao_rede, status, contatos_publicos)
-        values ('${ids.prestador}', '${m}', '[DEV] Pousada a11y ${SUF}', 'hospedagem', 'participante', 'publicado', '(63) 3000-0000');
+        values ('${ids.prestador}', '${m}', '[E2E] Pousada a11y ${SUF}', 'hospedagem', 'participante', 'publicado', '(63) 3000-0000');
       insert into public.atividades (id, municipio_id, titulo, modo, status, exige_responsavel)
-        values ('${ids.atividade}', '${m}', '[DEV] Trilha a11y ${SUF}', 'reserva', 'publicado', true);
+        values ('${ids.atividade}', '${m}', '[E2E] Trilha a11y ${SUF}', 'reserva', 'publicado', true);
       insert into public.sessoes (id, municipio_id, atividade_id, inicio, fim, capacidade_pessoas)
         values ('${ids.sessao}', '${m}', '${ids.atividade}', now() + interval '2 days', now() + interval '2 days 2 hours', 20);
       insert into public.evidencias (id, municipio_id, ano_base, tipo_acao, titulo, descricao, data_realizacao, responsavel)
-        values ('${ids.evidencia}', '${m}', extract(year from now())::int, 'reuniao', '[DEV] Reunião a11y ${SUF}',
+        values ('${ids.evidencia}', '${m}', extract(year from now())::int, 'reuniao', '[E2E] Reunião a11y ${SUF}',
                 'Reunião com a comunidade', current_date - 1, 'Secretaria');
     `);
     const [c, t] = sqlLocal(`
       select codigo || '|' || token from privado.emitir_voucher_publico('${m}', '${ids.atividade}', '${ids.sessao}', null, 2,
-        'Gurupi', 'TO', '[DEV] Visitante a11y', null, gen_random_uuid());
+        'Gurupi', 'TO', '[E2E] Visitante a11y', null, gen_random_uuid());
     `).split("|");
     codigo = c;
     token = t;
@@ -170,6 +170,16 @@ test.describe.serial("acessibilidade e desempenho em todas as telas (5.3)", () =
     ]) {
       resultados.push(await auditar(page, `${P}${caminho}`));
     }
+    // Botão principal com o mouse em cima (estado em que o hover já derrubou o contraste para 3,27:1).
+    await page.goto(`${P}/configuracoes`);
+    await page.getByRole("button", { name: "Salvar configurações" }).hover();
+    const hover = await new AxeBuilder({ page }).withRules(["color-contrast"]).analyze();
+    resultados.push({
+      url: `${PALMEIROPOLIS.replace("http://", "")}/admin/configuracoes (mouse sobre o botão principal)`,
+      ok: hover.passes.length,
+      graves: hover.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`),
+      menores: 0,
+    });
     // Conta logada: definir nova senha.
     resultados.push(await auditar(page, `${PALMEIROPOLIS}/conta/nova-senha`));
     relatar("painel do gestor", resultados);
