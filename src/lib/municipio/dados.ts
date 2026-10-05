@@ -15,6 +15,10 @@ const esquemaMunicipio = z.object({
       cor_primaria: z.string(),
       contato_secretaria: z.string().nullable(),
       ouvidoria_url: z.string().nullable(),
+      logo_caminho: z.string().nullable(),
+      capa_caminho: z.string().nullable(),
+      aviso_privacidade: z.string().nullable(),
+      referencia_icms: z.string(),
     })
     .nullable(),
 });
@@ -30,7 +34,7 @@ export const buscarMunicipioPorSlug = cache(async (slug: string): Promise<Munici
   const supabase = await criarClienteServidor();
   const { data, error } = await supabase
     .from("municipios")
-    .select("id, slug, nome, ativo, configuracoes_municipio (nome_exibicao, cor_primaria, contato_secretaria, ouvidoria_url)")
+    .select("id, slug, nome, ativo, configuracoes_municipio (nome_exibicao, cor_primaria, contato_secretaria, ouvidoria_url, logo_caminho, capa_caminho, aviso_privacidade, referencia_icms)")
     .eq("slug", slug)
     .maybeSingle();
   if (error) throw new Error(`Falha ao carregar o município: ${error.message}`);
