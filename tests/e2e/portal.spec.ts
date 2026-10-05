@@ -84,7 +84,7 @@ async function visitante(browser: Browser) {
 /** Configurações originais de Palmeirópolis voltam ao padrão (banco LOCAL, D11). */
 function restaurarConfiguracoes() {
   execSync(
-    `docker exec supabase_db_turismo-to psql -U postgres -q -c "update public.configuracoes_municipio c set cor_primaria = '#1F4D3A', contato_secretaria = null, ouvidoria_url = null, aviso_privacidade = null from public.municipios m where m.id = c.municipio_id and m.slug = 'palmeiropolis'"`,
+    `docker exec supabase_db_turismo-to psql -U postgres -q -c "update public.configuracoes_municipio c set cor_primaria = '#1F4D3A', contato_secretaria = null, ouvidoria_url = null, aviso_privacidade = null, dias_anonimizacao = 90 from public.municipios m where m.id = c.municipio_id and m.slug = 'palmeiropolis'"`,
     { stdio: "ignore" },
   );
 }
@@ -276,8 +276,20 @@ test.describe.serial("portal público e cadastros no celular", () => {
     await expect(page.getByText("Informe o endereço completo, começando com https://")).toBeVisible();
     await page.getByLabel("Link da Ouvidoria oficial").fill("https://ouvidoria.exemplo.gov.br");
     await page.getByLabel("Aviso de privacidade").fill(NOMES.aviso);
+    // Prazo de anonimização (D10, item 5.1): abaixo de 7 dias recusado; 120 gravado no banco.
+    const prazo = page.getByLabel("Prazo para apagar nome e contato dos visitantes (dias)");
+    await expect(prazo).toHaveValue("90");
+    await prazo.fill("3");
+    await prazo.evaluate((el) => el.removeAttribute("min")); // testa o servidor, não só o navegador
+    await page.getByRole("button", { name: "Salvar configurações" }).click();
+    await expect(page.getByText("Use de 7 a 3650 dias.")).toBeVisible();
+    await page.getByLabel("Prazo para apagar nome e contato dos visitantes (dias)").fill("120");
     await page.getByRole("button", { name: "Salvar configurações" }).click();
     await expect(page.getByRole("status").filter({ hasText: "Configurações salvas." })).toBeVisible();
+    const gravado = execSync(
+      `docker exec supabase_db_turismo-to psql -U postgres -t -A -c "select c.dias_anonimizacao from public.configuracoes_municipio c join public.municipios m on m.id = c.municipio_id where m.slug = 'palmeiropolis'"`,
+    ).toString().trim();
+    expect(gravado).toBe("120");
   });
 
   test("visitante vê só o publicado; rascunho e arquivado ficam fora do portal", async ({ browser }) => {

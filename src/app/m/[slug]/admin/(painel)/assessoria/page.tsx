@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Selo } from "@/components/formulario";
 import { Pagina } from "@/components/pagina";
-import { AlternarMunicipio, ConcederAdmin, RemoverAdmin } from "@/components/painel/assessoria";
+import { AlternarMunicipio, ConcederAdmin, ListaAdmins } from "@/components/painel/assessoria";
 import { Voltar } from "@/components/painel/telas-cadastro";
 import { listarAdmins } from "@/lib/equipe/dados";
 import { listarMunicipiosDoPainel } from "@/lib/municipio/dados";
@@ -46,19 +46,7 @@ export default async function Assessoria({ params }: PageProps<"/m/[slug]/admin/
 
       <section aria-labelledby="administradores" className="flex flex-col gap-3">
         <h2 id="administradores" className="text-xl font-bold">Administradores da assessoria</h2>
-        <ul className="flex flex-col overflow-hidden rounded-2xl border bg-superficie">
-          {admins.map((a) => (
-            <li key={a.user_id} className="flex flex-col gap-2 border-b p-4 last:border-b-0">
-              <span className="font-bold">{a.nome ?? "[Nome não informado]"}</span>
-              <span className="text-sm break-all text-muted-foreground">{a.email}</span>
-              {a.user_id === userId ? (
-                <p className="text-sm text-muted-foreground">Você. Ninguém altera o próprio perfil administrativo.</p>
-              ) : (
-                <RemoverAdmin userId={a.user_id} quem={a.nome ?? a.email} />
-              )}
-            </li>
-          ))}
-        </ul>
+        <ListaAdmins admins={admins} userId={userId} />
         <ConcederAdmin />
       </section>
     </Pagina>

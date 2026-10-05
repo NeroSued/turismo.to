@@ -18,6 +18,7 @@ export function ConteudoConfiguracoes({ municipio }: { municipio: Municipio }) {
           ouvidoria_url: c?.ouvidoria_url ?? null,
           aviso_privacidade: c?.aviso_privacidade ?? null,
           referencia_icms: c?.referencia_icms ?? "item 6.1.4",
+          dias_anonimizacao: c?.dias_anonimizacao ?? 90,
         }}
       />
       <section aria-labelledby="imagens" className="flex flex-col gap-3">

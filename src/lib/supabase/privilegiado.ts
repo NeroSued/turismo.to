@@ -12,6 +12,7 @@ import { envPublico } from "@/lib/env";
  *   3. script criar-admin;
  *   4. conta da pessoa convidada para a equipe (src/lib/equipe/convite.ts), depois de a action
  *      conferir com a sessão de quem convida que ela é gestora do município ou admin.
+ *   5. script backup-storage (cópia e restauração dos arquivos do Storage, docs/BACKUP.md).
  *
  * tests/unit/privilegiado.test.ts falha se outro arquivo importar este módulo.
  */

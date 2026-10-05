@@ -195,13 +195,13 @@ isOneToOne: false
                   ]
                 },"evidencias_historico": {
                   Row: {
-                    "acao": string,"antes": Json | null,"autor_id": string | null,"autor_nome": string | null,"campos": (string)[],"depois": Json | null,"em": string,"evidencia_id": string,"id": number,"municipio_id": string
+                    "acao": string,"antes": Json | null,"arquivo_id": string | null,"autor_id": string | null,"autor_nome": string | null,"campos": (string)[],"depois": Json | null,"em": string,"evidencia_id": string,"id": number,"municipio_id": string
                   }
                   Insert: {
-                    "acao": string,"antes"?: Json | null,"autor_id"?: string | null,"autor_nome"?: string | null,"campos"?: (string)[],"depois"?: Json | null,"em"?: string,"evidencia_id": string,"id"?: never,"municipio_id": string
+                    "acao": string,"antes"?: Json | null,"arquivo_id"?: string | null,"autor_id"?: string | null,"autor_nome"?: string | null,"campos"?: (string)[],"depois"?: Json | null,"em"?: string,"evidencia_id": string,"id"?: never,"municipio_id": string
                   }
                   Update: {
-                    "acao"?: string,"antes"?: Json | null,"autor_id"?: string | null,"autor_nome"?: string | null,"campos"?: (string)[],"depois"?: Json | null,"em"?: string,"evidencia_id"?: string,"id"?: never,"municipio_id"?: string
+                    "acao"?: string,"antes"?: Json | null,"arquivo_id"?: string | null,"autor_id"?: string | null,"autor_nome"?: string | null,"campos"?: (string)[],"depois"?: Json | null,"em"?: string,"evidencia_id"?: string,"id"?: never,"municipio_id"?: string
                   }
                   Relationships: [
                     
@@ -366,13 +366,13 @@ isOneToOne: false
                   ]
                 },"vouchers": {
                   Row: {
-                    "atividade_id": string,"cancelado_em": string | null,"cancelado_por": string | null,"cancelado_via": string | null,"chave_idempotencia": string,"cidade": string,"codigo": string,"contato": string | null,"data_visita": string,"emitido_em": string,"emitido_por": string | null,"expirado_em": string | null,"id": string,"municipio_id": string,"nome_responsavel": string | null,"origem": string,"pessoas": number,"pessoas_atendidas": number | null,"sessao_id": string | null,"status": string,"token_hash": string,"uf": string,"utilizado_em": string | null,"utilizado_por": string | null
+                    "anonimizado_em": string | null,"atividade_id": string,"cancelado_em": string | null,"cancelado_por": string | null,"cancelado_via": string | null,"chave_idempotencia": string,"cidade": string,"codigo": string,"contato": string | null,"data_visita": string,"emitido_em": string,"emitido_por": string | null,"expirado_em": string | null,"id": string,"municipio_id": string,"nome_responsavel": string | null,"origem": string,"pessoas": number,"pessoas_atendidas": number | null,"sessao_id": string | null,"status": string,"token_hash": string,"uf": string,"utilizado_em": string | null,"utilizado_por": string | null
                   }
                   Insert: {
-                    "atividade_id": string,"cancelado_em"?: string | null,"cancelado_por"?: string | null,"cancelado_via"?: string | null,"chave_idempotencia": string,"cidade": string,"codigo": string,"contato"?: string | null,"data_visita": string,"emitido_em"?: string,"emitido_por"?: string | null,"expirado_em"?: string | null,"id"?: string,"municipio_id": string,"nome_responsavel"?: string | null,"origem": string,"pessoas": number,"pessoas_atendidas"?: number | null,"sessao_id"?: string | null,"status"?: string,"token_hash": string,"uf": string,"utilizado_em"?: string | null,"utilizado_por"?: string | null
+                    "anonimizado_em"?: string | null,"atividade_id": string,"cancelado_em"?: string | null,"cancelado_por"?: string | null,"cancelado_via"?: string | null,"chave_idempotencia": string,"cidade": string,"codigo": string,"contato"?: string | null,"data_visita": string,"emitido_em"?: string,"emitido_por"?: string | null,"expirado_em"?: string | null,"id"?: string,"municipio_id": string,"nome_responsavel"?: string | null,"origem": string,"pessoas": number,"pessoas_atendidas"?: number | null,"sessao_id"?: string | null,"status"?: string,"token_hash": string,"uf": string,"utilizado_em"?: string | null,"utilizado_por"?: string | null
                   }
                   Update: {
-                    "atividade_id"?: string,"cancelado_em"?: string | null,"cancelado_por"?: string | null,"cancelado_via"?: string | null,"chave_idempotencia"?: string,"cidade"?: string,"codigo"?: string,"contato"?: string | null,"data_visita"?: string,"emitido_em"?: string,"emitido_por"?: string | null,"expirado_em"?: string | null,"id"?: string,"municipio_id"?: string,"nome_responsavel"?: string | null,"origem"?: string,"pessoas"?: number,"pessoas_atendidas"?: number | null,"sessao_id"?: string | null,"status"?: string,"token_hash"?: string,"uf"?: string,"utilizado_em"?: string | null,"utilizado_por"?: string | null
+                    "anonimizado_em"?: string | null,"atividade_id"?: string,"cancelado_em"?: string | null,"cancelado_por"?: string | null,"cancelado_via"?: string | null,"chave_idempotencia"?: string,"cidade"?: string,"codigo"?: string,"contato"?: string | null,"data_visita"?: string,"emitido_em"?: string,"emitido_por"?: string | null,"expirado_em"?: string | null,"id"?: string,"municipio_id"?: string,"nome_responsavel"?: string | null,"origem"?: string,"pessoas"?: number,"pessoas_atendidas"?: number | null,"sessao_id"?: string | null,"status"?: string,"token_hash"?: string,"uf"?: string,"utilizado_em"?: string | null,"utilizado_por"?: string | null
                   }
                   Relationships: [
                     {

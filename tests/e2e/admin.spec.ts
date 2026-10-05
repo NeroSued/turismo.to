@@ -279,9 +279,41 @@ test.describe.serial("administração e usuários no celular", () => {
     await page.getByLabel("Nome de exibição").fill("");
     await page.getByRole("button", { name: "Salvar configurações" }).click();
     await expect(page.getByRole("status").filter({ hasText: "Configurações salvas" })).toBeVisible();
+    // A mensagem do primeiro salvamento continua na tela: espera o segundo terminar antes do axe,
+    // senão ele avalia o botão desativado ("Salvando…"), isento de contraste pela WCAG 1.4.3.
+    await expect(page.getByRole("button", { name: "Salvar configurações" })).toBeEnabled();
+    expect(sqlLocal(`select coalesce(c.nome_exibicao, 'vazio') from public.configuracoes_municipio c join public.municipios m on m.id = c.municipio_id where m.slug = 'ananas'`)).toBe("vazio");
 
     const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
     expect(axe.violations.filter((v) => v.impact === "critical" || v.impact === "serious")).toEqual([]);
+  });
+
+  test("assessoria: a confirmação continua na tela depois de remover o acesso de administrador (item 5.8)", async ({ page }) => {
+    const ehAdmin = () =>
+      sqlLocal(`select p.admin_assessoria from public.perfis p join auth.users u on u.id = p.user_id where u.email = '${USUARIOS_DEV.gestorPeixe}'`);
+    try {
+      await entrar(page, PALMEIROPOLIS, USUARIOS_DEV.admin);
+      await page.goto(`${PALMEIROPOLIS}/admin/assessoria`);
+      await page.getByLabel("E-mail da conta").fill(USUARIOS_DEV.gestorPeixe);
+      await page.getByRole("button", { name: "Tornar administrador" }).click();
+      await expect(page.getByRole("status").filter({ hasText: /administrador/i })).toBeVisible();
+      expect(ehAdmin()).toBe("t");
+
+      const regiao = page.getByRole("region", { name: "Administradores da assessoria" });
+      const remover = regiao.getByRole("button", { name: /Remover o acesso de administrador de .*Peixe/ });
+      await expect(remover).toBeVisible();
+      await remover.click();
+      // A pessoa sai da lista e a confirmação fica (antes da correção, sumia junto com o item).
+      await expect(remover).toHaveCount(0);
+      const confirmacao = regiao.getByRole("status").filter({ hasText: "removido." });
+      await expect(confirmacao).toBeVisible();
+      await page.waitForTimeout(1500);
+      await expect(confirmacao).toBeVisible();
+      await expect(confirmacao).toContainText(/Acesso de administrador de .*Peixe.* removido\./);
+      expect(ehAdmin()).toBe("f");
+    } finally {
+      sqlLocal(`update public.perfis p set admin_assessoria = false from auth.users u where u.id = p.user_id and u.email = '${USUARIOS_DEV.gestorPeixe}'`);
+    }
   });
 
   test("auditoria com filtros por pessoa, período, área e tipo de ação, isolada por município", async ({ page, browser }) => {
@@ -396,11 +428,22 @@ test.describe.serial("administração e usuários no celular", () => {
     await expect(historico.first()).toContainText(`Excluiu definitivamente um arquivo (lista de presença) a pedido do titular. Motivo: ${motivo}`);
     await expect(historico.first()).toContainText("[DEV] Admin da assessoria");
     await expect(historico.first()).toContainText(/\d{2}\/\d{2}\/\d{4} às \d{2}:\d{2}/);
-    await expect(historico.nth(1)).toContainText(`Retirou da evidência Lista de presença: ${legenda}`);
+    // Item 5.9: a legenda (pode ter o nome da pessoa) sai dos registros anteriores do histórico e da auditoria.
+    await expect(historico.nth(1)).toContainText("Retirou da evidência Lista de presença: [removido a pedido do titular]");
     await expect(historico.nth(1)).toContainText("[DEV] Gestor de Palmeirópolis");
+    await expect(admin.getByRole("region", { name: "Histórico de alterações" })).not.toContainText(legenda);
+    expect(sqlLocal(
+      `select count(*) from public.evidencias_historico where evidencia_id = '${evidencia}'
+         and (coalesce(antes::text, '') || coalesce(depois::text, '')) like '%Fulana ${SUF}%'`,
+    )).toBe("0");
+    expect(sqlLocal(
+      `select count(*) from public.auditoria where tabela = 'evidencias_arquivos' and registro_id = '${arquivo}'
+         and (coalesce(antes::text, '') || coalesce(depois::text, '')) like '%Fulana ${SUF}%'`,
+    )).toBe("0");
 
-    // O gestor vê o registro da exclusão no histórico.
+    // O gestor vê o registro da exclusão no histórico, sem a legenda.
     await page.reload();
     await expect(page.getByRole("region", { name: "Histórico de alterações" })).toContainText(motivo);
+    await expect(page.getByRole("region", { name: "Histórico de alterações" })).not.toContainText(legenda);
   });
 });

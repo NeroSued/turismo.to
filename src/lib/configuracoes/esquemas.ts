@@ -34,6 +34,13 @@ export const esquemaConfiguracoes = z.object({
     .transform((v) => (v === "" ? null : v)),
   aviso_privacidade: textoOpcional(8000),
   referencia_icms: z.string().trim().min(1, "Informe a referência (por exemplo, item 6.1.4).").max(200, "Use no máximo 200 caracteres."),
+  // D10: o banco aceita de 1 a 3650 dias; abaixo de 7 o gestor perde o contato antes de resolver pendências da visita.
+  dias_anonimizacao: z
+    .string()
+    .trim()
+    .regex(/^\d{1,4}$/, "Informe um número inteiro de dias, por exemplo 90.")
+    .transform(Number)
+    .refine((n) => n >= 7 && n <= 3650, "Use de 7 a 3650 dias."),
 });
 
 export const IMAGENS_MUNICIPIO = { logo: "logo_caminho", capa: "capa_caminho" } as const;
