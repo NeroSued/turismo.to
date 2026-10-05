@@ -12,6 +12,7 @@ const esquemaArquivo = z.object({
   mime: z.string(),
   tamanho: z.number(),
   criado_em: z.string(),
+  retirado: z.boolean(),
 });
 
 const esquemaEvidencia = z.object({
@@ -35,14 +36,16 @@ export type Evidencia = z.infer<typeof esquemaEvidencia>;
 
 const COLUNAS =
   "id, ano_base, tipo_acao, titulo, descricao, data_realizacao, responsavel, atividade_id, arquivada, criado_em, atualizado_em, " +
-  "atividades (titulo), evidencias_arquivos (id, tipo, legenda, mime, tamanho, criado_em)";
+  "atividades (titulo), evidencias_arquivos (id, tipo, legenda, mime, tamanho, criado_em, retirado)";
 
 /** Evidências do ano-base, mais recentes primeiro. */
 export async function listarEvidencias(municipioId: string, ano: number, opcoes: { arquivadas?: boolean } = {}) {
   const supabase = await criarClienteServidor();
   let q = supabase.from("evidencias").select(COLUNAS).eq("municipio_id", municipioId).eq("ano_base", ano);
   if (!opcoes.arquivadas) q = q.eq("arquivada", false);
+  // Arquivo retirado pelo gestor não conta na lista nem na minuta.
   const { data, error } = await q
+    .eq("evidencias_arquivos.retirado", false)
     .order("data_realizacao", { ascending: false })
     .order("criado_em", { ascending: false })
     .order("criado_em", { referencedTable: "evidencias_arquivos" });
@@ -50,14 +53,13 @@ export async function listarEvidencias(municipioId: string, ano: number, opcoes:
   return z.array(esquemaEvidencia).parse(data);
 }
 
-export async function buscarEvidencia(municipioId: string, id: string) {
+/** Com `retirados`, inclui os arquivos retirados pelo gestor (só a assessoria os vê, para a exclusão LGPD). */
+export async function buscarEvidencia(municipioId: string, id: string, opcoes: { retirados?: boolean } = {}) {
   if (!z.uuid().safeParse(id).success) return null;
   const supabase = await criarClienteServidor();
-  const { data, error } = await supabase
-    .from("evidencias")
-    .select(COLUNAS)
-    .eq("municipio_id", municipioId)
-    .eq("id", id)
+  let q = supabase.from("evidencias").select(COLUNAS).eq("municipio_id", municipioId).eq("id", id);
+  if (!opcoes.retirados) q = q.eq("evidencias_arquivos.retirado", false);
+  const { data, error } = await q
     .order("criado_em", { referencedTable: "evidencias_arquivos" })
     .maybeSingle();
   if (error) throw new Error(`Falha ao carregar a evidência: ${error.message}`);
@@ -68,7 +70,9 @@ const esquemaHistorico = z.object({
   id: z.number(),
   em: z.string(),
   autor_nome: z.string().nullable(),
-  acao: z.enum(["criada", "editada", "arquivada", "reativada", "arquivo_incluido", "arquivo_removido", "legenda_alterada"]),
+  acao: z.enum([
+    "criada", "editada", "arquivada", "reativada", "arquivo_incluido", "arquivo_removido", "legenda_alterada", "arquivo_excluido_lgpd",
+  ]),
   campos: z.array(z.string()),
   antes: z.record(z.string(), z.unknown()).nullable(),
   depois: z.record(z.string(), z.unknown()).nullable(),

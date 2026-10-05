@@ -19,7 +19,12 @@ export default async function Mais({ params }: PageProps<"/m/[slug]/admin/mais">
         <nav aria-label="Mais opções do painel">
           <ul className="flex flex-col overflow-hidden rounded-2xl border bg-superficie">
             {[
+              ...(papel === "admin"
+                ? [{ href: "/admin/assessoria", titulo: "Assessoria", texto: "Todos os municípios, ativação, equipes e administradores." }]
+                : []),
               { href: "/admin/configuracoes", titulo: "Configurações", texto: "Nome, logo, cor, contato, Ouvidoria e privacidade." },
+              { href: "/admin/equipe", titulo: "Equipe", texto: "Convidar gestores e operadores, trocar papel e desativar acesso." },
+              { href: "/admin/auditoria", titulo: "Auditoria", texto: "Quem incluiu, alterou ou excluiu dados, e quando." },
               { href: "/admin/conteudo", titulo: "Conteúdo do portal", texto: "Atrativos, eventos, atividades e prestadores." },
               { href: "/admin/evidencias", titulo: "Evidências", texto: "Ações realizadas, com fotos, listas de presença e atas." },
               { href: "/admin/relatorios/minuta", titulo: "Minuta do relatório de implantação", texto: "Atividades, indicadores e evidências do ano-base." },

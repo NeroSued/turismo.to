@@ -30,7 +30,7 @@ const ITENS_GESTOR: Item[] = [
     href: "/admin/mais",
     rotulo: "Mais",
     icone: Ellipsis,
-    ativo: (c) => /^\/(mais|configuracoes)/.test(depoisDeAdmin(c)),
+    ativo: (c) => /^\/(mais|configuracoes|equipe|auditoria|assessoria|evidencias)/.test(depoisDeAdmin(c)),
   },
 ];
 

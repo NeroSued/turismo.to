@@ -21,8 +21,8 @@ type Valores = {
 
 const SUGESTOES = ["#1F4D3A", "#2B4A6B", "#7A3B2E", "#4A5320"];
 
-export function FormularioConfiguracoes({ v: v0, nomeOficial }: { v: Valores; nomeOficial: string }) {
-  const [estado, acao, pendente] = useActionState(salvarConfiguracoes, undefined);
+export function FormularioConfiguracoes({ municipioId, v: v0, nomeOficial }: { municipioId: string; v: Valores; nomeOficial: string }) {
+  const [estado, acao, pendente] = useActionState(salvarConfiguracoes.bind(null, municipioId), undefined);
   const [cor, setCor] = useState(v0.cor_primaria);
   const campos = estado && !estado.ok ? estado.campos : undefined;
   // Depois de um erro, os campos mostram o que foi enviado (o React reseta o formulário).
@@ -78,10 +78,12 @@ export function FormularioConfiguracoes({ v: v0, nomeOficial }: { v: Valores; no
   );
 }
 
-export function EnviarImagemMunicipio({ qual, url, rotulo, ajuda }: { qual: ImagemMunicipio; url: string | null; rotulo: string; ajuda: string }) {
+export function EnviarImagemMunicipio({ municipioId, qual, url, rotulo, ajuda }: {
+  municipioId: string; qual: ImagemMunicipio; url: string | null; rotulo: string; ajuda: string;
+}) {
   const formulario = useRef<HTMLFormElement>(null);
   const [estado, acao, pendente] = useActionState(async (anterior: ResultadoAcao | undefined, dados: FormData) => {
-    const r = await enviarImagemMunicipio(qual, anterior, dados);
+    const r = await enviarImagemMunicipio(municipioId, qual, anterior, dados);
     if (r?.ok) formulario.current?.reset();
     return r;
   }, undefined);
@@ -111,7 +113,7 @@ export function EnviarImagemMunicipio({ qual, url, rotulo, ajuda }: { qual: Imag
         <Upload aria-hidden="true" /> {pendente ? "Enviando…" : "Enviar imagem"}
       </Button>
       {url ? (
-        <Button type="button" variant="ghost" disabled={removendo} onClick={() => iniciar(async () => setRemocao(await removerImagemMunicipio(qual)))}>
+        <Button type="button" variant="ghost" disabled={removendo} onClick={() => iniciar(async () => setRemocao(await removerImagemMunicipio(municipioId, qual)))}>
           <Trash2 aria-hidden="true" /> Remover imagem
         </Button>
       ) : null}

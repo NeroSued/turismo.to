@@ -6,7 +6,14 @@ import { AreaTexto, Campo, MensagemEstado, Selecao } from "@/components/formular
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { arquivarEvidencia, criarEvidencia, enviarArquivoEvidencia, removerArquivoEvidencia, salvarEvidencia } from "@/lib/evidencias/acoes";
+import {
+  arquivarEvidencia,
+  criarEvidencia,
+  enviarArquivoEvidencia,
+  excluirArquivoEvidenciaLgpd,
+  removerArquivoEvidencia,
+  salvarEvidencia,
+} from "@/lib/evidencias/acoes";
 import { ROTULO_TIPO_ACAO, ROTULO_TIPO_ARQUIVO, TIPOS_ACAO, TIPOS_ARQUIVO } from "@/lib/evidencias/esquemas";
 import type { ResultadoAcao } from "@/lib/painel/contexto";
 import { cn } from "@/lib/utils";
@@ -158,9 +165,9 @@ export function GerenciarArquivosEvidencia({ evidenciaId, arquivos }: { evidenci
               {/* eslint-disable-next-line @next/next/no-img-element -- arquivo privado por URL assinada, sem otimização */}
               <img src={f.url} alt={f.legenda} className="aspect-[4/3] w-full rounded-xl object-cover" loading="lazy" />
               <span className="text-sm">{f.legenda}</span>
-              <Button variant="ghost" size="sm" disabled={remocao.pendente} aria-label={`Remover a foto ${f.legenda}`}
+              <Button variant="ghost" size="sm" disabled={remocao.pendente} aria-label={`Retirar a foto ${f.legenda}`}
                 onClick={() => remocao.executar(() => removerArquivoEvidencia(evidenciaId, f.id))}>
-                <Trash2 aria-hidden="true" /> Remover
+                <Trash2 aria-hidden="true" /> Retirar
               </Button>
             </li>
           ))}
@@ -177,7 +184,7 @@ export function GerenciarArquivosEvidencia({ evidenciaId, arquivos }: { evidenci
                   <span className="text-sm text-muted-foreground">{ROTULO_TIPO_ARQUIVO[a.tipo as keyof typeof ROTULO_TIPO_ARQUIVO]}</span>
                 </span>
               </a>
-              <Button variant="ghost" size="icon" disabled={remocao.pendente} aria-label={`Remover o anexo ${a.legenda}`}
+              <Button variant="ghost" size="icon" disabled={remocao.pendente} aria-label={`Retirar o anexo ${a.legenda}`}
                 onClick={() => remocao.executar(() => removerArquivoEvidencia(evidenciaId, a.id))}>
                 <Trash2 aria-hidden="true" />
               </Button>
@@ -232,5 +239,61 @@ export function GerenciarArquivosEvidencia({ evidenciaId, arquivos }: { evidenci
         </Button>
       </form>
     </div>
+  );
+}
+
+export type ArquivoLgpd = { id: string; tipo: string; legenda: string; url: string; retirado: boolean };
+
+function ItemExclusaoLgpd({ evidenciaId, a }: { evidenciaId: string; a: ArquivoLgpd }) {
+  const [aberto, setAberto] = useState(false);
+  const [motivo, setMotivo] = useState("");
+  const { resultado, pendente, executar } = useAcaoSimples();
+  const id = `motivo-${a.id}`;
+  const tipo = ROTULO_TIPO_ARQUIVO[a.tipo as keyof typeof ROTULO_TIPO_ARQUIVO] ?? "Arquivo";
+  return (
+    <li className="flex flex-col gap-3 border-b p-4 last:border-b-0">
+      <a href={a.url} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center gap-2">
+        <FileText aria-hidden="true" className="size-5 shrink-0" />
+        <span className="flex flex-col">
+          <span className="font-bold">{a.legenda}</span>
+          <span className="text-sm text-muted-foreground">{tipo}{a.retirado ? " · retirado pelo gestor" : ""}</span>
+        </span>
+      </a>
+      <MensagemEstado erro={resultado && !resultado.ok ? resultado.erro : null} aviso={resultado?.ok ? resultado.aviso : null} />
+      {!aberto ? (
+        <Button variant="outline" onClick={() => setAberto(true)} aria-label={`Excluir definitivamente ${a.legenda}`}>
+          <Trash2 aria-hidden="true" /> Excluir definitivamente
+        </Button>
+      ) : (
+        <div className="flex flex-col gap-3 rounded-xl bg-erro-suave p-3">
+          <p className="text-erro">
+            O arquivo será apagado do armazenamento sem cópia. Não dá para desfazer. O histórico guarda quem excluiu, quando e o motivo.
+          </p>
+          <AreaTexto id={id} rotulo="Motivo da exclusão" value={motivo} onChange={(e) => setMotivo(e.target.value)} maxLength={500}
+            required ajuda="Ex.: pedido do titular recebido pela Ouvidoria em 05/10/2026. Não escreva dados pessoais aqui." />
+          <Button variant="destructive" size="lg" disabled={pendente}
+            onClick={() => executar(() => excluirArquivoEvidenciaLgpd(evidenciaId, a.id, motivo))}>
+            {pendente ? "Excluindo…" : "Confirmar exclusão definitiva"}
+          </Button>
+          <Button variant="ghost" disabled={pendente} onClick={() => setAberto(false)}>
+            Cancelar
+          </Button>
+        </div>
+      )}
+    </li>
+  );
+}
+
+/** Exclusão definitiva a pedido do titular (LGPD, item 4.5). Só aparece para a assessoria. */
+export function ExclusaoLgpd({ evidenciaId, arquivos }: { evidenciaId: string; arquivos: ArquivoLgpd[] }) {
+  if (arquivos.length === 0) {
+    return <p className="rounded-2xl border bg-superficie p-4">Esta evidência não tem arquivos guardados.</p>;
+  }
+  return (
+    <ul aria-label="Arquivos para exclusão definitiva" className="flex flex-col overflow-hidden rounded-2xl border bg-superficie">
+      {arquivos.map((a) => (
+        <ItemExclusaoLgpd key={a.id} evidenciaId={evidenciaId} a={a} />
+      ))}
+    </ul>
   );
 }

@@ -20,12 +20,13 @@ export async function GET(_: Request, { params }: RouteContext<"/m/[slug]/admin/
   const supabase = await criarClienteServidor();
   const { data } = await supabase
     .from("evidencias_arquivos")
-    .select("caminho")
+    .select("caminho, retirado")
     .eq("municipio_id", ctx.municipio.id)
     .eq("evidencia_id", id)
     .eq("id", arquivo)
     .maybeSingle();
-  if (!data) return naoEncontrado();
+  // Arquivo retirado pelo gestor só abre para a assessoria (que decide a exclusão LGPD).
+  if (!data || (data.retirado && ctx.papel !== "admin")) return naoEncontrado();
   const url = await urlAssinadaInterna(supabase, data.caminho, 60);
   if (!url) return naoEncontrado();
   return NextResponse.redirect(url, { status: 303, headers: SEM_CACHE });

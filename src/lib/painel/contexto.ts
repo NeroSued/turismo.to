@@ -2,7 +2,7 @@ import "server-only";
 import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
 import { acessoAoMunicipio, type Papel } from "@/lib/auth/acesso";
-import { buscarMunicipioPorSlug, type Municipio } from "@/lib/municipio/dados";
+import { buscarMunicipioPorId, buscarMunicipioPorSlug, type Municipio } from "@/lib/municipio/dados";
 import { municipioDaRequisicao } from "@/lib/municipio/atual";
 
 export type ContextoPainel = {
@@ -49,4 +49,18 @@ export async function contextoDaAcao(papeis: Papel[]): Promise<ContextoPainel | 
   return { municipio, userId: acesso.userId, papel: acesso.papel, nome: acesso.nome, email: acesso.email };
 }
 
-export const SEM_PERMISSAO = "Sua conta não tem permissão para esta ação neste município. Entre de novo ou fale com a assessoria.";
+/**
+ * Para server actions sobre um município escolhido (equipe, configurações pela assessoria):
+ * autoriza pelo município do recurso, não pelo host. O admin passa em qualquer um, mesmo inativo.
+ */
+export async function contextoDoMunicipio(municipioId: string, papeis: Papel[]): Promise<ContextoPainel | null> {
+  const municipio = await buscarMunicipioPorId(municipioId);
+  if (!municipio) return null;
+  const acesso = await acessoAoMunicipio(municipio.id);
+  if (acesso.status !== "ok") return null;
+  if (acesso.papel !== "admin" && !papeis.includes(acesso.papel)) return null;
+  if (!municipio.ativo && acesso.papel !== "admin") return null;
+  return { municipio, userId: acesso.userId, papel: acesso.papel, nome: acesso.nome, email: acesso.email };
+}
+
+export const SEM_PERMISSAO ="Sua conta não tem permissão para esta ação neste município. Entre de novo ou fale com a assessoria.";

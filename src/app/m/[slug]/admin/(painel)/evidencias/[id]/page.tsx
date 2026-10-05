@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MensagemEstado, Selo } from "@/components/formulario";
 import { Pagina } from "@/components/pagina";
-import { ArquivarEvidencia, FormularioEditarEvidencia, GerenciarArquivosEvidencia } from "@/components/painel/evidencias";
+import { ArquivarEvidencia, ExclusaoLgpd, FormularioEditarEvidencia, GerenciarArquivosEvidencia } from "@/components/painel/evidencias";
 import { Voltar } from "@/components/painel/telas-cadastro";
 import { listarAtividades } from "@/lib/atividades/dados";
 import { formatarData, formatarDataHora, hojeLocal } from "@/lib/datas";
@@ -32,7 +32,11 @@ function descreverRegistro(h: RegistroHistorico): string {
     case "arquivo_incluido":
       return `Incluiu ${arquivoTexto(h.depois)}`;
     case "arquivo_removido":
-      return `Removeu ${arquivoTexto(h.antes)}`;
+      return `Retirou da evidência ${arquivoTexto(h.antes)}`;
+    case "arquivo_excluido_lgpd": {
+      const tipo = ROTULO_TIPO_ARQUIVO[String(h.antes?.tipo) as TipoArquivoEvidencia] ?? "Arquivo";
+      return `Excluiu definitivamente um arquivo (${tipo.toLowerCase()}) a pedido do titular. Motivo: ${String(h.depois?.motivo ?? "")}`;
+    }
     case "legenda_alterada":
       return `Alterou a legenda de "${String(h.antes?.legenda ?? "")}" para "${String(h.depois?.legenda ?? "")}"`;
   }
@@ -40,9 +44,11 @@ function descreverRegistro(h: RegistroHistorico): string {
 
 export default async function EditarEvidencia({ params, searchParams }: PageProps<"/m/[slug]/admin/evidencias/[id]">) {
   const { slug, id } = await params;
-  const { municipio } = await exigirPainel(slug, ["gestor"]);
-  const evidencia = await buscarEvidencia(municipio.id, id);
+  const { municipio, papel } = await exigirPainel(slug, ["gestor"]);
+  const admin = papel === "admin";
+  const evidencia = await buscarEvidencia(municipio.id, id, { retirados: admin });
   if (!evidencia) notFound();
+  const ativos = evidencia.evidencias_arquivos.filter((a) => !a.retirado);
   const [historico, atividades] = await Promise.all([historicoDaEvidencia(municipio.id, id), listarAtividades(municipio.id)]);
   const criada = (await searchParams).criada === "1";
   const inclusao = historico.find((h) => h.acao === "criada");
@@ -79,7 +85,7 @@ export default async function EditarEvidencia({ params, searchParams }: PageProp
         <h2 id="arquivos" className="text-xl font-bold">Fotos e anexos</h2>
         <GerenciarArquivosEvidencia
           evidenciaId={evidencia.id}
-          arquivos={evidencia.evidencias_arquivos.map((a) => ({
+          arquivos={ativos.map((a) => ({
             id: a.id,
             tipo: a.tipo,
             legenda: a.legenda,
@@ -88,6 +94,26 @@ export default async function EditarEvidencia({ params, searchParams }: PageProp
           }))}
         />
       </section>
+
+      {admin ? (
+        <section aria-labelledby="lgpd" className="flex flex-col gap-3">
+          <h2 id="lgpd" className="text-xl font-bold">Exclusão a pedido do titular (LGPD)</h2>
+          <p className="text-sm text-muted-foreground">
+            Só a assessoria vê esta seção. Use quando a pessoa que aparece no arquivo pedir a exclusão. Inclui os arquivos que o
+            gestor retirou da evidência.
+          </p>
+          <ExclusaoLgpd
+            evidenciaId={evidencia.id}
+            arquivos={evidencia.evidencias_arquivos.map((a) => ({
+              id: a.id,
+              tipo: a.tipo,
+              legenda: a.legenda,
+              retirado: a.retirado,
+              url: `/admin/evidencias/${evidencia.id}/arquivos/${a.id}`,
+            }))}
+          />
+        </section>
+      ) : null}
 
       <section aria-labelledby="dados" className="flex flex-col gap-3">
         <h2 id="dados" className="text-xl font-bold">Dados da evidência</h2>
