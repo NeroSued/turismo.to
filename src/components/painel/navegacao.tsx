@@ -13,7 +13,12 @@ const depoisDeAdmin = (c: string) => c.replace(/^.*\/admin/, "") || "/";
 
 const ITENS_GESTOR: Item[] = [
   { href: "/admin", rotulo: "Início", icone: House, ativo: (c) => depoisDeAdmin(c) === "/" },
-  { href: "/admin/atividades", rotulo: "Conteúdo", icone: Layers, ativo: (c) => depoisDeAdmin(c).startsWith("/atividades") },
+  {
+    href: "/admin/conteudo",
+    rotulo: "Conteúdo",
+    icone: Layers,
+    ativo: (c) => /^\/(conteudo|atividades|atrativos|eventos|prestadores)/.test(depoisDeAdmin(c)),
+  },
   {
     href: "/admin/atendimento",
     rotulo: "Vouchers",
@@ -21,7 +26,12 @@ const ITENS_GESTOR: Item[] = [
     ativo: (c) => /^\/(atendimento|vouchers)/.test(depoisDeAdmin(c)),
   },
   { href: "/admin/relatorios", rotulo: "Relatórios", icone: BarChart3, ativo: (c) => depoisDeAdmin(c).startsWith("/relatorios") },
-  { href: "/admin/mais", rotulo: "Mais", icone: Ellipsis, ativo: (c) => depoisDeAdmin(c).startsWith("/mais") },
+  {
+    href: "/admin/mais",
+    rotulo: "Mais",
+    icone: Ellipsis,
+    ativo: (c) => /^\/(mais|configuracoes)/.test(depoisDeAdmin(c)),
+  },
 ];
 
 const ITENS_OPERADOR: Item[] = [

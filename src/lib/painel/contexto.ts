@@ -34,7 +34,7 @@ export async function exigirPainel(slug: string, papeis?: Papel[]): Promise<Cont
 
 export type ResultadoAcao<T = undefined> =
   | { ok: true; dados?: T; aviso?: string }
-  | { ok: false; erro: string; campos?: Record<string, string> };
+  | { ok: false; erro: string; campos?: Record<string, string>; valores?: Record<string, string> };
 
 /**
  * Para server actions: município pelo host da requisição e papel do usuário nele.
