@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Pagina } from "@/components/pagina";
+import { ProvedorAvisos } from "@/components/painel/avisos";
 import { NavegacaoPainel } from "@/components/painel/navegacao";
 import { SeletorMunicipio } from "@/components/painel/seletor-municipio";
 import type { Papel } from "@/lib/auth/acesso";
@@ -86,7 +87,7 @@ export default async function LayoutPainel({ params, children }: LayoutProps<"/m
           </Button>
         </form>
       </header>
-      {children}
+      <ProvedorAvisos>{children}</ProvedorAvisos>
       <NavegacaoPainel papel={acesso.papel} />
     </div>
   );
