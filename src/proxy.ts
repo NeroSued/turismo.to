@@ -4,6 +4,7 @@ import { envPublico, overrideDeMunicipioPermitido } from "@/lib/env";
 import {
   COOKIE_MUNICIPIO,
   PARAMETRO_MUNICIPIO,
+  parametroDeOverride,
   resolverMunicipio,
 } from "@/lib/municipio/resolver";
 
@@ -23,7 +24,7 @@ export async function proxy(request: NextRequest) {
 
   const env = envPublico();
   const overridePermitido = overrideDeMunicipioPermitido();
-  const parametro = overridePermitido ? searchParams.get(PARAMETRO_MUNICIPIO) : null;
+  const parametro = overridePermitido ? parametroDeOverride(searchParams.get(PARAMETRO_MUNICIPIO)) : null;
 
   const resolucao = resolverMunicipio({
     host: request.headers.get("host"),

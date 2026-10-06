@@ -46,6 +46,17 @@ export function slugDoHost(host: string | null, dominioRaiz: string): string | n
   return sub;
 }
 
+/**
+ * Valor de ?municipio= que vale como escolha de portal: vazio (limpa a escolha) ou um slug
+ * válido. Qualquer outro valor (ex.: o id que a auditoria usa no mesmo parâmetro) é da
+ * página, não do override, e é ignorado aqui.
+ */
+export function parametroDeOverride(valor: string | null): string | null {
+  if (valor === null) return null;
+  const v = valor.trim().toLowerCase();
+  return v === "" || slugValido(v) ? v : null;
+}
+
 export function resolverMunicipio(e: EntradaResolucao): Resolucao {
   if (e.overridePermitido) {
     const escolhido = e.parametro !== null ? e.parametro : e.cookie;
