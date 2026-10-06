@@ -8,7 +8,7 @@ Como usar este arquivo:
 
 ## Estado
 
-- Fase ativa: nenhuma (Fase 7 concluída e publicada em produção em 2026-10-06; merge em `main` publica e só acontece com aprovação do Nero)
+- Fase ativa: Fase 8 (avisos flutuantes no painel); merge em `main` publica e só acontece com o Nero respondendo "pode publicar"
 - Última atualização: 2026-10-06
 
 ---
@@ -260,6 +260,30 @@ Primeira entrega completa: criar atividade, publicar, emitir voucher, confirmar 
 
 ---
 
+## Fase 8: Avisos flutuantes no painel
+
+- [ ] 8.1 Componente único de aviso flutuante para todo o painel: pílula escura (`#16211B`, texto branco), ícone, texto curto e botão fechar de 44px; no celular, centralizada embaixo e acima da barra de navegação inferior; a partir de 768px, no canto inferior direito; `role="status"` com `aria-live="polite"` para sucesso e `role="alert"` para erro.
+- [ ] 8.2 Aviso de sucesso some sozinho em 3 segundos, com uma barra fina de progresso no topo da pílula; o tempo pausa enquanto o dedo, o mouse ou o foco do teclado estão no aviso; sem animação quando o sistema pede movimento reduzido.
+- [ ] 8.3 Aviso de erro não some sozinho; o erro continua junto ao campo com problema e o foco vai para o primeiro campo inválido.
+- [ ] 8.4 Substituir os avisos de topo ("Alterações salvas" e equivalentes) em todos os formulários do painel, inclusive quando a ação redireciona para outra página (por exemplo, criar e abrir a edição) e nas ações de publicar, arquivar, fotos, equipe, configurações e evidências.
+- [ ] 8.5 Botões de envio mostram "Salvando…" e ficam desativados durante o envio, evitando duplo envio.
+- [ ] 8.6 Nas telas de criação de atrativo, atividade, evento e prestador, uma linha de ajuda junto ao título: "Depois de salvar, você poderá adicionar fotos."
+
+**Pronto quando:**
+
+- E2E no celular: salvar mostra o aviso visível sem rolar a tela.
+- E2E: o aviso de sucesso some em cerca de 3 segundos.
+- E2E: o tempo pausa enquanto o aviso tem o foco.
+- E2E: o erro permanece até fechar e marca o campo com problema.
+- E2E: o aviso aparece depois de um redirecionamento (criar e abrir a edição).
+- E2E: um duplo clique em salvar gera um único envio.
+- Axe sem violações críticas ou sérias nas telas alteradas.
+- `npm run verify` termina com código 0.
+- E2E completo passa contra o preview em `teste.turismo.to`.
+- PR mesclado em `main` somente depois de o Nero responder "pode publicar"; teste de fumaça só de leitura em produção depois do merge.
+
+---
+
 ## Bloqueios
 
 Pendências externas conhecidas. Atualize quando surgirem novas ou forem resolvidas.
@@ -375,6 +399,7 @@ Registre aqui decisões tomadas durante a execução: data, decisão, motivo.
 - 2026-10-06: 7.4, alt: legenda ou "Foto N de <nome>" (N pela ordem na galeria) em toda imagem de cadastro, inclusive cards e `og:image:alt`. A capa do detalhe fica dentro do botão que abre a galeria; o botão não tem `aria-label`, então o nome dele é a legenda mais "Abrir galeria com N fotos".
 - 2026-10-06: 7.5: galeria em `<dialog>` nativo com contador anunciado (`aria-live`), setas do teclado, deslizar (eventos de ponteiro), miniaturas com `aria-current` e Esc devolvendo o foco a quem abriu. Página nova `/prestadores/<id>` (rascunho, arquivado e desligado da rede respondem 404, como na lista); a lista da rede passou a levar ao detalhe. O detalhe da atividade continua sendo a tela de reserva, agora com capa, descrição em parágrafos e faixa de fotos; no portal, o card da atividade usa a capa dela e, sem ela, a do atrativo.
 - 2026-10-06: 7.6: descrição de eventos passou de 4000 para 2000 caracteres (banco e formulário; não havia evento com mais em produção) e prestadores ganharam `descricao` (até 2000). Parágrafos separados por linha em branco viram `<p>` nas páginas públicas.
+- 2026-10-06: início da Fase 8: `fase-8-avisos` criada a partir de `main` atualizada (`d0a8bc8`); domínios `teste.turismo.to` e `*.teste.turismo.to` religados a ela pela API da Vercel (`gitBranch`). Merge só depois de o Nero responder "pode publicar".
 - 2026-10-06: testes antigos ajustados à tela nova, sem afrouxar o que verificam: `portal.spec` envia as fotos pela tela "Fotos" (recusa por conteúdo e por tamanho continuam, com o limite novo de 10 MB e arquivo de 11 MB), procura a capa pelo `alt` da imagem (dentro de botão o leitor de tela não expõe a imagem como "img"), espera `og:image` em `.webp` e o link "Abrir no mapa" (texto do canvas); a integração `portal.test` inclui `descricao` entre as colunas públicas de prestadores (a garantia de nenhuma coluna interna continua).
 
 ## Registro
