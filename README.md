@@ -100,7 +100,7 @@ Dois projetos, ambos no plano gratuito por decisão do Nero (2026-10-06):
 
 No plano gratuito o Supabase **não faz backup** e **pausa o projeto depois de 7 dias sem uso**. Por isso há o cron diário da seção 4 e o backup manual de [docs/BACKUP.md](docs/BACKUP.md). Antes de ter visitantes de verdade, considere o Pro (ver [CUSTOS](docs/CUSTOS.md)).
 
-Os bancos remotos só aceitam IPv6 na conexão direta (`db.<ref>.supabase.co`). Em máquinas ou contêineres sem IPv6 (o Docker no Windows, por exemplo), use o pooler em modo Session, que tem IPv4: `postgresql://postgres.<ref>:<senha>@aws-0-<região>.pooler.supabase.com:5432/postgres` (a região aparece em Project Settings → Database → Connection string).
+Os bancos remotos só aceitam IPv6 na conexão direta (`db.<ref>.supabase.co`). Em máquinas ou contêineres sem IPv6 (o Docker no Windows, por exemplo), use o pooler em modo Session, que tem IPv4: host `aws-0-<região>.pooler.supabase.com`, porta `5432`, usuário `postgres.<ref>`, banco `postgres` e a senha do banco (copie a connection string pronta em Project Settings → Database → Connection string → Session pooler). Produção fica em `sa-east-1`; o projeto de teste, em `us-west-2`.
 
 ### Banco
 

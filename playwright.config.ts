@@ -17,6 +17,9 @@ const PORTA = 3000;
 export default defineConfig({
   testDir: "tests/e2e",
   fullyParallel: false,
+  // No preview cada página atravessa a internet até a Vercel e o Supabase de teste: mais tempo
+  // por teste, as mesmas verificações.
+  timeout: noPreview ? 90_000 : 30_000,
   workers: 1,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
