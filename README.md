@@ -70,6 +70,7 @@ Outros comandos:
 ```bash
 npm run test:db          # só pgTAP (RLS, funções, Storage)
 npm run test:e2e         # só Playwright
+npm run test:e2e:preview # Playwright contra um preview da Vercel (seção 4, "E2E contra o preview")
 npx supabase db reset    # zera o banco local
 npx supabase migration new <nome>
 npx supabase gen types typescript --local > src/lib/database.types.ts   # depois de mudar o schema
@@ -84,12 +85,22 @@ npx supabase gen types typescript --local > src/lib/database.types.ts   # depois
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Todos | Chave publicável (`sb_publishable_...`). Pública por natureza |
 | `SUPABASE_SECRET_KEY` | Todos, **só servidor** | Chave secreta (`sb_secret_...`). Nunca em variável `NEXT_PUBLIC_*`, nunca no navegador, nunca em log |
 | `ALLOW_TENANT_OVERRIDE` | Development e **Preview** | `true`. **Não crie em Production** |
+| `CRON_SECRET` | Production, **só servidor** | Segredo aleatório (32 bytes ou mais) que o Vercel Cron envia à rota `/api/cron/manter-ativo`. Tipo Sensitive |
 
 A chave secreta só é usada por `src/lib/supabase/privilegiado.ts`, nas operações listadas em "Operações privilegiadas" (D8) do [PLANO](docs/PLANO.md). Um teste falha se outro arquivo importar esse módulo.
 
 ## 3. Supabase remoto
 
-Projeto "Turismo.TO", ref `kytbiyiltfpyvwuumfds`, plano Pro (o Free pausa e não tem backup; ver [CUSTOS](docs/CUSTOS.md)).
+Dois projetos, ambos no plano gratuito por decisão do Nero (2026-10-06):
+
+| Projeto | Ref | Usado por | Dados |
+|:-|:-|:-|:-|
+| "Turismo.TO" (produção) | `kytbiyiltfpyvwuumfds` | Production da Vercel (`turismo.to`) | Migrations e **só** `seed.sql`. Nunca dados fictícios |
+| "Turismo.TO Teste" | `lcpkzcjkijgtomoepcbe` | Preview da Vercel e E2E contra o preview | Migrations, `seed.sql` e `seed.dev.sql` (contas e dados `[DEV]`, `[E2E]`) |
+
+No plano gratuito o Supabase **não faz backup** e **pausa o projeto depois de 7 dias sem uso**. Por isso há o cron diário da seção 4 e o backup manual de [docs/BACKUP.md](docs/BACKUP.md). Antes de ter visitantes de verdade, considere o Pro (ver [CUSTOS](docs/CUSTOS.md)).
+
+Os bancos remotos só aceitam IPv6 na conexão direta (`db.<ref>.supabase.co`). Em máquinas ou contêineres sem IPv6 (o Docker no Windows, por exemplo), use o pooler em modo Session, que tem IPv4: `postgresql://postgres.<ref>:<senha>@aws-0-<região>.pooler.supabase.com:5432/postgres` (a região aparece em Project Settings → Database → Connection string).
 
 ### Banco
 
@@ -98,7 +109,9 @@ npx supabase link --project-ref kytbiyiltfpyvwuumfds   # pede a senha do banco; 
 npx supabase db push                                    # aplica as migrations de supabase/migrations
 ```
 
-Depois, aplique **só** o `seed.sql` (os sete municípios), pelo SQL Editor do painel ou pelo `psql` com a connection string do projeto. **Nunca** rode `db push --include-seed`: ele aplicaria também o `seed.dev.sql`, com contas fictícias. Nunca altere o banco remoto à mão; toda mudança é uma migration.
+Faça o mesmo no projeto de teste (`--project-ref lcpkzcjkijgtomoepcbe`). Nele podem entrar o `seed.sql` e o `seed.dev.sql`.
+
+No de produção, aplique **só** o `seed.sql` (os sete municípios), pelo SQL Editor do painel ou pelo `psql` com a connection string do projeto. **Nunca** rode `db push --include-seed`: ele aplicaria também o `seed.dev.sql`, com contas fictícias. Nunca altere o banco remoto à mão; toda mudança é uma migration.
 
 Confira em Advisors → Security que não há tabela sem RLS nem função exposta.
 
@@ -107,7 +120,9 @@ Confira em Advisors → Security que não há tabela sem RLS nem função expost
 Em Authentication → URL Configuration:
 
 - **Site URL:** `https://turismo.to`
-- **Redirect URLs:** `https://turismo.to/**` e `https://*.turismo.to/**` (e a URL de preview da Vercel, se for testar convites lá).
+- **Redirect URLs:** `https://turismo.to/**` e `https://*.turismo.to/**`.
+
+No projeto de teste: Site URL `https://teste.turismo.to` e Redirect URLs `https://teste.turismo.to/**`, `https://*.teste.turismo.to/**` e `https://*-nero-sued-s-projects.vercel.app/**` (os endereços automáticos dos previews).
 
 Em Authentication → Email Templates, copie o assunto e o HTML de `supabase/templates/convite.html` (Invite user) e `supabase/templates/recuperacao.html` (Reset password). Eles usam `token_hash` e a rota `/auth/confirm`.
 
@@ -137,7 +152,7 @@ Fontes: https://resend.com/docs/send-with-supabase-smtp e https://supabase.com/d
 ### Projeto
 
 1. **Vercel → Add New → Project →** importe `NeroSued/turismo.to`. Framework: Next.js (detectado). Plano Pro (o Hobby é só para uso não comercial).
-2. **Settings → Environment Variables:** as variáveis da seção 2, separadas por ambiente. `ALLOW_TENANT_OVERRIDE=true` só em Preview (e Development). `SUPABASE_SECRET_KEY` marcada como "Sensitive".
+2. **Settings → Environment Variables:** as variáveis da seção 2, separadas por ambiente. Production aponta para o projeto "Turismo.TO"; Preview, para o "Turismo.TO Teste", com `NEXT_PUBLIC_ROOT_DOMAIN=teste.turismo.to`. `ALLOW_TENANT_OVERRIDE=true` só em Preview (e Development). `SUPABASE_SECRET_KEY` e `CRON_SECRET` marcadas como "Sensitive".
 3. Cada push numa branch gera um preview; merge em `main` publica em produção.
 
 ### Domínio `turismo.to` e curinga
@@ -149,6 +164,33 @@ O domínio está registrado no Spaceship e os nameservers já apontam para a Ver
 3. Confira: `https://turismo.to` abre o hub; `https://palmeiropolis.turismo.to` abre o portal; `https://naoexiste.turismo.to` responde 404.
 4. Qualquer registro DNS novo (Resend, verificação do Google etc.) é criado em **Vercel → Domains → turismo.to → DNS Records**, não no Spaceship.
 5. No Spaceship, ative a renovação automática do domínio.
+
+### Cron diário (manter o Supabase gratuito ativo)
+
+O `vercel.json` agenda uma chamada por dia, às 09:00 UTC (06:00 em Araguaína), a `GET /api/cron/manter-ativo`. A rota:
+
+- só responde se o cabeçalho `Authorization` for `Bearer <CRON_SECRET>` (a Vercel envia isso sozinha quando a variável existe); sem ele, ou com outro valor, responde `401`;
+- faz uma leitura leve e pública no banco (um município), com a chave publicável, sem sessão e sem chave secreta;
+- responde só `{"ok":true}` (ou `503` se o banco não respondeu), sempre com `Cache-Control: private, no-store`.
+
+Os crons da Vercel rodam só em Production. Para conferir: **Vercel → Project → Settings → Cron Jobs** (mostra a próxima execução e o histórico) ou, à mão, com o segredo:
+
+```bash
+curl -i -H "Authorization: Bearer $CRON_SECRET" https://turismo.to/api/cron/manter-ativo   # 200 {"ok":true}
+curl -i https://turismo.to/api/cron/manter-ativo                                          # 401
+```
+
+Se o projeto chegar a pausar mesmo assim, o painel do Supabase mostra "Restore project"; restaurar não perde dados.
+
+### E2E contra o preview
+
+O mesmo E2E do ambiente local roda contra um deploy de preview, ligado ao projeto "Turismo.TO Teste". Como o portal escolhe o município pelo subdomínio, o deploy recebe aliases da Vercel: `teste.turismo.to` (hub) e `<slug>.teste.turismo.to` para os sete municípios e para `naoexiste` (o teste do 404):
+
+```bash
+npx vercel alias set <url-do-deploy> palmeiropolis.teste.turismo.to   # e assim por diante
+```
+
+Crie um `.env.e2e-preview` (fora do git) com `E2E_ALVO=preview`, `E2E_RAIZ=teste.turismo.to`, `E2E_VERCEL_BYPASS` (Settings → Deployment Protection → Protection Bypass for Automation), `E2E_SUPABASE_URL`, `E2E_SUPABASE_PUBLISHABLE_KEY`, `E2E_SUPABASE_SECRET_KEY` e `E2E_DB_URL` (pooler do projeto de teste) e rode `npm run test:e2e:preview`. O `tests/ambiente.ts` recusa qualquer projeto que não seja o de teste, e o de produção pelo nome. No preview, os e-mails de convite vão para `delivered+<rótulo>@resend.dev` (endereço de simulação do Resend) e o link é montado pelo banco de teste.
 
 ## 5. Primeiro administrador
 
