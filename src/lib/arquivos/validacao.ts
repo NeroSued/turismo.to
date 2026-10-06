@@ -4,17 +4,22 @@
  * limites (migration storage_buckets), então um envio que escape daqui ainda é recusado.
  */
 
-export type TipoArquivo = "foto" | "documento" | "foto_interna";
+export type TipoArquivo = "foto" | "documento" | "foto_interna" | "foto_original";
+
+export type Bucket = "publico" | "interno" | "originais";
 
 export type Mime = "image/jpeg" | "image/png" | "image/webp" | "application/pdf";
 
 const MB = 1024 * 1024;
 
-export const REGRAS: Record<TipoArquivo, { bucket: "publico" | "interno"; tipos: Mime[]; maximo: number; descricao: string }> = {
+export const REGRAS: Record<TipoArquivo, { bucket: Bucket; tipos: Mime[]; maximo: number; descricao: string }> = {
   foto: { bucket: "publico", tipos: ["image/jpeg", "image/png", "image/webp"], maximo: 5 * MB, descricao: "JPEG, PNG ou WebP até 5 MB" },
   documento: { bucket: "interno", tipos: ["application/pdf", "image/jpeg", "image/png"], maximo: 10 * MB, descricao: "PDF, JPEG ou PNG até 10 MB" },
   // Fotos de evidência: privadas (podem mostrar pessoas), no bucket interno.
   foto_interna: { bucket: "interno", tipos: ["image/jpeg", "image/png"], maximo: 5 * MB, descricao: "JPEG ou PNG até 5 MB" },
+  // Foto de cadastro como veio do celular (Fase 7.4): fica no bucket privado `originais` até o
+  // servidor gerar a versão publicada, sem EXIF e com até 2000 px (src/lib/fotos/tratamento.ts).
+  foto_original: { bucket: "originais", tipos: ["image/jpeg", "image/png", "image/webp"], maximo: 10 * MB, descricao: "fotos JPG, PNG ou WebP até 10 MB" },
 };
 
 export const EXTENSAO: Record<Mime, string> = {

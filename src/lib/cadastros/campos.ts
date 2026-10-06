@@ -36,12 +36,13 @@ export const CAMPOS: Record<TipoCadastro, DefCampo[]> = {
     { nome: "local", rotulo: "Local", tipo: "texto", max: 300, essencial: true },
     { nome: "organizador", rotulo: "Organização", tipo: "texto", max: 200, ajuda: "Prefeitura, associação, igreja..." },
     { nome: "atrativo_id", rotulo: "Atrativo onde acontece", tipo: "atrativo", ajuda: "Opcional. Liga o evento a um atrativo cadastrado." },
-    { nome: "descricao", rotulo: "Descrição", tipo: "area", max: 4000 },
+    { nome: "descricao", rotulo: "Descrição", tipo: "area", max: 2000, ajuda: "Aparece na página pública. Separe os parágrafos com uma linha em branco. Até 2000 caracteres." },
   ],
   prestadores: [
     { nome: "nome_publico", rotulo: "Nome público", tipo: "texto", max: 120, obrigatorio: true, essencial: true, ajuda: "Nome como o prestador quer aparecer no portal." },
     { nome: "categoria", rotulo: "Categoria", tipo: "selecao", obrigatorio: true, essencial: true, opcoes: CATEGORIAS_PRESTADOR },
     { nome: "situacao_rede", rotulo: "Situação na rede", tipo: "selecao", obrigatorio: true, essencial: true, opcoes: SITUACOES_REDE },
+    { nome: "descricao", rotulo: "Descrição", tipo: "area", max: 2000, ajuda: "Aparece na página pública. Separe os parágrafos com uma linha em branco. Até 2000 caracteres." },
     { nome: "servicos", rotulo: "Serviços oferecidos", tipo: "area", max: 2000 },
     {
       nome: "contatos_publicos",

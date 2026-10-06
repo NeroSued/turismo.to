@@ -95,7 +95,7 @@ export const esquemaEvento = z
     hora_fim: hora,
     local: textoOpcional(300),
     organizador: textoOpcional(200),
-    descricao: textoOpcional(4000),
+    descricao: textoOpcional(2000),
     atrativo_id: z
       .string()
       .trim()
@@ -113,6 +113,7 @@ export const esquemaPrestador = z.object({
   categoria: z.enum(chaves(CATEGORIAS_PRESTADOR), { message: "Escolha a categoria." }),
   situacao_rede: z.enum(chaves(SITUACOES_REDE), { message: "Escolha a situação na rede." }),
   servicos: textoOpcional(2000),
+  descricao: textoOpcional(2000),
   contatos_publicos: textoOpcional(300),
   localizacao: textoOpcional(300),
 });
@@ -122,14 +123,6 @@ export const esquemaAdesao = z.object({
   responsavel: z.string().trim().min(2, "Informe o nome do responsável.").max(120, "Use no máximo 120 caracteres."),
   contato_interno: textoOpcional(300),
   observacoes: textoOpcional(2000),
-});
-
-export const esquemaLegenda = z.object({
-  legenda: z
-    .string()
-    .trim()
-    .min(3, "Descreva a foto em pelo menos 3 letras (é o texto lido por leitores de tela).")
-    .max(200, "Use no máximo 200 caracteres."),
 });
 
 export const ROTULO_STATUS: Record<StatusConteudo, string> = {

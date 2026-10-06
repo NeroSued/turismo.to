@@ -6,7 +6,8 @@ import { MensagemEstado, Selo } from "@/components/formulario";
 import { Pagina } from "@/components/pagina";
 import { AcoesStatus, ControlesSessao, FormularioEditarAtividade, FormularioSessao } from "@/components/painel/atividades";
 import { buscarAtividade, listarSessoes } from "@/lib/atividades/dados";
-import { listarPrestadores } from "@/lib/cadastros/dados";
+import { ResumoFotos } from "@/components/painel/tela-fotos";
+import { listarFotos, listarPrestadores } from "@/lib/cadastros/dados";
 import { ROTULO_MODO, ROTULO_STATUS } from "@/lib/atividades/esquemas";
 import { formatarDataComSemana, formatarHora, hojeLocal, jaPassou } from "@/lib/datas";
 import { exigirPainel } from "@/lib/painel/contexto";
@@ -19,9 +20,10 @@ export default async function EditarAtividade({ params, searchParams }: PageProp
   const { municipio } = await exigirPainel(slug, ["gestor"]);
   const atividade = await buscarAtividade(municipio.id, id);
   if (!atividade) notFound();
-  const [sessoes, prestadores] = await Promise.all([
+  const [sessoes, prestadores, fotos] = await Promise.all([
     atividade.modo === "reserva" ? listarSessoes(municipio.id, atividade.id) : Promise.resolve([]),
     listarPrestadores(municipio.id),
+    listarFotos(municipio.id, "atividade_id", [atividade.id]),
   ]);
   const futuras = sessoes.filter((s) => !jaPassou(s.fim));
   const passadas = sessoes.filter((s) => jaPassou(s.fim));
@@ -43,6 +45,8 @@ export default async function EditarAtividade({ params, searchParams }: PageProp
       </div>
 
       <AcoesStatus id={atividade.id} status={atividade.status} modo={atividade.modo} temSessoes={futuras.length > 0} />
+
+      <ResumoFotos tipo="atividades" id={atividade.id} nome={atividade.titulo} fotos={fotos} />
 
       {atividade.modo === "reserva" ? (
         <section aria-labelledby="horarios" className="flex flex-col gap-3">

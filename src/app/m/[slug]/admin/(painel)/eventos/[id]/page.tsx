@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MensagemEstado } from "@/components/formulario";
 import { Pagina } from "@/components/pagina";
-import { AcoesStatusCadastro, FormularioEditarCadastro, GerenciarFotos } from "@/components/painel/cadastros";
+import { AcoesStatusCadastro, FormularioEditarCadastro } from "@/components/painel/cadastros";
+import { ResumoFotos } from "@/components/painel/tela-fotos";
 import { CabecalhoCadastro, Voltar } from "@/components/painel/telas-cadastro";
-import { urlPublica } from "@/lib/arquivos/url";
 import { buscarEvento, listarAtrativos, listarFotos } from "@/lib/cadastros/dados";
 import { diaLocal, formatarDataHora, horaLocal } from "@/lib/datas";
 import { exigirPainel } from "@/lib/painel/contexto";
@@ -25,14 +25,7 @@ export default async function EditarEvento({ params, searchParams }: PageProps<"
       {criado ? <MensagemEstado aviso="Evento criado em elaboração. Revise, envie fotos e publique." /> : null}
       <CabecalhoCadastro titulo={e.titulo} status={e.status} detalhe={`${formatarDataHora(e.inicio)} a ${formatarDataHora(e.fim)}`} />
       <AcoesStatusCadastro tipo="eventos" id={e.id} status={e.status} />
-      <section aria-labelledby="fotos" className="flex flex-col gap-3">
-        <h2 id="fotos" className="text-xl font-bold">Fotos</h2>
-        <GerenciarFotos
-          tipo="eventos"
-          donoId={e.id}
-          fotos={fotos.map((f) => ({ id: f.id, legenda: f.legenda, url: urlPublica(f.caminho) }))}
-        />
-      </section>
+      <ResumoFotos tipo="eventos" id={e.id} nome={e.titulo} fotos={fotos} />
       <section aria-labelledby="dados" className="flex flex-col gap-3">
         <h2 id="dados" className="text-xl font-bold">Dados do evento</h2>
         <FormularioEditarCadastro

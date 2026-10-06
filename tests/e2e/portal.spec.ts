@@ -110,24 +110,26 @@ test.describe.serial("portal público e cadastros no celular", () => {
     );
     await expect(page.getByText("Atrativo criado em elaboração")).toBeVisible();
 
-    // Upload inválido: texto com nome e tipo de foto, e "JPEG" de 6 MB.
-    const arquivo = page.getByLabel("Arquivo da foto");
+    // Fotos na tela própria (Fase 7.3). Upload inválido: texto com nome e tipo de foto, e "JPEG" de 11 MB.
+    await page.getByRole("link", { name: /Adicionar fotos/ }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Fotos" })).toBeVisible();
+    const arquivo = page.getByLabel("Da galeria");
     await arquivo.setInputFiles({ name: "foto.jpg", mimeType: "image/jpeg", buffer: FOTO_FALSA });
-    await page.getByLabel("Legenda").fill("Tentativa inválida");
-    await page.getByRole("button", { name: "Enviar foto" }).click();
-    await expect(alerta(page, "Tipo de arquivo não aceito. Envie JPEG, PNG ou WebP até 5 MB.")).toBeVisible();
+    await expect(alerta(page, "foto.jpg não foi enviado. Tipo de arquivo não aceito. Envie fotos JPG, PNG ou WebP até 10 MB.")).toBeVisible();
 
-    await arquivo.setInputFiles({ name: "grande.jpg", mimeType: "image/jpeg", buffer: jpegGrande() });
-    await page.getByRole("button", { name: "Enviar foto" }).click();
-    await expect(alerta(page, "O arquivo tem 6 MB e o limite é 5 MB")).toBeVisible();
-    await expect(page.getByRole("list").getByRole("img")).toHaveCount(0);
+    await arquivo.setInputFiles({ name: "grande.jpg", mimeType: "image/jpeg", buffer: jpegGrande(11) });
+    await expect(alerta(page, "grande.jpg não foi enviado. O arquivo tem 11 MB e o limite é 10 MB")).toBeVisible();
+    await expect(page.getByText("0 de 12")).toBeVisible();
 
     // Foto válida com legenda.
     await arquivo.setInputFiles({ name: "cachoeira.png", mimeType: "image/png", buffer: pngRuidoso(320, 240) });
-    await page.getByLabel("Legenda").fill(NOMES.legenda);
-    await page.getByRole("button", { name: "Enviar foto" }).click();
-    await expect(page.getByRole("status").filter({ hasText: "Foto enviada." })).toBeVisible();
+    await expect(page.getByRole("status").filter({ hasText: "Foto enviada" })).toBeVisible();
+    await expect(page.getByText("1 de 12")).toBeVisible();
+    await page.getByLabel("Legenda", { exact: true }).fill(NOMES.legenda);
+    await page.getByRole("button", { name: "Salvar fotos" }).click();
+    await expect(page.getByRole("status").filter({ hasText: "Fotos salvas." })).toBeVisible();
     await expect(page.getByRole("img", { name: NOMES.legenda })).toBeVisible();
+    await page.getByRole("link", { name: "Voltar ao cadastro" }).click();
 
     await page.getByLabel("Horários de visitação").fill("Todos os dias, das 8h às 17h.");
     await page.getByLabel("Orientações ambientais").fill("Leve seu lixo de volta.");
@@ -326,7 +328,8 @@ test.describe.serial("portal público e cadastros no celular", () => {
     await expect(page.getByText(NOMES.arquivado)).toHaveCount(0);
     await page.getByRole("main").getByRole("link", { name: contem(NOMES.atrativo) }).click();
     await expect(page.getByRole("heading", { name: NOMES.atrativo, level: 1 })).toBeVisible();
-    const foto = page.getByRole("img", { name: NOMES.legenda });
+    // A capa fica dentro do botão que abre a galeria: a legenda é o texto alternativo da imagem.
+    const foto = page.locator(`img[alt="${NOMES.legenda}"]`);
     await expect(foto).toBeVisible();
     expect(await foto.getAttribute("src")).toContain("/_next/image?url=");
     const otimizada = await page.request.get(new URL((await foto.getAttribute("src"))!, NO_PREVIEW ? PALMEIROPOLIS : site()).toString(), {
@@ -335,7 +338,7 @@ test.describe.serial("portal público e cadastros no celular", () => {
     expect(otimizada.status()).toBe(200);
     expect(otimizada.headers()["content-type"]).toMatch(/image\/(avif|webp)/);
     await expect(page.getByText("Todos os dias, das 8h às 17h.")).toBeVisible();
-    await expect(page.getByRole("link", { name: /Ver no mapa/ })).toHaveAttribute("href", /openstreetmap\.org\/\?mlat=-13\.0412&mlon=-48\.3/);
+    await expect(page.getByRole("link", { name: /Abrir no mapa/ })).toHaveAttribute("href", /openstreetmap\.org\/\?mlat=-13\.0412&mlon=-48\.3/);
 
     // Rascunho e arquivado: 404 por URL direta, igual a inexistente.
     for (const caminho of [`/atrativos/${ids.rascunho}`, `/atrativos/${ids.arquivado}`, `/eventos/${ids.eventoRascunho}`]) {
@@ -442,7 +445,7 @@ test.describe.serial("portal público e cadastros no celular", () => {
     await page.goto(`${PALMEIROPOLIS}/atrativos/${ids.atrativo}`);
     await expect(page).toHaveTitle(`${NOMES.atrativo} · Turismo em Palmeirópolis`);
     expect(await meta('meta[name="description"]')).toBe("Poço de águas claras a 12 km da cidade.");
-    expect(await meta('meta[property="og:image"]')).toMatch(/\/storage\/v1\/object\/public\/publico\/[0-9a-f-]{36}\/fotos\/[0-9a-f-]{36}\.png$/);
+    expect(await meta('meta[property="og:image"]')).toMatch(/\/storage\/v1\/object\/public\/publico\/[0-9a-f-]{36}\/fotos\/[0-9a-f-]{36}\.webp$/);
     expect(await meta('meta[property="og:image:alt"]')).toBe(NOMES.legenda);
 
     await page.goto(`${PALMEIROPOLIS}/atrativos/${ids.rascunho}`);
