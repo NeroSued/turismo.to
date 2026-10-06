@@ -1,15 +1,15 @@
 import { randomBytes } from "node:crypto";
-import { execSync } from "node:child_process";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Browser, type Page } from "@playwright/test";
 import { USUARIOS_DEV } from "../ambiente";
 import { FOTO_FALSA, jpegGrande, PDF_TESTE, pngSolido } from "./arquivos";
+import { NO_PREVIEW, pedir as pedirAlvo, site, sql } from "./alvo";
 
 // Fase 2 no celular (390x844): gestor cadastra atrativos, eventos e prestadores com fotos e
 // adesão, configura o município; o visitante vê só o publicado, nunca dados internos; páginas
 // públicas sem violações críticas ou sérias no axe.
 
-const PALMEIROPOLIS = "http://palmeiropolis.localhost:3000";
+const PALMEIROPOLIS = site("palmeiropolis");
 const SUF = randomBytes(3).toString("hex");
 const NOMES = {
   atrativo: `[E2E] Cachoeira ${SUF}`,
@@ -69,8 +69,8 @@ function diaDaqui(dias: number) {
  */
 async function pedir(page: Page, caminho: string, opcoes: { maxRedirects?: number } = {}) {
   const cookies = (await page.context().cookies(PALMEIROPOLIS)).map((c) => `${c.name}=${c.value}`).join("; ");
-  return page.request.get(`http://localhost:3000${caminho}`, {
-    headers: { host: "palmeiropolis.localhost:3000", ...(cookies ? { cookie: cookies } : {}) },
+  return pedirAlvo(page, "palmeiropolis", caminho, {
+    headers: cookies ? { cookie: cookies } : {},
     maxRedirects: opcoes.maxRedirects,
   });
 }
@@ -83,9 +83,8 @@ async function visitante(browser: Browser) {
 
 /** Configurações originais de Palmeirópolis voltam ao padrão (banco LOCAL, D11). */
 function restaurarConfiguracoes() {
-  execSync(
-    `docker exec supabase_db_turismo-to psql -U postgres -q -c "update public.configuracoes_municipio c set cor_primaria = '#1F4D3A', contato_secretaria = null, ouvidoria_url = null, aviso_privacidade = null, dias_anonimizacao = 90 from public.municipios m where m.id = c.municipio_id and m.slug = 'palmeiropolis'"`,
-    { stdio: "ignore" },
+  sql(
+    "update public.configuracoes_municipio c set cor_primaria = '#1F4D3A', contato_secretaria = null, ouvidoria_url = null, aviso_privacidade = null, dias_anonimizacao = 90 from public.municipios m where m.id = c.municipio_id and m.slug = 'palmeiropolis'",
   );
 }
 
@@ -286,9 +285,9 @@ test.describe.serial("portal público e cadastros no celular", () => {
     await page.getByLabel("Prazo para apagar nome e contato dos visitantes (dias)").fill("120");
     await page.getByRole("button", { name: "Salvar configurações" }).click();
     await expect(page.getByRole("status").filter({ hasText: "Configurações salvas." })).toBeVisible();
-    const gravado = execSync(
-      `docker exec supabase_db_turismo-to psql -U postgres -t -A -c "select c.dias_anonimizacao from public.configuracoes_municipio c join public.municipios m on m.id = c.municipio_id where m.slug = 'palmeiropolis'"`,
-    ).toString().trim();
+    const gravado = sql(
+      "select c.dias_anonimizacao from public.configuracoes_municipio c join public.municipios m on m.id = c.municipio_id where m.slug = 'palmeiropolis'",
+    );
     expect(gravado).toBe("120");
   });
 
@@ -328,7 +327,7 @@ test.describe.serial("portal público e cadastros no celular", () => {
     const foto = page.getByRole("img", { name: NOMES.legenda });
     await expect(foto).toBeVisible();
     expect(await foto.getAttribute("src")).toContain("/_next/image?url=");
-    const otimizada = await page.request.get(new URL((await foto.getAttribute("src"))!, "http://localhost:3000").toString(), {
+    const otimizada = await page.request.get(new URL((await foto.getAttribute("src"))!, NO_PREVIEW ? PALMEIROPOLIS : site()).toString(), {
       headers: { accept: "image/avif,image/webp,*/*" },
     });
     expect(otimizada.status()).toBe(200);
@@ -396,7 +395,7 @@ test.describe.serial("portal público e cadastros no celular", () => {
   test("axe: nenhuma violação crítica ou séria nas páginas públicas", async ({ browser }) => {
     const { ctx, page } = await visitante(browser);
     const paginas = [
-      "http://localhost:3000/",
+      site("", "/"),
       `${PALMEIROPOLIS}/`,
       `${PALMEIROPOLIS}/atrativos`,
       `${PALMEIROPOLIS}/atrativos/${ids.atrativo}`,
@@ -447,7 +446,7 @@ test.describe.serial("portal público e cadastros no celular", () => {
     await page.goto(`${PALMEIROPOLIS}/atrativos/${ids.rascunho}`);
     expect(await page.title()).not.toContain(NOMES.rascunho);
 
-    await page.goto("http://peixe.localhost:3000/");
+    await page.goto(site("peixe", "/"));
     await expect(page).toHaveTitle("Turismo em Peixe");
     await ctx.close();
   });

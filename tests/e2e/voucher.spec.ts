@@ -1,14 +1,14 @@
 import { randomBytes } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
-import { execSync } from "node:child_process";
 import { USUARIOS_DEV } from "../ambiente";
 import { ARQUIVO_CAMERA, gravarCamera } from "./camera";
+import { site, sql } from "./alvo";
 
 // Fluxo de ponta a ponta da Fase 1, no celular (390x844, do playwright.config.ts):
 // gestor cria e publica atividade com horário; visitante reserva; operador confirma;
 // relatório mostra o voucher utilizado com a quantidade atendida.
 
-const PALMEIROPOLIS = "http://palmeiropolis.localhost:3000";
+const PALMEIROPOLIS = site("palmeiropolis");
 const TITULO = `[E2E] Trilha guiada ${randomBytes(3).toString("hex")}`;
 let codigoReservado = "";
 let codigoCancelado = "";
@@ -28,10 +28,7 @@ test.use({
 function expirarNoBancoLocal(codigo: string) {
   const c = codigo.replace(/-/g, "");
   if (!/^[2-9A-Z]{12}$/.test(c)) throw new Error("código inválido");
-  execSync(
-    `docker exec supabase_db_turismo-to psql -U postgres -q -c "update public.vouchers set status = 'expirado', expirado_em = now() where codigo = '${c}'"`,
-    { stdio: "ignore" },
-  );
+  sql(`update public.vouchers set status = 'expirado', expirado_em = now() where codigo = '${c}'`);
 }
 
 /** Dia e horários locais (America/Araguaina) para uma sessão que começa daqui a alguns minutos, hoje. */
@@ -266,7 +263,7 @@ test.describe.serial("voucher de ponta a ponta no celular", () => {
   });
 
   test("gestor de Peixe recebe voucher de outro município, sem detalhes", async ({ page }) => {
-    const PEIXE = "http://peixe.localhost:3000";
+    const PEIXE = site("peixe");
     await page.goto(`${PEIXE}/admin/login`);
     await page.getByLabel("E-mail").fill(USUARIOS_DEV.gestorPeixe);
     await page.getByLabel("Senha").fill(process.env.E2E_SENHA!);

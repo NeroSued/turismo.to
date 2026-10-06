@@ -32,6 +32,37 @@ export function ambienteLocal(): AmbienteLocal {
   return cache;
 }
 
+/** Projeto Supabase "Turismo.TO Teste", o único remoto em que os testes podem escrever. */
+export const REF_TESTE = "lcpkzcjkijgtomoepcbe";
+/** Projeto de produção: nunca recebe dados de teste (CLAUDE.md). */
+export const REF_PRODUCAO = "kytbiyiltfpyvwuumfds";
+
+export type AmbienteE2E = AmbienteLocal & {
+  alvo: "local" | "preview";
+  /** Conexão Postgres do projeto de teste (só no alvo preview). */
+  dbUrl?: string;
+};
+
+/**
+ * Ambiente do E2E. Por padrão, o Supabase local. Com E2E_ALVO=preview, o projeto
+ * "Turismo.TO Teste" (variáveis E2E_* de `.env.e2e-preview`, fora do git). Qualquer
+ * outro endereço, e em especial o projeto de produção, é recusado.
+ */
+export function ambienteE2E(): AmbienteE2E {
+  if (process.env.E2E_ALVO !== "preview") return { ...ambienteLocal(), alvo: "local" };
+  const url = process.env.E2E_SUPABASE_URL ?? "";
+  const publishable = process.env.E2E_SUPABASE_PUBLISHABLE_KEY ?? "";
+  const secret = process.env.E2E_SUPABASE_SECRET_KEY ?? "";
+  const dbUrl = process.env.E2E_DB_URL ?? "";
+  const tudo = [url, dbUrl].join(" ");
+  if (tudo.includes(REF_PRODUCAO)) throw new Error("Recusado: o E2E nunca roda contra o projeto de produção.");
+  if (url !== `https://${REF_TESTE}.supabase.co` || !dbUrl.includes(`postgres.${REF_TESTE}:`)) {
+    throw new Error("Recusado: com E2E_ALVO=preview, só o projeto Turismo.TO Teste é aceito.");
+  }
+  if (!publishable || !secret) throw new Error("Faltam as chaves do projeto de teste em .env.e2e-preview.");
+  return { url, publishable, secret, dbUrl, alvo: "preview" };
+}
+
 export const USUARIOS_DEV = {
   admin: "admin@exemplo.test",
   gestorPalmeiropolis: "gestor.palmeiropolis@exemplo.test",

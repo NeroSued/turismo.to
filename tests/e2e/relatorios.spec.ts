@@ -1,16 +1,16 @@
-import { execSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { USUARIOS_DEV } from "../ambiente";
 import { PDF_TESTE, pngSolido } from "./arquivos";
+import { NO_PREVIEW, site, sql } from "./alvo";
 
 // Fase 3 no celular (390x844, build de produção): relatórios com origem, prestadores e versões,
 // CSV de divulgação sem dados pessoais, evidências com fotos, anexos e histórico, minuta sem
 // assinatura simulada, cabeçalhos private/no-store e isolamento entre municípios.
 
-const PALMEIROPOLIS = "http://palmeiropolis.localhost:3000";
-const PEIXE = "http://peixe.localhost:3000";
+const PALMEIROPOLIS = site("palmeiropolis");
+const PEIXE = site("peixe");
 const SUF = randomBytes(3).toString("hex");
 const DADOS = {
   atividade: `[E2E] Mirante ${SUF}`,
@@ -24,13 +24,7 @@ const DADOS = {
 };
 const ids: Record<string, string> = {};
 
-/** SQL no Postgres LOCAL (container do Supabase CLI), como o global-setup. */
-function sqlLocal(sql: string) {
-  return execSync("docker exec -i supabase_db_turismo-to psql -U postgres -q -t -A -v ON_ERROR_STOP=1", {
-    input: sql,
-    encoding: "utf8",
-  }).trim();
-}
+const sqlLocal = sql;
 
 async function entrar(page: Page, base: string, email: string) {
   await page.goto(`${base}/admin/login`);
@@ -44,8 +38,8 @@ async function entrar(page: Page, base: string, email: string) {
 async function pedir(page: Page, base: string, caminho: string, opcoes: { maxRedirects?: number } = {}) {
   const host = new URL(base).host;
   const cookies = (await page.context().cookies(base)).map((c) => `${c.name}=${c.value}`).join("; ");
-  return page.request.get(`http://localhost:3000${caminho}`, {
-    headers: { host, ...(cookies ? { cookie: cookies } : {}) },
+  return page.request.get(NO_PREVIEW ? new URL(caminho, base).toString() : `http://localhost:3000${caminho}`, {
+    headers: { ...(NO_PREVIEW ? {} : { host }), ...(cookies ? { cookie: cookies } : {}) },
     maxRedirects: opcoes.maxRedirects,
   });
 }

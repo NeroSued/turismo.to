@@ -1,7 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
 import { USUARIOS_DEV } from "../ambiente";
+import { NO_PREVIEW, site } from "./alvo";
 
-const PALMEIROPOLIS = "http://palmeiropolis.localhost:3000";
+const PALMEIROPOLIS = site("palmeiropolis");
 
 const SETE = [
   "Ananás",
@@ -28,18 +29,18 @@ test("o hub lista os sete municípios", async ({ page }) => {
   await expect(nav.getByRole("link")).toHaveCount(7);
   await expect(nav.getByRole("link", { name: /Palmeirópolis/ })).toHaveAttribute(
     "href",
-    "http://palmeiropolis.localhost:3000/",
+    NO_PREVIEW ? "/?municipio=palmeiropolis" : site("palmeiropolis", "/"),
   );
 });
 
-test("palmeiropolis.localhost:3000 abre o portal do município", async ({ page }) => {
+test("o subdomínio palmeiropolis abre o portal do município", async ({ page }) => {
   await page.goto(PALMEIROPOLIS);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Palmeirópolis");
   await expect(page).toHaveTitle(/Turismo em Palmeirópolis/);
 });
 
 test("slug inexistente responde 404", async ({ page }) => {
-  const r = await page.goto("http://naoexiste.localhost:3000/");
+  const r = await page.goto(site("naoexiste", "/"));
   expect(r?.status()).toBe(404);
   await expect(page.getByRole("heading", { name: "Página não encontrada" })).toBeVisible();
 });
@@ -49,7 +50,18 @@ test("a árvore interna /m/<slug> não é acessível diretamente", async ({ page
   expect(r?.status()).toBe(404);
 });
 
+test("no preview (ALLOW_TENANT_OVERRIDE=true), ?municipio=palmeiropolis abre o portal e lembra a escolha", async ({ page }) => {
+  test.skip(!NO_PREVIEW, "só no preview");
+  await page.goto(site("", "/?municipio=palmeiropolis"));
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Palmeirópolis");
+  await page.goto(site("", "/"));
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Palmeirópolis");
+  await page.goto(site("", "/?municipio="));
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Turismo nos municípios participantes");
+});
+
 test("?municipio= é ignorado quando ALLOW_TENANT_OVERRIDE não está ativa", async ({ page }) => {
+  test.skip(NO_PREVIEW, "o preview tem o override ligado de propósito");
   await page.goto("/?municipio=peixe");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Turismo nos municípios participantes");
   const cookies = await page.context().cookies();

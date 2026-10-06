@@ -1,28 +1,22 @@
-import { execSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { createClient } from "@supabase/supabase-js";
 import { expect, test, type Browser, type Page } from "@playwright/test";
-import { ambienteLocal, USUARIOS_DEV } from "../ambiente";
+import { USUARIOS_DEV } from "../ambiente";
 import { PDF_TESTE } from "./arquivos";
+import { AMBIENTE, emailDeTeste, hostDe, NO_PREVIEW, pedir as pedirAlvo, site, sql } from "./alvo";
 
 // Fase 4 no celular (390x844, build de produção): restrição do operador, convite com senha
 // definida pelo próprio convidado (Mailpit), equipe, escalada de privilégio pela rota,
 // área da assessoria, auditoria com filtros e exclusão LGPD de arquivo de evidência.
 
-const PALMEIROPOLIS = "http://palmeiropolis.localhost:3000";
-const PEIXE = "http://peixe.localhost:3000";
+const PALMEIROPOLIS = site("palmeiropolis");
+const PEIXE = site("peixe");
 const MAILPIT = "http://127.0.0.1:54324";
 const SUF = randomBytes(3).toString("hex");
 const SEM_PERMISSAO = "Sua conta não tem permissão para esta ação neste município.";
 
-/** SQL no Postgres LOCAL (container do Supabase CLI), como o global-setup. */
-function sqlLocal(sql: string) {
-  return execSync("docker exec -i supabase_db_turismo-to psql -U postgres -q -t -A -v ON_ERROR_STOP=1", {
-    input: sql,
-    encoding: "utf8",
-  }).trim();
-}
+const sqlLocal = sql;
 
 const idMunicipio = (slug: string) => sqlLocal(`select id from public.municipios where slug = '${slug}'`);
 
@@ -43,15 +37,24 @@ async function novaPagina(browser: Browser) {
 async function pedir(page: Page, base: string, caminho: string, opcoes: { metodo?: "GET" | "POST"; headers?: Record<string, string>; dados?: Buffer } = {}) {
   const host = new URL(base).host;
   const cookies = (await page.context().cookies(base)).map((c) => `${c.name}=${c.value}`).join("; ");
-  return page.request.fetch(`http://localhost:3000${caminho}`, {
+  return page.request.fetch(NO_PREVIEW ? new URL(caminho, base).toString() : `http://localhost:3000${caminho}`, {
     method: opcoes.metodo ?? "GET",
-    headers: { host, ...(cookies ? { cookie: cookies } : {}), ...opcoes.headers },
+    headers: { ...(NO_PREVIEW ? {} : { host }), ...(cookies ? { cookie: cookies } : {}), ...opcoes.headers },
     data: opcoes.dados,
     maxRedirects: 0,
   });
 }
 
 async function linkDoConvite(email: string): Promise<string> {
+  if (NO_PREVIEW) {
+    // O preview envia pelo Resend, sem caixa de entrada para ler: o link é o do template
+    // (supabase/templates/convite.html) com o token_hash que o Auth gravou para a conta.
+    let hash = "";
+    await expect
+      .poll(() => (hash = sqlLocal(`select coalesce(confirmation_token, '') from auth.users where email = '${email}'`)), { timeout: 15_000 })
+      .not.toBe("");
+    return `${PALMEIROPOLIS}/auth/confirm?next=/conta/nova-senha&token_hash=${hash}&type=invite`;
+  }
   let id: string | undefined;
   await expect
     .poll(async () => {
@@ -103,7 +106,7 @@ test.describe.serial("administração e usuários no celular", () => {
   });
 
   test("convite cria a conta sem senha; o convidado define a própria senha pelo e-mail e entra como operador", async ({ page, browser }) => {
-    const email = `convidado.${SUF}@exemplo.test`;
+    const email = emailDeTeste(`convidado.${SUF}`);
     await entrar(page, PALMEIROPOLIS, USUARIOS_DEV.gestorPalmeiropolis);
     await page.getByRole("navigation", { name: "Navegação do painel" }).getByRole("link", { name: "Mais" }).click();
     await page.getByRole("link", { name: /Equipe/ }).click();
@@ -121,9 +124,9 @@ test.describe.serial("administração e usuários no celular", () => {
     const item = page.getByRole("list", { name: "Equipe" }).getByRole("listitem").filter({ hasText: email });
     await expect(item).toContainText("Ainda não entrou");
 
-    // O convidado abre o link do e-mail (Mailpit) num navegador sem sessão e cria a própria senha.
+    // O convidado abre o link do e-mail (Mailpit; no preview, montado pelo banco de teste) num navegador sem sessão e cria a própria senha.
     const link = await linkDoConvite(email);
-    expect(new URL(link).host).toBe("palmeiropolis.localhost:3000");
+    expect(new URL(link).host).toBe(hostDe("palmeiropolis"));
     const convidado = await novaPagina(browser);
     await convidado.goto(link);
     await expect(convidado).toHaveURL(/\/conta\/nova-senha$/);
@@ -260,9 +263,9 @@ test.describe.serial("administração e usuários no celular", () => {
     await page.getByRole("button", { name: "Desativar Arraias" }).click();
     await expect(page.getByRole("status").filter({ hasText: "Arraias desativado" })).toBeVisible();
     expect(sqlLocal(`select ativo from public.municipios where slug = 'arraias'`)).toBe("f");
-    const anonimo = await page.request.get("http://localhost:3000/", { headers: { host: "arraias.localhost:3000" }, maxRedirects: 0 });
+    const anonimo = await pedirAlvo(page, "arraias", "/", { maxRedirects: 0 });
     expect(anonimo.status()).toBe(404);
-    const hub = await (await page.request.get("http://localhost:3000/")).text();
+    const hub = await (await page.request.get(site("", "/"))).text();
     expect(hub).not.toContain("Arraias");
     await page.getByRole("button", { name: "Ativar Arraias" }).click();
     await expect(page.getByRole("status").filter({ hasText: "Arraias ativado" })).toBeVisible();
@@ -274,7 +277,7 @@ test.describe.serial("administração e usuários no celular", () => {
     await page.getByLabel("Nome de exibição").fill(`[E2E] Ananás ${SUF}`);
     await page.getByRole("button", { name: "Salvar configurações" }).click();
     await expect(page.getByRole("status").filter({ hasText: "Configurações salvas" })).toBeVisible();
-    const portal = await (await page.request.get("http://localhost:3000/", { headers: { host: "ananas.localhost:3000" } })).text();
+    const portal = await (await pedirAlvo(page, "ananas", "/")).text();
     expect(portal).toContain(`[E2E] Ananás ${SUF}`);
     await page.getByLabel("Nome de exibição").fill("");
     await page.getByRole("button", { name: "Salvar configurações" }).click();
@@ -362,7 +365,7 @@ test.describe.serial("administração e usuários no celular", () => {
   });
 
   test("LGPD: só o admin exclui de vez o arquivo de evidência; o Storage fica sem ele e o histórico guarda quem, quando e o motivo", async ({ page, browser }) => {
-    const { url, secret } = ambienteLocal();
+    const { url, secret } = AMBIENTE;
     const servico = createClient(url, secret, { auth: { persistSession: false, autoRefreshToken: false } });
     const municipio = idMunicipio("palmeiropolis");
     const legenda = `Lista com assinatura de Fulana ${SUF}`;
