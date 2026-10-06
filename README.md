@@ -204,6 +204,8 @@ Ele lê `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SECRET_KEY` e `NEXT_PUBLIC_ROOT_DO
 
 Os demais administradores são concedidos pela área **Assessoria** do painel; gestores e operadores, pela tela **Equipe** de cada município.
 
+O link do convite vale **1 hora**. Se a pessoa perder o prazo, ela abre `https://<município>.turismo.to/admin/login`, toca em "Esqueci minha senha" e recebe um link novo para criar a senha.
+
 ## 6. Operação
 
 - **Backup:** semanal, banco e arquivos, conforme [docs/BACKUP.md](docs/BACKUP.md). O backup diário do Supabase não inclui os arquivos.

@@ -222,7 +222,7 @@ Primeira entrega completa: criar atividade, publicar, emitir voucher, confirmar 
 - [x] 6.2 Auth remoto: Site URL, URLs de redirecionamento, SMTP próprio para convites e recuperação de senha.
 - [x] 6.3 Projeto na Vercel ligado ao GitHub, variáveis por ambiente (`ALLOW_TENANT_OVERRIDE` só em Preview).
 - [x] 6.4 Domínio `turismo.to` e curinga `*.turismo.to` (o curinga exige os nameservers da Vercel).
-- [ ] 6.5 Criar o primeiro admin com o script e entregar o acesso ao Nero.
+- [x] 6.5 Criar o primeiro admin com o script e entregar o acesso ao Nero.
 - [x] 6.6 Teste de fumaça no preview pelo celular e E2E com `BASE_URL` apontando para o preview.
 
 **Pronto quando:**
@@ -251,7 +251,8 @@ Pendências externas conhecidas. Atualize quando surgirem novas ou forem resolvi
 - [ ] Configurar o Resend: adicionar o domínio `envio.turismo.to`, copiar os registros DNS que o Resend mostrar para o DNS da Vercel, esperar a verificação, criar uma chave de API só de envio e colá-la no SMTP do Supabase Auth. Passo a passo em `README.md`. Faz parte da Fase 6.2 (precisa do Nero, porque a chave é secreta).
 - [x] Aprovação do Nero para mesclar o PR #6 (Fase 5) em `main`. Em 2026-10-05 o PR estava sem conflito e com `npm run verify` em código 0, mas já tem o check "Vercel" (o projeto da Vercel está ligado ao repositório), então o merge publica em produção e, pela regra do CLAUDE.md, só acontece com aprovação explícita. Resolvido: o Nero aprovou ("Pode publicar") em 2026-10-05.
 - [x] Fase 6, credenciais de implantação: resolvido pelo Nero em 2026-10-06 (token pessoal do Supabase, chave secreta do teste como `SUPABASE_SECRET_KEY` só em Preview, SMTP do Resend no projeto de teste com `teste@envio.turismo.to`).
-- [ ] Fase 6 (2026-10-06): aguardando o Nero (a) confirmar que recebeu o convite em nerosued@gmail.com e entrou no painel; (b) aprovar o merge do PR #7 em `main`, que publica em produção. Depois do merge: teste de fumaça, cron com e sem segredo, advisors e contagem de dados em produção.
+- [x] Fase 6, convite e merge: resolvido em 2026-10-06. O Nero aprovou o merge ("Pode publicar e fazer o merge") e confirmou que recebeu o convite e entrou no painel.
+- [ ] Proteção contra senhas vazadas (HaveIBeenPwned) no Auth: o Supabase só permite no plano Pro, e é o único aviso dos advisors de segurança em produção (`auth_leaked_password_protection`, WARN). Resolve ao passar para o Pro.
 - [ ] Logos, fotos e textos oficiais de cada prefeitura.
 - [ ] Revisão jurídica do aviso de privacidade pelas prefeituras.
 
@@ -336,6 +337,8 @@ Registre aqui decisões tomadas durante a execução: data, decisão, motivo.
 - 2026-10-06: advisor de produção apontou `public.rls_auto_enable()` (criada pelo Supabase com a opção "habilitar RLS automaticamente", gatilho de evento `ensure_rls`) executável por `anon` e `authenticated`. Migration `revogar_rls_auto_enable` revoga o EXECUTE se a função existir (o gatilho continua funcionando); pgTAP `009_funcoes_expostas` garante que nenhuma função security definer em `public` é executável por `anon` ou `authenticated`.
 - 2026-10-06: funções da Vercel em `gru1` (São Paulo) pelo `vercel.json`: estavam em `iad1` (Washington), longe do banco de produção (`sa-east-1`) e dos usuários. O projeto de teste fica em `us-west-2` (criado pela integração), então o preview fica mais lento que a produção.
 - 2026-10-06: no preview (override ligado), `/admin/auditoria?municipio=<id>` era lido pelo proxy como escolha de portal e gravava o id no cookie de seleção, e a auditoria do gestor de Peixe saía vazia (achado pelo E2E contra o preview). O override agora só aceita `?municipio=` vazio ou com slug válido (`parametroDeOverride`); qualquer outro valor fica para a página. Espera por verificação de 20 s no alvo preview (envio de 6 MB até o Storage de teste em us-west-2).
+- 2026-10-06: links de convite e recuperação valem 1 hora (padrão do Supabase). O primeiro convite do Nero expirou; a validade foi a 24 h e voltou a 1 h porque o advisor `auth_otp_long_expiry` recomenda no máximo 1 hora. Convite expirado: a pessoa usa "Esqueci minha senha" no login do município e recebe um link novo (conferido no local: conta convidada sem senha recebe "Crie uma nova senha" e o link abre a sessão).
+- 2026-10-06: os domínios `teste.turismo.to` e `*.teste.turismo.to` ficaram ligados à branch `fase-6-implantacao`, apagada no merge. Para rodar o E2E contra outra branch, ligue os dois domínios a ela em Vercel → Settings → Domains.
 
 ## Registro
 
@@ -406,3 +409,5 @@ Registre aqui decisões tomadas durante a execução: data, decisão, motivo.
 | 2026-10-06 | Advisors de segurança | API do Supabase: produção com 0 alertas depois da migration `revogar_rls_auto_enable` (antes, 2 avisos sobre `public.rls_auto_enable()`). Projeto de teste: só "Leaked Password Protection Disabled", que o plano gratuito não permite ligar. |
 | 2026-10-06 | 6.6 | `npm run test:e2e:preview` contra o deploy de preview da branch (`teste.turismo.to` e `*.teste.turismo.to`, projeto "Turismo.TO Teste", funções em gru1): 46 passaram, 1 pulado (o teste que exige override desligado), código 0, em 16 min. Inclui `?municipio=palmeiropolis` abrindo o portal no preview, comprovante PDF de 6 MB pelo envio direto e desempenho (LCP de 1,1 a 1,8 s, 4G simulado). |
 | 2026-10-06 | Fase 6, verificação local | `npm run verify` com código 0: typecheck, lint, Vitest 98/98, pgTAP 299/299 (9 arquivos), Playwright 46 passaram e 1 pulado, build. |
+| 2026-10-06 | 6.5 | Nero confirmou na conversa que recebeu o convite (Resend) e entrou no painel. O primeiro link expirou (1 h); convite reenviado com `npm run criar-admin`. |
+| 2026-10-06 | Merge da Fase 6 | Aprovado pelo Nero. PR #7 sem conflito, checks da Vercel verdes; merge `ce8f34e`. Produção em gru1 (TTFB do portal de ~1,1 s para ~0,43 s). `npm run test:fumaca` em `https://turismo.to` e `https://palmeiropolis.turismo.to`: 4/4. Cron: 401 sem segredo, 401 com segredo errado, 200 `{"ok":true}` com o segredo; registrado na Vercel (`0 9 * * *`). Produção: 7 municípios, 0 vouchers, 1 conta (o admin), 0 registros `[DEV]`/`[TESTE]`/`[E2E]`. Advisors: só `auth_leaked_password_protection` (exige Pro). |
