@@ -15,7 +15,10 @@ export default async function NovaAtividade({ params }: PageProps<"/m/[slug]/adm
       <Link href="/admin/atividades" className="flex min-h-11 w-fit items-center gap-1.5 font-bold">
         <ArrowLeft aria-hidden="true" className="size-5" /> Atividades
       </Link>
-      <h1 className="text-[26px] font-bold">Nova atividade</h1>
+      <div className="flex flex-col gap-1">
+        <h1 className="text-[26px] font-bold">Nova atividade</h1>
+        <p className="text-muted-foreground">Depois de salvar, você poderá adicionar fotos.</p>
+      </div>
       <FormularioNovaAtividade />
     </Pagina>
   );

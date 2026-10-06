@@ -14,7 +14,10 @@ export default async function NovoEvento({ params }: PageProps<"/m/[slug]/admin/
   return (
     <Pagina className="pt-2">
       <Voltar href="/admin/eventos" rotulo="Eventos" />
-      <h1 className="text-[26px] font-bold">Novo evento</h1>
+      <div className="flex flex-col gap-1">
+        <h1 className="text-[26px] font-bold">Novo evento</h1>
+        <p className="text-muted-foreground">Depois de salvar, você poderá adicionar fotos.</p>
+      </div>
       <p className="text-muted-foreground">Horários no fuso do Tocantins (America/Araguaina).</p>
       <FormularioNovoCadastro tipo="eventos" valores={{ dia_inicio: hoje, dia_fim: hoje }} />
     </Pagina>
