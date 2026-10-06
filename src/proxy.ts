@@ -33,8 +33,8 @@ export async function proxy(request: NextRequest) {
     overridePermitido,
   });
 
-  // /auth e /conta são globais: atendem o hub e todos os subdomínios.
-  const global = /^\/(auth|conta)(\/|$)/.test(pathname);
+  // /auth, /conta e /api são globais: atendem o hub e todos os subdomínios.
+  const global = /^\/(auth|conta|api)(\/|$)/.test(pathname);
   const reescrever = resolucao.tipo === "municipio" && !global;
 
   const destino = request.nextUrl.clone();
@@ -81,7 +81,7 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  if (/^\/(admin|auth|conta|voucher)(\/|$)/.test(pathname)) {
+  if (/^\/(admin|auth|conta|voucher|api)(\/|$)/.test(pathname)) {
     resposta.headers.set("Cache-Control", "private, no-store");
   }
   // O link do visitante carrega o token: não vaza por Referer nem é indexado.
