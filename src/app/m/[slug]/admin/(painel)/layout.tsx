@@ -56,7 +56,7 @@ export default async function LayoutPainel({ params, children }: LayoutProps<"/m
   const host = (await headers()).get("host");
 
   return (
-    <div className="flex flex-1 flex-col pb-[88px] print:pb-0">
+    <div data-painel className="flex flex-1 flex-col pb-[88px] print:pb-0">
       <header className="mx-auto flex w-full max-w-xl items-center justify-between gap-2 px-4 py-3 print:hidden">
         {comSeletor ? (
           <SeletorMunicipio

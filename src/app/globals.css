@@ -125,6 +125,11 @@
   }
 }
 
+/* Painel: rolagem e foco param acima da barra inferior fixa e do aviso flutuante (nada fica escondido atrás deles). */
+html:has([data-painel]) {
+  scroll-padding-bottom: calc(150px + env(safe-area-inset-bottom));
+}
+
 /* Barra de progresso do aviso flutuante do painel (Fase 8.2): esvazia em 3 s e pausa com o aviso. */
 @keyframes aviso-progresso {
   from {

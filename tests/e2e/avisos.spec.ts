@@ -133,6 +133,10 @@ test.describe("avisos flutuantes do painel", () => {
     await expect(page.getByRole("alert").filter({ has: pilula })).toHaveCount(1);
     await expect(latitude).toHaveAttribute("aria-invalid", "true");
     await expect(latitude).toBeFocused();
+    // O campo focado fica à vista, acima do aviso e da barra inferior (foco não encoberto).
+    const campo = (await latitude.boundingBox())!;
+    const caixaAviso = (await pilula.boundingBox())!;
+    expect(campo.y + campo.height, "campo acima do aviso").toBeLessThanOrEqual(caixaAviso.y);
     await expect(page.locator("#latitude-erro")).toContainText("Latitude");
     await semViolacoesGraves(page, "edição do atrativo com aviso de erro");
 
