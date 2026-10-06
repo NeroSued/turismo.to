@@ -8,8 +8,8 @@ Como usar este arquivo:
 
 ## Estado
 
-- Fase ativa: **7** (Fase 6 concluída e publicada em produção; merge em `main` publica e só acontece com aprovação do Nero)
-- Última atualização: 2026-10-06 (Fase 7 verificada no local e no preview)
+- Fase ativa: nenhuma (Fase 7 concluída e publicada em produção em 2026-10-06; merge em `main` publica e só acontece com aprovação do Nero)
+- Última atualização: 2026-10-06
 
 ---
 
@@ -455,3 +455,4 @@ Registre aqui decisões tomadas durante a execução: data, decisão, motivo.
 | 2026-10-06 | 7.5 | E2E `fotos.spec`: capa no card da lista de atrativos, de prestadores e da atividade na capa do portal; detalhe com "Sobre" em 2 parágrafos e faixa de fotos; galeria por teclado (Enter abre em 1 de 3, seta → 2 de 3 com alt "Foto 2 de …", deslizar → 3 de 3, miniatura → 1 de 3, Esc fecha e devolve o foco, crédito visível), axe sem violações graves no detalhe, na galeria aberta, no prestador e na atividade. `acessibilidade.spec` achou e corrigiu `dt`/`dd` aninhados no quadro de informações. Página nova `/prestadores/<id>`. |
 | 2026-10-06 | 7.6 | pgTAP: prestador aceita descrição de 2000 e recusa 2001; evento recusa 2001. E2E: campo "Descrição" do prestador com `maxlength=2000`, salvo com 2 parágrafos e mostrado como 2 `<p>` na página pública; atrativo idem. Integração `portal.test`: `descricao` entre as colunas públicas e nenhuma coluna interna. |
 | 2026-10-06 | Fase 7, verificação | `npm run verify` com código 0 depois de `npx supabase db reset`: typecheck, lint, Vitest 105/105, pgTAP 328/328 (10 arquivos), Playwright 54 aprovados e 1 pulado (inclui `fotos.spec` 4 e `sessao-compartilhada.spec` 4), build. E2E contra o preview (`teste.turismo.to`, deploy `61d62dd`, projeto "Turismo.TO Teste" com a migration): 50 aprovados, 1 pulado, código 0, em 17,5 min. |
+| 2026-10-06 | Merge da Fase 7 | Autorizado pelo Nero na conversa da fase ("já considere autorizado"). Migration `fotos_galeria` aplicada em produção com `supabase db push` antes do merge (compatível com o código anterior). PR #8 sem conflito, checks da Vercel verdes; merge `8080c6b`, branch apagada; `NEXT_PUBLIC_AUTH_COOKIE_DOMAIN=.turismo.to` só em Production. `npm run test:fumaca` em `https://turismo.to` e `https://palmeiropolis.turismo.to`: 6/6 (os 4 anteriores, tela de fotos pede login, prestador inexistente 404, listas abrem sem dados fictícios, bucket `originais` não serve arquivo pela URL pública). Advisors de produção: só `auth_leaked_password_protection` (exige Pro). |
