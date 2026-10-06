@@ -1,4 +1,4 @@
-import { ArrowLeft, Images } from "lucide-react";
+import { ArrowLeft, Images, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { AbrirGaleria, Compartilhar, type FotoGaleria } from "@/components/portal/galeria";
 import { FotoPortal } from "@/components/portal/estrutura";
@@ -97,5 +97,21 @@ export function Paragrafos({ texto, className }: { texto: string | null | undefi
         </p>
       ))}
     </>
+  );
+}
+
+/**
+ * Linha do quadro de informações (horário, acesso, contato...). `dt` e `dd` ficam direto no
+ * `div` filho do `dl`, como a lista de definição exige; o ícone vai dentro do `dt`.
+ */
+export function Linha({ icone: Icone, titulo, children }: { icone: LucideIcon; titulo: string; children: React.ReactNode }) {
+  return (
+    <div className="relative border-b border-[#E4E7E0] py-3 pr-3.5 pl-[46px] last:border-b-0">
+      <dt className="text-[13px] text-muted-foreground">
+        <Icone aria-hidden="true" className="absolute top-3.5 left-3.5 size-5 text-primary" />
+        {titulo}
+      </dt>
+      <dd className="font-bold whitespace-pre-line">{children}</dd>
+    </div>
   );
 }

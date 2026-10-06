@@ -19,10 +19,13 @@ export function GaleriaProvider({ fotos, nome, children }: { fotos: FotoGaleria[
   const miniaturas = useRef<HTMLDivElement>(null);
   const inicioToque = useRef<{ x: number; y: number } | null>(null);
   const [atual, setAtual] = useState(0);
+  // O conteúdo só é montado com a galeria aberta: fechada, nenhuma foto é baixada à toa.
+  const [aberto, setAberto] = useState(false);
   const total = fotos.length;
 
   const abrir = useCallback((indice: number) => {
     setAtual(Math.min(Math.max(indice, 0), Math.max(total - 1, 0)));
+    setAberto(true);
     dialogo.current?.showModal();
     document.documentElement.style.overflow = "hidden";
   }, [total]);
@@ -43,6 +46,7 @@ export function GaleriaProvider({ fotos, nome, children }: { fotos: FotoGaleria[
           ref={dialogo}
           aria-label={`Galeria de fotos de ${nome}`}
           onClose={() => {
+            setAberto(false);
             document.documentElement.style.overflow = "";
           }}
           onKeyDown={(e) => {
@@ -56,6 +60,7 @@ export function GaleriaProvider({ fotos, nome, children }: { fotos: FotoGaleria[
           }}
           className="m-0 h-dvh max-h-none w-full max-w-none bg-[#0E1410] p-0 text-white backdrop:bg-[#0E1410]"
         >
+          {aberto ? (
           <div className="mx-auto flex h-full max-w-3xl flex-col">
             <div className="flex items-center justify-between px-3 py-2.5">
               <button
@@ -144,6 +149,7 @@ export function GaleriaProvider({ fotos, nome, children }: { fotos: FotoGaleria[
               </div>
             ) : null}
           </div>
+          ) : null}
         </dialog>
       ) : null}
     </AbrirContexto.Provider>

@@ -2,7 +2,7 @@ import { Accessibility, ChevronRight, Clock, ExternalLink, MapPin, Mountain, Pho
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CapaDetalhe, FaixaFotos, fotosDaGaleria, Paragrafos } from "@/components/portal/detalhe";
+import { CapaDetalhe, FaixaFotos, fotosDaGaleria, Linha, Paragrafos } from "@/components/portal/detalhe";
 import { FotoPortal, nomeDoMunicipio, RodapePortal } from "@/components/portal/estrutura";
 import { GaleriaProvider } from "@/components/portal/galeria";
 import { urlPublica } from "@/lib/arquivos/url";
@@ -38,17 +38,6 @@ export async function generateMetadata({ params }: PageProps<"/m/[slug]/atrativo
   };
 }
 
-function Linha({ icone: Icone, titulo, children }: { icone: typeof Clock; titulo: string; children: React.ReactNode }) {
-  return (
-    <div className="flex gap-3 border-b border-[#E4E7E0] px-3.5 py-3 last:border-b-0">
-      <Icone aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-primary" />
-      <div className="flex min-w-0 flex-col">
-        <dt className="text-[13px] text-muted-foreground">{titulo}</dt>
-        <dd className="font-bold whitespace-pre-line">{children}</dd>
-      </div>
-    </div>
-  );
-}
 
 /** Detalhe do atrativo (tela "Atrativo · capa e galeria"). */
 export default async function Atrativo({ params }: PageProps<"/m/[slug]/atrativos/[id]">) {
