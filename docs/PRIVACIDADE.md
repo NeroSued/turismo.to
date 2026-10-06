@@ -40,6 +40,7 @@ Nome, e-mail, papel (gestor ou operador) e município; horário de entrada; regi
 ### Evidências e prestadores
 
 - Evidências podem ter fotos e listas de presença com nomes e assinaturas de participantes. Ficam no bucket privado `interno`, abertas só por links temporários de 60 segundos para gestores do município e para a assessoria.
+- Fotos de atrativos, eventos, prestadores e atividades, e a capa e o logo do município, são públicas. Antes de publicar, o servidor apaga os metadados da câmera (EXIF, inclusive a localização GPS, modelo do aparelho e nome do autor gravado pela câmera) e reduz a imagem para no máximo 2000 pixels. O arquivo original fica num bucket privado (`originais`) só durante esse tratamento e é apagado em seguida.
 - Adesões de prestadores guardam responsável, contato interno e comprovante, também privados. No portal aparece só o que o prestador autorizou divulgar.
 
 ## Retenção

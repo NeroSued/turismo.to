@@ -1,11 +1,17 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Pagina } from "@/components/pagina";
 import { NavegacaoPainel } from "@/components/painel/navegacao";
+import { SeletorMunicipio } from "@/components/painel/seletor-municipio";
 import type { Papel } from "@/lib/auth/acesso";
 import { sair } from "@/lib/auth/acoes";
+import { envPublico, overrideDeMunicipioPermitido } from "@/lib/env";
+import { urlDoPainel } from "@/lib/municipio/resolver";
 import { contextoDoSlug } from "@/lib/painel/contexto";
+import { municipiosParaTrocar } from "@/lib/painel/municipios";
+import { sessaoCompartilhada } from "@/lib/supabase/cookies";
 
 export const metadata: Metadata = { title: "Painel", robots: { index: false } };
 
@@ -41,15 +47,39 @@ export default async function LayoutPainel({ params, children }: LayoutProps<"/m
     );
   }
 
+  // Troca de município (Fase 7.2): admin vê todos; quem tem mais de um vínculo, os seus.
+  const raiz = envPublico().NEXT_PUBLIC_ROOT_DOMAIN;
+  const override = overrideDeMunicipioPermitido();
+  const municipios = await municipiosParaTrocar(acesso.userId, acesso.papel);
+  const comSeletor = acesso.papel === "admin" || municipios.length > 1;
+  const host = (await headers()).get("host");
+
   return (
     <div className="flex flex-1 flex-col pb-[88px] print:pb-0">
-      <header className="mx-auto flex w-full max-w-xl items-center justify-between gap-3 px-4 py-3 print:hidden">
-        <div className="flex flex-col leading-tight">
-          <span className="text-xs tracking-[0.06em] text-muted-foreground uppercase">
-            Painel · {ROTULO_PAPEL[acesso.papel]}
-          </span>
-          <span className="font-heading text-xl font-bold">{municipio.nome}</span>
-        </div>
+      <header className="mx-auto flex w-full max-w-xl items-center justify-between gap-2 px-4 py-3 print:hidden">
+        {comSeletor ? (
+          <SeletorMunicipio
+            rotuloPapel={ROTULO_PAPEL[acesso.papel]}
+            atual={{ slug: municipio.slug, nome: municipio.nome }}
+            admin={acesso.papel === "admin"}
+            compartilhada={override || sessaoCompartilhada(host)}
+            opcoes={municipios.map((m) => ({
+              ...m,
+              href: urlDoPainel(m.slug, raiz, override),
+              endereco: `${m.slug}.${raiz.replace(/:\d+$/, "")}/admin`,
+            }))}
+          />
+        ) : (
+          <div className="flex flex-col leading-tight">
+            <span className="text-xs tracking-[0.06em] text-muted-foreground uppercase">
+              Painel · {ROTULO_PAPEL[acesso.papel]}
+            </span>
+            <span className="font-heading text-xl font-bold">{municipio.nome}</span>
+          </div>
+        )}
+        {acesso.papel === "admin" ? (
+          <span className="ml-auto rounded-full bg-dourado-suave px-2.5 py-1 text-[13px] font-bold text-dourado-texto">Admin</span>
+        ) : null}
         <form action={sair}>
           <Button type="submit" variant="outline" size="sm">
             Sair

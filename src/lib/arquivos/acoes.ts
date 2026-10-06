@@ -4,18 +4,18 @@ import { z } from "zod";
 import { contextoDaAcao, contextoDoMunicipio, SEM_PERMISSAO } from "@/lib/painel/contexto";
 import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { PASTAS, caminhoNovo, deHex } from "./caminhos";
-import { REGRAS, validarArquivo } from "./validacao";
+import { REGRAS, validarArquivo, type Bucket } from "./validacao";
 
 const esquema = z.object({
   municipioId: z.uuid().optional(),
-  tipo: z.enum(["foto", "documento", "foto_interna"]),
+  tipo: z.enum(["foto", "documento", "foto_interna", "foto_original"]),
   pasta: z.enum(PASTAS),
   tamanho: z.number().int().positive(),
   inicio: z.string().regex(/^[0-9a-f]{0,32}$/),
 });
 
 export type Autorizacao =
-  | { ok: true; bucket: "publico" | "interno"; caminho: string; token: string; mime: string }
+  | { ok: true; bucket: Bucket; caminho: string; token: string; mime: string }
   | { ok: false; erro: string };
 
 /**

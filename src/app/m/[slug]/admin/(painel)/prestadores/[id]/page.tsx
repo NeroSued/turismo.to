@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MensagemEstado } from "@/components/formulario";
 import { Pagina } from "@/components/pagina";
-import { AcoesStatusCadastro, FormularioAdesao, FormularioEditarCadastro, GerenciarFotos } from "@/components/painel/cadastros";
+import { AcoesStatusCadastro, FormularioAdesao, FormularioEditarCadastro } from "@/components/painel/cadastros";
+import { ResumoFotos } from "@/components/painel/tela-fotos";
 import { CabecalhoCadastro, Voltar } from "@/components/painel/telas-cadastro";
-import { urlPublica } from "@/lib/arquivos/url";
 import { buscarPrestador, listarAdesoes, listarFotos } from "@/lib/cadastros/dados";
 import { CATEGORIAS_PRESTADOR, SITUACOES_REDE } from "@/lib/cadastros/esquemas";
 import { formatarData, hojeLocal } from "@/lib/datas";
@@ -69,14 +69,7 @@ export default async function EditarPrestador({ params, searchParams }: PageProp
         <FormularioAdesao prestadorId={p.id} hoje={hojeLocal()} />
       </section>
 
-      <section aria-labelledby="fotos" className="flex flex-col gap-3">
-        <h2 id="fotos" className="text-xl font-bold">Fotos</h2>
-        <GerenciarFotos
-          tipo="prestadores"
-          donoId={p.id}
-          fotos={fotos.map((f) => ({ id: f.id, legenda: f.legenda, url: urlPublica(f.caminho) }))}
-        />
-      </section>
+      <ResumoFotos tipo="prestadores" id={p.id} nome={p.nome_publico} fotos={fotos} />
       <section aria-labelledby="dados" className="flex flex-col gap-3">
         <h2 id="dados" className="text-xl font-bold">Dados públicos do prestador</h2>
         <FormularioEditarCadastro tipo="prestadores" id={p.id} valores={p} />

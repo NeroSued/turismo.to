@@ -13,6 +13,9 @@ const noPreview = ambiente.alvo === "preview";
 process.env.E2E_SENHA ??= randomBytes(18).toString("base64url");
 
 const PORTA = 3000;
+// Segundo servidor (Fase 7.1): sessão compartilhada entre *.turismo.test, resolvidos para 127.0.0.1.
+const PORTA_SESSAO = 3100;
+const RAIZ_SESSAO = `turismo.test:${PORTA_SESSAO}`;
 
 export default defineConfig({
   testDir: "tests/e2e",
@@ -27,6 +30,21 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: [["list"]],
   globalSetup: "./tests/e2e/global-setup.ts",
+  projects: [
+    { name: "celular", testIgnore: /sessao-compartilhada/ },
+    ...(noPreview
+      ? []
+      : [
+          {
+            name: "sessao-compartilhada",
+            testMatch: /sessao-compartilhada/,
+            use: {
+              baseURL: `http://${RAIZ_SESSAO}`,
+              launchOptions: { args: ["--host-resolver-rules=MAP turismo.test 127.0.0.1, MAP *.turismo.test 127.0.0.1"] },
+            },
+          },
+        ]),
+  ],
   use: {
     baseURL: noPreview ? `https://${process.env.E2E_RAIZ}` : `http://localhost:${PORTA}`,
     // Passa pela Proteção de Deploy da Vercel com o segredo de automação do projeto.
@@ -41,7 +59,7 @@ export default defineConfig({
   },
   webServer: noPreview
     ? undefined
-    : {
+    : [{
         // Build de produção: cabeçalhos de cache e comportamento iguais aos da Vercel.
         command: `npx next build && npx next start -p ${PORTA}`,
         url: `http://localhost:${PORTA}`,
@@ -56,4 +74,20 @@ export default defineConfig({
           ALLOW_TENANT_OVERRIDE: "false",
         },
       },
+      {
+        command: "node scripts/e2e-servidor-sessao.mjs",
+        url: `http://127.0.0.1:${PORTA_SESSAO}`,
+        reuseExistingServer: false,
+        timeout: 420_000,
+        env: {
+          NEXT_DIST_DIR: ".next-sessao",
+          PORTA_SESSAO: String(PORTA_SESSAO),
+          NEXT_PUBLIC_SUPABASE_URL: ambiente.url,
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ambiente.publishable,
+          SUPABASE_SECRET_KEY: ambiente.secret,
+          NEXT_PUBLIC_ROOT_DOMAIN: RAIZ_SESSAO,
+          NEXT_PUBLIC_AUTH_COOKIE_DOMAIN: ".turismo.test",
+          ALLOW_TENANT_OVERRIDE: "false",
+        },
+      }],
 });

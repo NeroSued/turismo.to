@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { errosPorCampo } from "@/lib/atividades/esquemas";
-import { enviarArquivo, removerArquivo } from "@/lib/arquivos/armazenamento";
+import { removerArquivo } from "@/lib/arquivos/armazenamento";
+import { publicarFotoTratada } from "@/lib/fotos/publicacao";
 import { contextoDoMunicipio, SEM_PERMISSAO, type ResultadoAcao } from "@/lib/painel/contexto";
 import { criarClienteServidor } from "@/lib/supabase/servidor";
 import { esquemaConfiguracoes, IMAGENS_MUNICIPIO, type ImagemMunicipio } from "./esquemas";
@@ -43,7 +44,8 @@ export async function enviarImagemMunicipio(municipioId: string, qual: ImagemMun
   const ctx = await contextoDoMunicipio(municipioId, ["gestor"]);
   if (!ctx || !imagemValida(qual)) return { ok: false, erro: SEM_PERMISSAO };
   const supabase = await criarClienteServidor();
-  const envio = await enviarArquivo(supabase, "foto", ctx.municipio.id, "marca", dados.get("arquivo"));
+  // Sem EXIF nem GPS e com até 2000 px, como as fotos dos cadastros (Fase 7.4).
+  const envio = await publicarFotoTratada(supabase, ctx.municipio.id, "marca", dados.get("arquivo"));
   if (!envio.ok) return { ok: false, erro: envio.erro, campos: { arquivo: envio.erro } };
 
   const coluna = IMAGENS_MUNICIPIO[qual];

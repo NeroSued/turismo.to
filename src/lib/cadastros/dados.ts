@@ -47,6 +47,7 @@ const esquemaPrestador = z.object({
   nome_publico: z.string(),
   categoria: chavesDe(CATEGORIAS_PRESTADOR),
   servicos: z.string().nullable(),
+  descricao: z.string().nullable(),
   contatos_publicos: z.string().nullable(),
   localizacao: z.string().nullable(),
   situacao_rede: chavesDe(SITUACOES_REDE),
@@ -57,10 +58,12 @@ const esquemaPrestador = z.object({
 const esquemaFoto = z.object({
   id: z.uuid(),
   caminho: z.string(),
-  legenda: z.string(),
+  legenda: z.string().nullable(),
+  credito: z.string().nullable(),
   atrativo_id: z.uuid().nullable(),
   evento_id: z.uuid().nullable(),
   prestador_id: z.uuid().nullable(),
+  atividade_id: z.uuid().nullable(),
   ordem: z.number(),
 });
 
@@ -84,8 +87,8 @@ const COLUNAS_ATRATIVO =
   "id, nome, categoria, descricao, endereco, latitude, longitude, horarios, contato, condicoes_acesso, acessibilidade, orientacoes_ambientais, status, atualizado_em";
 const COLUNAS_EVENTO =
   "id, titulo, descricao, local, organizador, inicio, fim, atrativo_id, status, atualizado_em, atrativos (id, nome, status)";
-const COLUNAS_PRESTADOR = "id, nome_publico, categoria, servicos, contatos_publicos, localizacao, situacao_rede, status, atualizado_em";
-const COLUNAS_FOTO = "id, caminho, legenda, atrativo_id, evento_id, prestador_id, ordem";
+const COLUNAS_PRESTADOR = "id, nome_publico, categoria, servicos, descricao, contatos_publicos, localizacao, situacao_rede, status, atualizado_em";
+const COLUNAS_FOTO = "id, caminho, legenda, credito, atrativo_id, evento_id, prestador_id, atividade_id, ordem";
 
 function falha(o: string, e: { message: string }): never {
   throw new Error(`Falha ao carregar ${o}: ${e.message}`);
@@ -145,20 +148,18 @@ export async function listarPrestadores(municipioId: string, opcoes: { publicado
   return z.array(esquemaPrestador).parse(data);
 }
 
-export async function buscarPrestador(municipioId: string, id: string) {
+export async function buscarPrestador(municipioId: string, id: string, opcoes: { publicado?: boolean } = {}) {
   if (!uuidValido(id)) return null;
   const supabase = await criarClienteServidor();
-  const { data, error } = await supabase
-    .from("prestadores")
-    .select(COLUNAS_PRESTADOR)
-    .eq("municipio_id", municipioId)
-    .eq("id", id)
-    .maybeSingle();
+  let q = supabase.from("prestadores").select(COLUNAS_PRESTADOR).eq("municipio_id", municipioId).eq("id", id);
+  // Página pública: só publicado e fora de "desligado", como na lista da rede.
+  if (opcoes.publicado) q = q.eq("status", "publicado").neq("situacao_rede", "desligado");
+  const { data, error } = await q.maybeSingle();
   if (error) falha("o prestador", error);
   return data ? esquemaPrestador.parse(data) : null;
 }
 
-export type DonoFoto = "atrativo_id" | "evento_id" | "prestador_id";
+export type DonoFoto = "atrativo_id" | "evento_id" | "prestador_id" | "atividade_id";
 
 /** Fotos de um ou mais conteúdos, em ordem. A RLS esconde do público as de conteúdo não publicado. */
 export async function listarFotos(municipioId: string, dono: DonoFoto, ids: string[]) {

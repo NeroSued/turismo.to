@@ -88,7 +88,7 @@ export function EnviarImagemMunicipio({ municipioId, qual, url, rotulo, ajuda }:
 }) {
   const formulario = useRef<HTMLFormElement>(null);
   const [estado, acao, pendente] = useActionState(async (anterior: ResultadoAcao | undefined, dados: FormData) => {
-    const r = await enviarImagemMunicipio(municipioId, qual, anterior, await enviarDireto(dados, "arquivo", "foto", "marca", municipioId));
+    const r = await enviarImagemMunicipio(municipioId, qual, anterior, await enviarDireto(dados, "arquivo", "foto_original", "marca", municipioId));
     if (r?.ok) formulario.current?.reset();
     return r;
   }, undefined);
@@ -112,7 +112,7 @@ export function EnviarImagemMunicipio({ municipioId, qual, url, rotulo, ajuda }:
       <div className="flex flex-col gap-1.5">
         <Label htmlFor={id}>Arquivo</Label>
         <Input id={id} name="arquivo" type="file" required accept="image/jpeg,image/png,image/webp" aria-describedby={`${id}-ajuda`} className="h-auto py-2.5" />
-        <span id={`${id}-ajuda`} className="text-sm text-muted-foreground">{ajuda} JPEG, PNG ou WebP até 5 MB.</span>
+        <span id={`${id}-ajuda`} className="text-sm text-muted-foreground">{ajuda} JPG, PNG ou WebP até 10 MB. A localização GPS gravada na foto é removida.</span>
       </div>
       <Button type="submit" variant="outline" size="lg" disabled={pendente}>
         <Upload aria-hidden="true" /> {pendente ? "Enviando…" : "Enviar imagem"}

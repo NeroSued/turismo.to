@@ -13,6 +13,8 @@ Para gestores e operadores das Secretarias de Turismo. O painel funciona no celu
 
 **"Sem acesso a este painel":** a sua conta não tem vínculo com este município, ou o acesso foi desativado. Fale com o gestor.
 
+**Trabalha em mais de um município:** toque no nome do município, no alto do painel, e escolha outro. Você continua conectado. Quem tem acesso a um município só não vê essa opção. **Sair** desconecta de todos os municípios.
+
 ## Barra inferior
 
 - **Gestor:** Início, Conteúdo, Vouchers, Relatórios e Mais.
@@ -75,9 +77,13 @@ Para pausar as reservas sem tirar a atividade do ar: **Fechar para reservas** (e
 
 ### Atrativos, eventos e prestadores
 
-**Conteúdo** → escolha a lista → **Novo atrativo**, **Novo evento** ou **Novo prestador**. Preencha o básico, toque em criar e complete na tela seguinte (endereço, horários, fotos com legenda). Toque em **Publicar no portal** quando estiver pronto.
+**Conteúdo** → escolha a lista → **Novo atrativo**, **Novo evento** ou **Novo prestador**. Preencha o básico, toque em criar e complete na tela seguinte (endereço, horários, descrição). Toque em **Publicar no portal** quando estiver pronto.
 
-- Use só fotos oficiais ou cedidas, com legenda que descreva a imagem.
+- **Descrição** (eventos e prestadores também têm): até 2000 caracteres. Deixe uma linha em branco entre os parágrafos.
+- **Fotos** (atrativos, eventos, prestadores e atividades): na tela do cadastro, toque em **Adicionar fotos** (ou **Capa e galeria**). Use **Tirar foto** para abrir a câmera ou **Da galeria** para escolher várias de uma vez. Até 12 fotos por cadastro, JPG, PNG ou WebP até 10 MB cada.
+- A primeira foto é a **capa**: aparece nas listas e no topo da página. Para trocar, toque em **Tornar capa** na foto desejada. As setas sobem ou descem uma foto na galeria; a lixeira retira a foto.
+- Escreva uma **legenda** dizendo o que aparece (ela é lida por quem usa leitor de tela). Sem legenda, o portal descreve como "Foto 1 de [nome do cadastro]". O **Crédito das fotos** aparece abaixo de cada foto na galeria. Toque em **Salvar fotos**.
+- Antes de publicar, o sistema apaga a localização GPS e os demais dados da câmera e reduz a foto para no máximo 2000 pixels. Use só fotos oficiais ou cedidas com autorização.
 - Prestador: registre a adesão (data, responsável e comprovante). Contato interno e comprovante nunca aparecem no portal; no portal sai só o que o prestador autorizou divulgar.
 - **Arquivar** tira do portal sem apagar.
 

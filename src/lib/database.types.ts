@@ -208,16 +208,22 @@ isOneToOne: false
                   ]
                 },"fotos": {
                   Row: {
-                    "atrativo_id": string | null,"caminho": string,"criado_em": string,"criado_por": string | null,"evento_id": string | null,"id": string,"legenda": string,"municipio_id": string,"ordem": number,"prestador_id": string | null
+                    "atividade_id": string | null,"atrativo_id": string | null,"caminho": string,"credito": string | null,"criado_em": string,"criado_por": string | null,"evento_id": string | null,"id": string,"legenda": string | null,"municipio_id": string,"ordem": number,"prestador_id": string | null
                   }
                   Insert: {
-                    "atrativo_id"?: string | null,"caminho": string,"criado_em"?: string,"criado_por"?: string | null,"evento_id"?: string | null,"id"?: string,"legenda": string,"municipio_id": string,"ordem"?: number,"prestador_id"?: string | null
+                    "atividade_id"?: string | null,"atrativo_id"?: string | null,"caminho": string,"credito"?: string | null,"criado_em"?: string,"criado_por"?: string | null,"evento_id"?: string | null,"id"?: string,"legenda"?: string | null,"municipio_id": string,"ordem"?: number,"prestador_id"?: string | null
                   }
                   Update: {
-                    "atrativo_id"?: string | null,"caminho"?: string,"criado_em"?: string,"criado_por"?: string | null,"evento_id"?: string | null,"id"?: string,"legenda"?: string,"municipio_id"?: string,"ordem"?: number,"prestador_id"?: string | null
+                    "atividade_id"?: string | null,"atrativo_id"?: string | null,"caminho"?: string,"credito"?: string | null,"criado_em"?: string,"criado_por"?: string | null,"evento_id"?: string | null,"id"?: string,"legenda"?: string | null,"municipio_id"?: string,"ordem"?: number,"prestador_id"?: string | null
                   }
                   Relationships: [
                     {
+      foreignKeyName: "fotos_atividade_fk"
+      columns: ["municipio_id","atividade_id"]
+isOneToOne: false
+      referencedRelation: "atividades"
+      referencedColumns: ["municipio_id","id"]
+    },{
       foreignKeyName: "fotos_municipio_id_atrativo_id_fkey"
       columns: ["municipio_id","atrativo_id"]
 isOneToOne: false
@@ -303,13 +309,13 @@ isOneToOne: false
                   ]
                 },"prestadores": {
                   Row: {
-                    "atualizado_em": string,"categoria": string,"contatos_publicos": string | null,"criado_em": string,"criado_por": string | null,"id": string,"localizacao": string | null,"municipio_id": string,"nome_publico": string,"servicos": string | null,"situacao_rede": string,"status": string
+                    "atualizado_em": string,"categoria": string,"contatos_publicos": string | null,"criado_em": string,"criado_por": string | null,"descricao": string | null,"id": string,"localizacao": string | null,"municipio_id": string,"nome_publico": string,"servicos": string | null,"situacao_rede": string,"status": string
                   }
                   Insert: {
-                    "atualizado_em"?: string,"categoria": string,"contatos_publicos"?: string | null,"criado_em"?: string,"criado_por"?: string | null,"id"?: string,"localizacao"?: string | null,"municipio_id": string,"nome_publico": string,"servicos"?: string | null,"situacao_rede"?: string,"status"?: string
+                    "atualizado_em"?: string,"categoria": string,"contatos_publicos"?: string | null,"criado_em"?: string,"criado_por"?: string | null,"descricao"?: string | null,"id"?: string,"localizacao"?: string | null,"municipio_id": string,"nome_publico": string,"servicos"?: string | null,"situacao_rede"?: string,"status"?: string
                   }
                   Update: {
-                    "atualizado_em"?: string,"categoria"?: string,"contatos_publicos"?: string | null,"criado_em"?: string,"criado_por"?: string | null,"id"?: string,"localizacao"?: string | null,"municipio_id"?: string,"nome_publico"?: string,"servicos"?: string | null,"situacao_rede"?: string,"status"?: string
+                    "atualizado_em"?: string,"categoria"?: string,"contatos_publicos"?: string | null,"criado_em"?: string,"criado_por"?: string | null,"descricao"?: string | null,"id"?: string,"localizacao"?: string | null,"municipio_id"?: string,"nome_publico"?: string,"servicos"?: string | null,"situacao_rede"?: string,"status"?: string
                   }
                   Relationships: [
                     {
@@ -445,6 +451,9 @@ isOneToOne: false
                            },
 "excluir_arquivo_evidencia_lgpd":
 { Args: { "p_arquivo_id": string,"p_motivo": string }; Returns: undefined
+                           },
+"posicionar_foto":
+{ Args: { "p_foto": string,"p_posicao": number }; Returns: undefined
                            },
 "relatorio_completo":
 { Args: { "p_fim": string,"p_inicio": string,"p_municipio_id": string }; Returns: Json

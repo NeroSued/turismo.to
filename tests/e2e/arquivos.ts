@@ -73,9 +73,9 @@ export const PDF_TESTE = Buffer.from("%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n
 /** Texto com nome e tipo de foto: o servidor tem de recusar pelo conteúdo. */
 export const FOTO_FALSA = Buffer.from("isto é um texto com nome de foto");
 
-/** "JPEG" de 6 MB (assinatura válida, acima do limite de 5 MB). */
-export function jpegGrande(): Buffer {
-  const b = Buffer.alloc(6 * 1024 * 1024);
+/** "JPEG" com assinatura válida e o tamanho pedido (padrão 6 MB), para testar limites. */
+export function jpegGrande(megabytes = 6): Buffer {
+  const b = Buffer.alloc(megabytes * 1024 * 1024);
   b.set([0xff, 0xd8, 0xff, 0xe0]);
   return b;
 }

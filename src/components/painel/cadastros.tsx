@@ -1,6 +1,5 @@
 "use client";
 
-import { Trash2, Upload } from "lucide-react";
 import { useActionState, useRef, useState, useTransition } from "react";
 import { AreaTexto, Campo, MensagemEstado, Selecao } from "@/components/formulario";
 import { Button } from "@/components/ui/button";
@@ -8,10 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   criarCadastro,
-  enviarFoto,
   mudarStatusCadastro,
   registrarAdesao,
-  removerFoto,
   salvarCadastro,
 } from "@/lib/cadastros/acoes";
 import { CAMPOS, type DefCampo } from "@/lib/cadastros/campos";
@@ -140,83 +137,6 @@ export function AcoesStatusCadastro({ tipo, id, status }: { tipo: TipoCadastro; 
           Arquivar (tira do portal)
         </Button>
       ) : null}
-    </div>
-  );
-}
-
-export type FotoPainel = { id: string; url: string; legenda: string };
-
-export function GerenciarFotos({ tipo, donoId, fotos }: { tipo: TipoCadastro; donoId: string; fotos: FotoPainel[] }) {
-  const formulario = useRef<HTMLFormElement>(null);
-  const [estado, acao, pendente] = useActionState(async (anterior: ResultadoAcao | undefined, dados: FormData) => {
-    const r = await enviarFoto(tipo, donoId, anterior, await enviarDireto(dados, "arquivo", "foto", "fotos"));
-    if (r?.ok) formulario.current?.reset();
-    return r;
-  }, undefined);
-  const remocao = useAcaoSimples();
-  const campos = estado && !estado.ok ? estado.campos : undefined;
-
-  return (
-    <div className="flex flex-col gap-4">
-      {fotos.length === 0 ? (
-        <p className="rounded-2xl border bg-superficie p-4 text-muted-foreground">
-          Nenhuma foto ainda. Envie fotos oficiais ou cedidas com autorização; a primeira aparece nas listas do portal.
-        </p>
-      ) : (
-        <ul className="grid grid-cols-2 gap-3">
-          {fotos.map((f) => (
-            <li key={f.id} className="flex flex-col gap-1.5 rounded-2xl border bg-superficie p-2">
-              {/* eslint-disable-next-line @next/next/no-img-element -- miniatura do painel, sem otimização */}
-              <img src={f.url} alt={f.legenda} className="aspect-[4/3] w-full rounded-xl object-cover" loading="lazy" />
-              <span className="text-sm">{f.legenda}</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={remocao.pendente}
-                onClick={() => remocao.executar(() => removerFoto(tipo, donoId, f.id))}
-                aria-label={`Remover a foto ${f.legenda}`}
-              >
-                <Trash2 aria-hidden="true" /> Remover
-              </Button>
-            </li>
-          ))}
-        </ul>
-      )}
-      <MensagemEstado
-        erro={remocao.resultado && !remocao.resultado.ok ? remocao.resultado.erro : null}
-        aviso={remocao.resultado?.ok ? remocao.resultado.aviso : null}
-      />
-      <form ref={formulario} action={acao} className="flex flex-col gap-4 rounded-2xl border bg-superficie p-4">
-        <h3 className="text-lg font-bold">Enviar foto</h3>
-        <MensagemEstado erro={estado && !estado.ok ? estado.erro : null} aviso={estado?.ok ? estado.aviso : null} />
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="arquivo">Arquivo da foto</Label>
-          <Input
-            id="arquivo"
-            name="arquivo"
-            type="file"
-            required
-            accept="image/jpeg,image/png,image/webp"
-            aria-describedby="arquivo-ajuda"
-            aria-invalid={campos?.arquivo ? true : undefined}
-            className="h-auto py-2.5"
-          />
-          <span id="arquivo-ajuda" className="text-sm text-muted-foreground">JPEG, PNG ou WebP até 5 MB.</span>
-        </div>
-        <Campo
-          id="legenda"
-          rotulo="Legenda"
-          key={estado && !estado.ok ? `erro-${estado.valores?.legenda}` : "legenda"}
-          defaultValue={estado && !estado.ok ? estado.valores?.legenda : undefined}
-          required
-          maxLength={200}
-          erro={campos?.legenda}
-          ajuda="Descreva o que aparece na foto. É lida por quem usa leitor de tela."
-        />
-        <Button type="submit" size="lg" variant="outline" disabled={pendente}>
-          <Upload aria-hidden="true" /> {pendente ? "Enviando…" : "Enviar foto"}
-        </Button>
-      </form>
     </div>
   );
 }

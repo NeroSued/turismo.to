@@ -68,10 +68,16 @@ export function resolverMunicipio(e: EntradaResolucao): Resolucao {
   return { tipo: "hub" };
 }
 
+/** http só no ambiente local (localhost e o domínio reservado .test dos testes); o resto, https. */
+function protocoloDe(dominioRaiz: string): "http" | "https" {
+  const h = semPorta(dominioRaiz);
+  return h === "localhost" || h.endsWith(".localhost") || h.endsWith(".test") ? "http" : "https";
+}
+
 /** Endereço do hub, para o link "Outros municípios". */
 export function urlDoHub(dominioRaiz: string, overridePermitido: boolean): string {
   if (overridePermitido && !dominioRaiz.includes("localhost")) return `/?${PARAMETRO_MUNICIPIO}=`;
-  const protocolo = dominioRaiz.includes("localhost") ? "http" : "https";
+  const protocolo = protocoloDe(dominioRaiz);
   return `${protocolo}://${dominioRaiz}/`;
 }
 
@@ -84,6 +90,15 @@ export function urlDoMunicipio(
   if (overridePermitido && !dominioRaiz.includes("localhost")) {
     return `/?${PARAMETRO_MUNICIPIO}=${encodeURIComponent(slug)}`;
   }
-  const protocolo = dominioRaiz.includes("localhost") ? "http" : "https";
+  const protocolo = protocoloDe(dominioRaiz);
   return `${protocolo}://${slug}.${dominioRaiz}/`;
+}
+
+/** Endereço do painel de um município, para o seletor do cabeçalho do painel. */
+export function urlDoPainel(slug: string, dominioRaiz: string, overridePermitido: boolean): string {
+  if (overridePermitido && !dominioRaiz.includes("localhost")) {
+    return `/admin?${PARAMETRO_MUNICIPIO}=${encodeURIComponent(slug)}`;
+  }
+  const protocolo = protocoloDe(dominioRaiz);
+  return `${protocolo}://${slug}.${dominioRaiz}/admin`;
 }

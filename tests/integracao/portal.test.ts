@@ -71,7 +71,7 @@ describe("portal: visibilidade pública pela Data API", () => {
     const { data, error } = await clienteAnonimo().from("prestadores").select("*").eq("id", criados.prestadores[0]).single();
     expect(error).toBeNull();
     expect(Object.keys(data!).sort()).toEqual(
-      ["atualizado_em", "categoria", "contatos_publicos", "criado_em", "criado_por", "id", "localizacao", "municipio_id", "nome_publico", "servicos", "situacao_rede", "status"].sort(),
+      ["atualizado_em", "categoria", "contatos_publicos", "criado_em", "criado_por", "descricao", "id", "localizacao", "municipio_id", "nome_publico", "servicos", "situacao_rede", "status"].sort(),
     );
     expect(JSON.stringify(data)).not.toContain(INTERNO);
     // Embutir a adesão pela relação também é negado ao anônimo.

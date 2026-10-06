@@ -12,7 +12,6 @@ import {
   esquemaAdesao,
   esquemaAtrativo,
   esquemaEvento,
-  esquemaLegenda,
   esquemaPrestador,
   STATUS_CONTEUDO,
   TIPOS_CADASTRO,
@@ -40,7 +39,7 @@ function ler(dados: FormData, chaves: string[]) {
 const CHAVES = {
   atrativos: ["nome", "categoria", "descricao", "endereco", "latitude", "longitude", "horarios", "contato", "condicoes_acesso", "acessibilidade", "orientacoes_ambientais"],
   eventos: ["titulo", "dia_inicio", "hora_inicio", "dia_fim", "hora_fim", "local", "organizador", "descricao", "atrativo_id"],
-  prestadores: ["nome_publico", "categoria", "situacao_rede", "servicos", "contatos_publicos", "localizacao"],
+  prestadores: ["nome_publico", "categoria", "situacao_rede", "descricao", "servicos", "contatos_publicos", "localizacao"],
 } satisfies Record<TipoCadastro, string[]>;
 
 type Validado = { ok: true; linha: Record<string, unknown> } | { ok: false; estado: ResultadoAcao };
@@ -139,53 +138,6 @@ export async function mudarStatusCadastro(tipo: TipoCadastro, id: string, status
     rascunho: "Voltou para elaboração e saiu do portal.",
   } as const;
   return { ok: true, aviso: avisos[s.data] };
-}
-
-const DONO = { atrativos: "atrativo_id", eventos: "evento_id", prestadores: "prestador_id" } as const;
-
-export async function enviarFoto(tipo: TipoCadastro, donoId: string, _: Estado, dados: FormData): Promise<Estado> {
-  const ctx = await contextoDaAcao(["gestor"]);
-  if (!ctx || !tipoValido(tipo)) return { ok: false, erro: SEM_PERMISSAO };
-  if (!z.uuid().safeParse(donoId).success) return { ok: false, erro: "Cadastro não encontrado." };
-  const legenda = String(dados.get("legenda") ?? "");
-  const l = esquemaLegenda.safeParse({ legenda });
-  if (!l.success) return { ok: false, erro: CORRIJA, campos: errosPorCampo(l.error), valores: { legenda } };
-
-  const supabase = await criarClienteServidor();
-  const envio = await enviarArquivo(supabase, "foto", ctx.municipio.id, "fotos", dados.get("arquivo"));
-  if (!envio.ok) return { ok: false, erro: envio.erro, campos: { arquivo: envio.erro }, valores: { legenda } };
-
-  const { error } = await supabase.from("fotos").insert({
-    municipio_id: ctx.municipio.id,
-    caminho: envio.caminho,
-    legenda: l.data.legenda,
-    atrativo_id: DONO[tipo] === "atrativo_id" ? donoId : null,
-    evento_id: DONO[tipo] === "evento_id" ? donoId : null,
-    prestador_id: DONO[tipo] === "prestador_id" ? donoId : null,
-  });
-  if (error) {
-    await removerArquivo(supabase, "foto", envio.caminho);
-    return { ok: false, erro: erroDoBanco(error) };
-  }
-  revalidatePath(`/admin/${tipo}/${donoId}`);
-  return { ok: true, aviso: "Foto enviada." };
-}
-
-export async function removerFoto(tipo: TipoCadastro, donoId: string, fotoId: string): Promise<ResultadoAcao> {
-  const ctx = await contextoDaAcao(["gestor"]);
-  if (!ctx || !tipoValido(tipo)) return { ok: false, erro: SEM_PERMISSAO };
-  if (!z.uuid().safeParse(fotoId).success) return { ok: false, erro: "Foto não encontrada." };
-  const supabase = await criarClienteServidor();
-  const { data, error } = await supabase
-    .from("fotos")
-    .delete()
-    .eq("municipio_id", ctx.municipio.id)
-    .eq("id", fotoId)
-    .select("caminho");
-  if (error || !data.length) return { ok: false, erro: "Foto não encontrada neste município." };
-  await removerArquivo(supabase, "foto", data[0].caminho);
-  revalidatePath(`/admin/${tipo}/${donoId}`);
-  return { ok: true, aviso: "Foto removida." };
 }
 
 export async function registrarAdesao(prestadorId: string, _: Estado, dados: FormData): Promise<Estado> {

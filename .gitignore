@@ -12,6 +12,8 @@
 
 # next.js
 /.next/
+/.next-sessao/
+/test-results-preview/
 /out/
 /build
 
