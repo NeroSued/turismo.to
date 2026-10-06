@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Browser, type Page } from "@playwright/test";
 import { USUARIOS_DEV } from "../ambiente";
-import { FOTO_FALSA, jpegGrande, pdfGrande, pngSolido } from "./arquivos";
+import { FOTO_FALSA, jpegGrande, pdfGrande, pngRuidoso } from "./arquivos";
 import { NO_PREVIEW, pedir as pedirAlvo, site, sql } from "./alvo";
 
 // Fase 2 no celular (390x844): gestor cadastra atrativos, eventos e prestadores com fotos e
@@ -123,7 +123,7 @@ test.describe.serial("portal público e cadastros no celular", () => {
     await expect(page.getByRole("list").getByRole("img")).toHaveCount(0);
 
     // Foto válida com legenda.
-    await arquivo.setInputFiles({ name: "cachoeira.png", mimeType: "image/png", buffer: pngSolido(64, 48, [40, 110, 90]) });
+    await arquivo.setInputFiles({ name: "cachoeira.png", mimeType: "image/png", buffer: pngRuidoso(320, 240) });
     await page.getByLabel("Legenda").fill(NOMES.legenda);
     await page.getByRole("button", { name: "Enviar foto" }).click();
     await expect(page.getByRole("status").filter({ hasText: "Foto enviada." })).toBeVisible();
