@@ -17,6 +17,7 @@ import {
 import { ROTULO_TIPO_ACAO, ROTULO_TIPO_ARQUIVO, TIPOS_ACAO, TIPOS_ARQUIVO } from "@/lib/evidencias/esquemas";
 import type { ResultadoAcao } from "@/lib/painel/contexto";
 import { cn } from "@/lib/utils";
+import { enviarDireto } from "@/lib/arquivos/envio-direto";
 
 export type ValoresEvidencia = {
   tipo_acao: string;
@@ -142,7 +143,8 @@ export function GerenciarArquivosEvidencia({ evidenciaId, arquivos }: { evidenci
   const formulario = useRef<HTMLFormElement>(null);
   const [tipo, setTipo] = useState("foto");
   const [estado, acao, pendente] = useActionState(async (anterior: ResultadoAcao | undefined, dados: FormData) => {
-    const r = await enviarArquivoEvidencia(evidenciaId, anterior, dados);
+    const tipoArquivo = dados.get("tipo") === "foto" ? "foto_interna" : "documento";
+    const r = await enviarArquivoEvidencia(evidenciaId, anterior, await enviarDireto(dados, "arquivo", tipoArquivo, "evidencias"));
     if (r?.ok) formulario.current?.reset();
     return r;
   }, undefined);

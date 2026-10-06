@@ -18,6 +18,7 @@ import { CAMPOS, type DefCampo } from "@/lib/cadastros/campos";
 import { TEXTOS, type StatusConteudo, type TipoCadastro } from "@/lib/cadastros/esquemas";
 import type { ResultadoAcao } from "@/lib/painel/contexto";
 import { cn } from "@/lib/utils";
+import { enviarDireto } from "@/lib/arquivos/envio-direto";
 
 type Valores = Record<string, string | null | undefined>;
 type OpcaoAtrativo = { id: string; nome: string };
@@ -148,7 +149,7 @@ export type FotoPainel = { id: string; url: string; legenda: string };
 export function GerenciarFotos({ tipo, donoId, fotos }: { tipo: TipoCadastro; donoId: string; fotos: FotoPainel[] }) {
   const formulario = useRef<HTMLFormElement>(null);
   const [estado, acao, pendente] = useActionState(async (anterior: ResultadoAcao | undefined, dados: FormData) => {
-    const r = await enviarFoto(tipo, donoId, anterior, dados);
+    const r = await enviarFoto(tipo, donoId, anterior, await enviarDireto(dados, "arquivo", "foto", "fotos"));
     if (r?.ok) formulario.current?.reset();
     return r;
   }, undefined);
@@ -223,7 +224,7 @@ export function GerenciarFotos({ tipo, donoId, fotos }: { tipo: TipoCadastro; do
 export function FormularioAdesao({ prestadorId, hoje }: { prestadorId: string; hoje: string }) {
   const formulario = useRef<HTMLFormElement>(null);
   const [estado, acao, pendente] = useActionState(async (anterior: ResultadoAcao | undefined, dados: FormData) => {
-    const r = await registrarAdesao(prestadorId, anterior, dados);
+    const r = await registrarAdesao(prestadorId, anterior, await enviarDireto(dados, "comprovante", "documento", "adesoes"));
     if (r?.ok) formulario.current?.reset();
     return r;
   }, undefined);

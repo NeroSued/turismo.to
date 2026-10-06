@@ -200,7 +200,8 @@ export async function registrarAdesao(prestadorId: string, _: Estado, dados: For
   const supabase = await criarClienteServidor();
   let comprovante: string | null = null;
   const arquivo = dados.get("comprovante");
-  if (arquivo instanceof File && arquivo.size > 0) {
+  // Comprovante opcional: arquivo (sem JavaScript) ou caminho do envio direto ao Storage.
+  if ((arquivo instanceof File && arquivo.size > 0) || (typeof arquivo === "string" && arquivo !== "")) {
     const envio = await enviarArquivo(supabase, "documento", ctx.municipio.id, "adesoes", arquivo);
     if (!envio.ok) return { ok: false, erro: envio.erro, campos: { comprovante: envio.erro }, valores };
     comprovante = envio.caminho;

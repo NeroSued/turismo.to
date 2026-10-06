@@ -108,16 +108,14 @@ export async function enviarArquivoEvidencia(evidenciaId: string, _: Estado, dad
   const envio = await enviarArquivo(supabase, tipoArquivo, ctx.municipio.id, "evidencias", arquivo);
   if (!envio.ok) return { ok: false, erro: envio.erro, campos: { arquivo: envio.erro }, valores };
 
-  const extensao = envio.caminho.split(".").pop();
-  const mime = extensao === "pdf" ? "application/pdf" : extensao === "png" ? "image/png" : "image/jpeg";
   const { error } = await supabase.from("evidencias_arquivos").insert({
     municipio_id: ctx.municipio.id,
     evidencia_id: evidenciaId,
     tipo: l.data.tipo,
     caminho: envio.caminho,
     legenda: l.data.legenda,
-    mime,
-    tamanho: (arquivo as File).size,
+    mime: envio.mime,
+    tamanho: envio.tamanho,
   });
   if (error) {
     await removerArquivo(supabase, tipoArquivo, envio.caminho);

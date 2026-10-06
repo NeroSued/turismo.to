@@ -52,3 +52,13 @@ export function jpegGrande(): Buffer {
   b.set([0xff, 0xd8, 0xff, 0xe0]);
   return b;
 }
+
+/**
+ * PDF de 6 MB: acima do limite de 4,5 MB por requisição da Vercel e abaixo dos 10 MB de
+ * documentos. Só passa se o arquivo for enviado direto ao Storage (envio-direto.ts).
+ */
+export function pdfGrande(): Buffer {
+  const inicio = Buffer.from("%PDF-1.4\n% comprovante digitalizado\n");
+  const fim = Buffer.from("\ntrailer<<>>\n%%EOF\n");
+  return Buffer.concat([inicio, Buffer.alloc(6 * 1024 * 1024 - inicio.length - fim.length, 0x20), fim]);
+}

@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Browser, type Page } from "@playwright/test";
 import { USUARIOS_DEV } from "../ambiente";
-import { FOTO_FALSA, jpegGrande, PDF_TESTE, pngSolido } from "./arquivos";
+import { FOTO_FALSA, jpegGrande, pdfGrande, pngSolido } from "./arquivos";
 import { NO_PREVIEW, pedir as pedirAlvo, site, sql } from "./alvo";
 
 // Fase 2 no celular (390x844): gestor cadastra atrativos, eventos e prestadores com fotos e
@@ -219,7 +219,8 @@ test.describe.serial("portal público e cadastros no celular", () => {
     await page.getByLabel("Comprovante (opcional)").setInputFiles({ name: "termo.pdf", mimeType: "application/pdf", buffer: FOTO_FALSA });
     await page.getByRole("button", { name: "Registrar adesão" }).click();
     await expect(alerta(page, "Tipo de arquivo não aceito. Envie PDF, JPEG ou PNG até 10 MB.")).toBeVisible();
-    await page.getByLabel("Comprovante (opcional)").setInputFiles({ name: "termo.pdf", mimeType: "application/pdf", buffer: PDF_TESTE });
+    // 6 MB: maior que o limite de requisição da Vercel, então só passa pelo envio direto ao Storage.
+    await page.getByLabel("Comprovante (opcional)").setInputFiles({ name: "termo.pdf", mimeType: "application/pdf", buffer: pdfGrande() });
     await page.getByRole("button", { name: "Registrar adesão" }).click();
     await expect(page.getByRole("status").filter({ hasText: "Adesão registrada." })).toBeVisible();
     await expect(page.getByText(`Responsável: ${NOMES.responsavel}`)).toBeVisible();
@@ -234,6 +235,7 @@ test.describe.serial("portal público e cadastros no celular", () => {
     const pdf = await page.request.get(r.headers()["location"]);
     expect(pdf.status()).toBe(200);
     expect((await pdf.body()).subarray(0, 5).toString()).toBe("%PDF-");
+    expect((await pdf.body()).length).toBe(6 * 1024 * 1024);
     ids.comprovante = href!;
     await mudarStatus(page, "Publicar no portal", "Publicado.");
 
