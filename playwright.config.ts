@@ -20,6 +20,8 @@ export default defineConfig({
   // No preview cada página atravessa a internet até a Vercel e o Supabase de teste: mais tempo
   // por teste, as mesmas verificações.
   timeout: noPreview ? 90_000 : 30_000,
+  // Envios de arquivo atravessam a internet até o Storage de teste (us-west-2): mais espera por verificação.
+  expect: { timeout: noPreview ? 20_000 : 5_000 },
   workers: 1,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
