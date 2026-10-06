@@ -251,6 +251,7 @@ Pendências externas conhecidas. Atualize quando surgirem novas ou forem resolvi
 - [ ] Configurar o Resend: adicionar o domínio `envio.turismo.to`, copiar os registros DNS que o Resend mostrar para o DNS da Vercel, esperar a verificação, criar uma chave de API só de envio e colá-la no SMTP do Supabase Auth. Passo a passo em `README.md`. Faz parte da Fase 6.2 (precisa do Nero, porque a chave é secreta).
 - [x] Aprovação do Nero para mesclar o PR #6 (Fase 5) em `main`. Em 2026-10-05 o PR estava sem conflito e com `npm run verify` em código 0, mas já tem o check "Vercel" (o projeto da Vercel está ligado ao repositório), então o merge publica em produção e, pela regra do CLAUDE.md, só acontece com aprovação explícita. Resolvido: o Nero aprovou ("Pode publicar") em 2026-10-05.
 - [x] Fase 6, credenciais de implantação: resolvido pelo Nero em 2026-10-06 (token pessoal do Supabase, chave secreta do teste como `SUPABASE_SECRET_KEY` só em Preview, SMTP do Resend no projeto de teste com `teste@envio.turismo.to`).
+- [ ] Fase 6 (2026-10-06): aguardando o Nero (a) confirmar que recebeu o convite em nerosued@gmail.com e entrou no painel; (b) aprovar o merge do PR #7 em `main`, que publica em produção. Depois do merge: teste de fumaça, cron com e sem segredo, advisors e contagem de dados em produção.
 - [ ] Logos, fotos e textos oficiais de cada prefeitura.
 - [ ] Revisão jurídica do aviso de privacidade pelas prefeituras.
 
