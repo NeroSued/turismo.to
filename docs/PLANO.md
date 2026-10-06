@@ -223,7 +223,7 @@ Primeira entrega completa: criar atividade, publicar, emitir voucher, confirmar 
 - [x] 6.3 Projeto na Vercel ligado ao GitHub, variáveis por ambiente (`ALLOW_TENANT_OVERRIDE` só em Preview).
 - [x] 6.4 Domínio `turismo.to` e curinga `*.turismo.to` (o curinga exige os nameservers da Vercel).
 - [ ] 6.5 Criar o primeiro admin com o script e entregar o acesso ao Nero.
-- [ ] 6.6 Teste de fumaça no preview pelo celular e E2E com `BASE_URL` apontando para o preview.
+- [x] 6.6 Teste de fumaça no preview pelo celular e E2E com `BASE_URL` apontando para o preview.
 
 **Pronto quando:**
 
@@ -401,3 +401,7 @@ Registre aqui decisões tomadas durante a execução: data, decisão, motivo.
 | 2026-10-06 | 6.2 | API de gerenciamento do Supabase (PATCH `config/auth`) nos dois projetos: Site URL `https://turismo.to` / `https://teste.turismo.to`; redirecionamentos `https://turismo.to/**`, `https://*.turismo.to/**` (produção) e `https://teste.turismo.to/**`, `https://*.teste.turismo.to/**`, `https://*-nero-sued-s-projects.vercel.app/**` (teste); cadastro desligado; assuntos e templates de convite e recuperação do repositório (com `TokenHash`). SMTP do Resend presente nos dois (`nao-responda@` e `teste@envio.turismo.to`). Cadastro público em produção: 422 `signup_disabled`. |
 | 2026-10-06 | 6.3 | Projeto `turismo-to` na Vercel ligado ao GitHub (deploys por branch). Variáveis, só pelos nomes: Production com `NEXT_PUBLIC_*`, `SUPABASE_SECRET_KEY` e `CRON_SECRET`, sem `ALLOW_TENANT_OVERRIDE`; Preview com `NEXT_PUBLIC_*` do projeto de teste, `SUPABASE_SECRET_KEY` (posta pelo Nero) e `ALLOW_TENANT_OVERRIDE=true`. |
 | 2026-10-06 | 6.4 | API da Vercel: `turismo.to` e `*.turismo.to` verificados no projeto; HTTPS com certificado válido em `https://turismo.to` (200) e `https://palmeiropolis.turismo.to` (200); `www.turismo.to` 307 para `turismo.to`. |
+| 2026-10-06 | 6.5 (aguarda o Nero) | `npm run criar-admin -- nerosued@gmail.com` contra produção: "Convite enviado" e "agora é administrador da assessoria". Banco de produção: 1 conta, convidada, sem senha, `admin_assessoria = true`. E-mail enviado pelo SMTP do Resend (`nao-responda@envio.turismo.to`). Falta o Nero confirmar que recebeu e entrou no painel. |
+| 2026-10-06 | Advisors de segurança | API do Supabase: produção com 0 alertas depois da migration `revogar_rls_auto_enable` (antes, 2 avisos sobre `public.rls_auto_enable()`). Projeto de teste: só "Leaked Password Protection Disabled", que o plano gratuito não permite ligar. |
+| 2026-10-06 | 6.6 | `npm run test:e2e:preview` contra o deploy de preview da branch (`teste.turismo.to` e `*.teste.turismo.to`, projeto "Turismo.TO Teste", funções em gru1): 46 passaram, 1 pulado (o teste que exige override desligado), código 0, em 16 min. Inclui `?municipio=palmeiropolis` abrindo o portal no preview, comprovante PDF de 6 MB pelo envio direto e desempenho (LCP de 1,1 a 1,8 s, 4G simulado). |
+| 2026-10-06 | Fase 6, verificação local | `npm run verify` com código 0: typecheck, lint, Vitest 98/98, pgTAP 299/299 (9 arquivos), Playwright 46 passaram e 1 pulado, build. |
