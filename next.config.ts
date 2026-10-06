@@ -6,6 +6,8 @@ const supabase = process.env.NEXT_PUBLIC_SUPABASE_URL ? new URL(process.env.NEXT
 const supabaseLocal = supabase !== null && ["127.0.0.1", "localhost"].includes(supabase.hostname);
 
 const nextConfig: NextConfig = {
+  // O E2E da sessão compartilhada (Fase 7.1) sobe um segundo build em outra pasta.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   experimental: {
     serverActions: {
       // Documentos de até 10 MB (bucket interno) mais a sobra do multipart. O tipo e o tamanho

@@ -1,8 +1,9 @@
 import "server-only";
 import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import type { Database } from "@/lib/database.types";
 import { envPublico } from "@/lib/env";
+import { opcoesCookieSessao } from "./cookies";
 
 /**
  * Cliente de servidor com a sessão do usuário (cookies). Todas as consultas
@@ -10,9 +11,10 @@ import { envPublico } from "@/lib/env";
  */
 export async function criarClienteServidor() {
   // cookies() primeiro: torna a rota dinâmica antes de qualquer leitura de ambiente.
-  const loja = await cookies();
+  const [loja, h] = await Promise.all([cookies(), headers()]);
   const env = envPublico();
   return createServerClient<Database>(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
+    cookieOptions: opcoesCookieSessao(h.get("host")),
     cookies: {
       getAll() {
         return loja.getAll();

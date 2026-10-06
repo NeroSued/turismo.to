@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { envPublico, overrideDeMunicipioPermitido } from "@/lib/env";
+import { opcoesCookieSessao } from "@/lib/supabase/cookies";
 import {
   COOKIE_MUNICIPIO,
   PARAMETRO_MUNICIPIO,
@@ -54,6 +55,7 @@ export async function proxy(request: NextRequest) {
     env.NEXT_PUBLIC_SUPABASE_URL,
     env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     {
+      cookieOptions: opcoesCookieSessao(request.headers.get("host")),
       cookies: {
         getAll() {
           return request.cookies.getAll();
