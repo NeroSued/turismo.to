@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { enviarImagemMunicipio, removerImagemMunicipio, salvarConfiguracoes } from "@/lib/configuracoes/acoes";
 import type { ImagemMunicipio } from "@/lib/configuracoes/esquemas";
 import type { ResultadoAcao } from "@/lib/painel/contexto";
+import { enviarDireto } from "@/lib/arquivos/envio-direto";
 
 type Valores = {
   nome_exibicao: string | null;
@@ -87,7 +88,7 @@ export function EnviarImagemMunicipio({ municipioId, qual, url, rotulo, ajuda }:
 }) {
   const formulario = useRef<HTMLFormElement>(null);
   const [estado, acao, pendente] = useActionState(async (anterior: ResultadoAcao | undefined, dados: FormData) => {
-    const r = await enviarImagemMunicipio(municipioId, qual, anterior, dados);
+    const r = await enviarImagemMunicipio(municipioId, qual, anterior, await enviarDireto(dados, "arquivo", "foto", "marca", municipioId));
     if (r?.ok) formulario.current?.reset();
     return r;
   }, undefined);

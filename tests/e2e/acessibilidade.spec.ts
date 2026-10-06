@@ -1,25 +1,19 @@
-import { execSync } from "node:child_process";
 import { randomBytes, randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Browser, type Page } from "@playwright/test";
 import { USUARIOS_DEV } from "../ambiente";
+import { hostDe, site, sql } from "./alvo";
 
 // Fase 5.3 no celular (390x844, build de produção): axe em TODAS as páginas, públicas e do painel,
 // com o papel que usa cada uma (visitante, gestor, operador, admin), e orçamento de desempenho
 // das telas mais usadas no celular, com rede e processador de celular simulados.
 
-const HUB = "http://localhost:3000";
-const PALMEIROPOLIS = "http://palmeiropolis.localhost:3000";
+const HUB = site();
+const PALMEIROPOLIS = site("palmeiropolis");
 const SUF = randomBytes(3).toString("hex");
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
-/** SQL no Postgres LOCAL (container do Supabase CLI), como o global-setup (D11). */
-function sqlLocal(sql: string) {
-  return execSync("docker exec -i supabase_db_turismo-to psql -U postgres -q -t -A -v ON_ERROR_STOP=1", {
-    input: sql,
-    encoding: "utf8",
-  }).trim();
-}
+const sqlLocal = sql;
 
 const ids = {
   atrativo: randomUUID(),
@@ -251,7 +245,7 @@ test.describe.serial("acessibilidade e desempenho em todas as telas (5.3)", () =
     await entrar(page, USUARIOS_DEV.operadorPalmeiropolis);
     const atendimento = await medir(`${PALMEIROPOLIS}/admin/atendimento`);
     medidas.push({ url: "admin/atendimento", ...atendimento });
-    linhas.push(`palmeiropolis.localhost:3000/admin/atendimento (operador): maior conteúdo em ${atendimento.lcp} ms, JavaScript ${atendimento.jsKb} KB`);
+    linhas.push(`${hostDe("palmeiropolis")}/admin/atendimento (operador): maior conteúdo em ${atendimento.lcp} ms, JavaScript ${atendimento.jsKb} KB`);
     console.log(`desempenho (4G simulado, CPU 4x):\n  ${linhas.join("\n  ")}`);
 
     for (const m of medidas) {

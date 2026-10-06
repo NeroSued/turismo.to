@@ -15,7 +15,7 @@ O backup automático do Supabase cobre só o banco. Segundo a documentação ofi
 | Pro | Diária, guardada por 7 dias | Restauração pelo painel: Database → Backups |
 | Pro + PITR | Contínua, volta a qualquer segundo dos últimos 7 dias | US$ 100/mês (ver [CUSTOS.md](CUSTOS.md)) |
 
-O plano previsto é o Pro. A cópia diária dele protege contra erro no banco descoberto em até 7 dias. Ela não protege contra perda da conta, contra um erro descoberto depois de 7 dias, nem contra a perda de arquivos do Storage. Por isso a exportação própria abaixo é obrigatória.
+**Situação em 2026-10-06:** os dois projetos estão no plano Free, por decisão do Nero. Então hoje **não existe cópia automática nenhuma**: a exportação abaixo é a única cópia do sistema, e deve ser feita toda semana sem falta. O cron diário da Vercel (README, seção 4) evita a pausa por falta de uso. Ao passar para o Pro, a cópia diária dele protege contra erro no banco descoberto em até 7 dias. Ela não protege contra perda da conta, contra um erro descoberto depois de 7 dias, nem contra a perda de arquivos do Storage. Por isso a exportação própria abaixo é obrigatória.
 
 ## Exportação periódica (feita pela assessoria)
 

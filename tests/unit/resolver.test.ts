@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolverMunicipio, slugDoHost, urlDoHub, urlDoMunicipio } from "@/lib/municipio/resolver";
+import { parametroDeOverride, resolverMunicipio, slugDoHost, urlDoHub, urlDoMunicipio } from "@/lib/municipio/resolver";
 
 const base = { dominioRaiz: "turismo.to", parametro: null, cookie: null, overridePermitido: false };
 
@@ -49,5 +49,15 @@ describe("links", () => {
     expect(urlDoMunicipio("peixe", "turismo-to.vercel.app", true)).toBe("/?municipio=peixe");
     expect(urlDoHub("turismo.to", false)).toBe("https://turismo.to/");
     expect(urlDoHub("turismo-to.vercel.app", true)).toBe("/?municipio=");
+  });
+});
+
+describe("parametroDeOverride", () => {
+  it("aceita slug válido e vazio; ignora o que não é slug", () => {
+    expect(parametroDeOverride("Palmeiropolis")).toBe("palmeiropolis");
+    expect(parametroDeOverride("")).toBe("");
+    expect(parametroDeOverride(null)).toBeNull();
+    expect(parametroDeOverride("6f1c2c7e-8f5a-4b8e-9a43-0f2d9c8b1a11")).toBeNull();
+    expect(parametroDeOverride("../admin")).toBeNull();
   });
 });

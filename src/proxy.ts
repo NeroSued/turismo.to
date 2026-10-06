@@ -4,6 +4,7 @@ import { envPublico, overrideDeMunicipioPermitido } from "@/lib/env";
 import {
   COOKIE_MUNICIPIO,
   PARAMETRO_MUNICIPIO,
+  parametroDeOverride,
   resolverMunicipio,
 } from "@/lib/municipio/resolver";
 
@@ -23,7 +24,7 @@ export async function proxy(request: NextRequest) {
 
   const env = envPublico();
   const overridePermitido = overrideDeMunicipioPermitido();
-  const parametro = overridePermitido ? searchParams.get(PARAMETRO_MUNICIPIO) : null;
+  const parametro = overridePermitido ? parametroDeOverride(searchParams.get(PARAMETRO_MUNICIPIO)) : null;
 
   const resolucao = resolverMunicipio({
     host: request.headers.get("host"),
@@ -33,8 +34,8 @@ export async function proxy(request: NextRequest) {
     overridePermitido,
   });
 
-  // /auth e /conta são globais: atendem o hub e todos os subdomínios.
-  const global = /^\/(auth|conta)(\/|$)/.test(pathname);
+  // /auth, /conta e /api são globais: atendem o hub e todos os subdomínios.
+  const global = /^\/(auth|conta|api)(\/|$)/.test(pathname);
   const reescrever = resolucao.tipo === "municipio" && !global;
 
   const destino = request.nextUrl.clone();
@@ -81,7 +82,7 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  if (/^\/(admin|auth|conta|voucher)(\/|$)/.test(pathname)) {
+  if (/^\/(admin|auth|conta|voucher|api)(\/|$)/.test(pathname)) {
     resposta.headers.set("Cache-Control", "private, no-store");
   }
   // O link do visitante carrega o token: não vaza por Referer nem é indexado.

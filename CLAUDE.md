@@ -84,7 +84,8 @@ Se algum desses scripts ainda não existir, criá-lo faz parte da Fase 0.
 - Horários em `timestamptz`. Horários digitados pelo gestor são interpretados no fuso America/Araguaina. Exiba sempre pelo helper único `src/lib/datas.ts`, que formata em pt-BR no fuso America/Araguaina.
 - Identificadores: UUID. Códigos públicos gerados no banco com bytes aleatórios.
 - `supabase/seed.sql` contém apenas os sete municípios reais e vale para qualquer ambiente.
-- `supabase/seed.dev.sql` contém dados fictícios marcados com `[DEV]` no nome e roda só localmente. Nunca aplique no projeto remoto.
+- `supabase/seed.dev.sql` contém dados fictícios marcados com `[DEV]` no nome e roda só localmente ou no projeto de teste.
+- Dados fictícios (`[DEV]`, `[TESTE]`, `[E2E]`) existem só no ambiente local e no projeto Supabase "Turismo.TO Teste" (ref `lcpkzcjkijgtomoepcbe`, usado pelos previews da Vercel). Nunca no projeto de produção "Turismo.TO" (ref `kytbiyiltfpyvwuumfds`), que recebe só as migrations e `seed.sql`.
 - Depois de mudar o schema, regenere `src/lib/database.types.ts`.
 
 ## Interface

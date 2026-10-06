@@ -1,10 +1,10 @@
-import { execSync } from "node:child_process";
 import { createClient } from "@supabase/supabase-js";
-import { ambienteLocal, USUARIOS_DEV } from "../ambiente";
+import { USUARIOS_DEV } from "../ambiente";
+import { AMBIENTE, sql } from "./alvo";
 
-/** Define a senha aleatória desta execução nas contas [DEV] do banco local. */
+/** Define a senha aleatória desta execução nas contas [DEV] do banco do alvo (local ou projeto de teste). */
 export default async function globalSetup() {
-  const { url, secret } = ambienteLocal();
+  const { url, secret } = AMBIENTE;
   const senha = process.env.E2E_SENHA;
   if (!senha) throw new Error("E2E_SENHA não definida pelo playwright.config.ts.");
 
@@ -20,8 +20,6 @@ export default async function globalSetup() {
   }
 
   // Execuções seguidas do E2E saem do mesmo IP (127.0.0.1) e esbarrariam no limite de
-  // emissões públicas (D9). Zera a contagem só no banco LOCAL (url conferida em ambienteLocal).
-  execSync(`docker exec supabase_db_turismo-to psql -U postgres -q -c "delete from public.limites_requisicao"`, {
-    stdio: "ignore",
-  });
+  // emissões públicas (D9). Zera a contagem só no banco local ou no de teste (conferidos em ambienteE2E).
+  sql("delete from public.limites_requisicao");
 }

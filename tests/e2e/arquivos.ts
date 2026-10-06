@@ -41,6 +41,33 @@ export function pngSolido(largura: number, altura: number, [r, g, b]: [number, n
   ]);
 }
 
+/**
+ * PNG com ruído (não comprime), como uma foto de verdade: a versão AVIF/WebP do otimizador
+ * de imagens fica menor que o original. Com uma cor só, o PNG já é menor que qualquer AVIF e
+ * o otimizador da Vercel devolve o original.
+ */
+export function pngRuidoso(largura: number, altura: number): Buffer {
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(largura, 0);
+  ihdr.writeUInt32BE(altura, 4);
+  ihdr[8] = 8;
+  ihdr[9] = 2;
+  let semente = 12345;
+  // Bits altos do gerador congruencial: os baixos se repetem a cada 256 valores e comprimem.
+  const aleatorio = () => ((semente = (Math.imul(semente, 1103515245) + 12345) >>> 0) >>> 16) & 0xff;
+  const linhas = Array.from({ length: altura }, () => {
+    const linha = Buffer.alloc(1 + largura * 3);
+    for (let i = 1; i < linha.length; i++) linha[i] = aleatorio();
+    return linha;
+  });
+  return Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    bloco("IHDR", ihdr),
+    bloco("IDAT", deflateSync(Buffer.concat(linhas))),
+    bloco("IEND", Buffer.alloc(0)),
+  ]);
+}
+
 export const PDF_TESTE = Buffer.from("%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n");
 
 /** Texto com nome e tipo de foto: o servidor tem de recusar pelo conteúdo. */
@@ -51,4 +78,14 @@ export function jpegGrande(): Buffer {
   const b = Buffer.alloc(6 * 1024 * 1024);
   b.set([0xff, 0xd8, 0xff, 0xe0]);
   return b;
+}
+
+/**
+ * PDF de 6 MB: acima do limite de 4,5 MB por requisição da Vercel e abaixo dos 10 MB de
+ * documentos. Só passa se o arquivo for enviado direto ao Storage (envio-direto.ts).
+ */
+export function pdfGrande(): Buffer {
+  const inicio = Buffer.from("%PDF-1.4\n% comprovante digitalizado\n");
+  const fim = Buffer.from("\ntrailer<<>>\n%%EOF\n");
+  return Buffer.concat([inicio, Buffer.alloc(6 * 1024 * 1024 - inicio.length - fim.length, 0x20), fim]);
 }
