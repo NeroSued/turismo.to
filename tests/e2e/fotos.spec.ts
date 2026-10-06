@@ -75,8 +75,9 @@ test.describe("fotos de cadastro", () => {
       { name: "trilha.png", mimeType: "image/png", buffer: pngRuidoso(640, 480) },
       { name: "descanso.png", mimeType: "image/png", buffer: pngRuidoso(480, 640) },
     ]);
+    // O aviso (3 s) sai ao fim dos envios, antes de a lista recarregar: confere primeiro o aviso.
+    await expect(page.getByRole("status").filter({ hasText: "2 fotos enviadas" })).toBeVisible({ timeout: NO_PREVIEW ? 60_000 : 20_000 });
     await expect(page.getByText("3 de 12")).toBeVisible({ timeout: NO_PREVIEW ? 60_000 : 20_000 });
-    await expect(page.getByRole("status").filter({ hasText: "2 fotos enviadas" })).toBeVisible();
 
     // A foto publicada (capa) não tem EXIF nem GPS e tem no máximo 2000 px.
     const ordem = ordemNoBanco("atrativo_id", id);

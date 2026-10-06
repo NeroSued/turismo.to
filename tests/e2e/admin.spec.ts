@@ -311,6 +311,8 @@ test.describe.serial("administração e usuários no celular", () => {
       await expect(remover).toHaveCount(0);
       const confirmacao = page.getByRole("status").filter({ hasText: "removido." });
       await expect(confirmacao).toBeVisible();
+      // O aviso flutuante fica fora da lista (Fase 8). Com o ponteiro sobre ele, o tempo pausa e ele continua.
+      await confirmacao.locator("[data-aviso]").hover();
       await page.waitForTimeout(1500);
       await expect(confirmacao).toBeVisible();
       await expect(confirmacao).toContainText(/Acesso de administrador de .*Peixe.* removido\./);
