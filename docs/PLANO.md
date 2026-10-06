@@ -301,6 +301,7 @@ Pendências externas conhecidas. Atualize quando surgirem novas ou forem resolvi
 - [x] Fase 6, convite e merge: resolvido em 2026-10-06. O Nero aprovou o merge ("Pode publicar e fazer o merge") e confirmou que recebeu o convite e entrou no painel.
 - [ ] Proteção contra senhas vazadas (HaveIBeenPwned) no Auth: o Supabase só permite no plano Pro, e é o único aviso dos advisors de segurança em produção (`auth_leaked_password_protection`, WARN). Resolve ao passar para o Pro.
 - [ ] 2026-10-06, início da Fase 7: um comando que deveria listar só os nomes das variáveis dos arquivos `.env*` imprimiu na conversa do Claude Code as chaves soltas do `.env.chaves-remotas` (chave publicável, chave secreta `sb_secret_...` e um terceiro valor, possivelmente a senha antiga do banco). São as mesmas já listadas acima como vazadas em 2026-10-05. Se ainda não foram revogadas, o Nero deve revogar a chave secreta (Project Settings → API Keys) e trocar a senha do banco; depois, apagar o `.env.chaves-remotas`, que nenhum script usa.
+- [ ] Fase 8: aprovação do Nero para mesclar o PR #9 em `main` (merge publica em produção). Em 2026-10-06 o PR estava sem conflito, checks da Vercel verdes, `npm run verify` com código 0 e E2E completo aprovado contra o preview. Falta o Nero responder "pode publicar"; depois, merge, teste de fumaça só de leitura em produção.
 - [ ] Logos, fotos e textos oficiais de cada prefeitura.
 - [ ] Revisão jurídica do aviso de privacidade pelas prefeituras.
 
