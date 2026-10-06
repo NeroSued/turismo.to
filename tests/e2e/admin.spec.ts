@@ -344,7 +344,7 @@ test.describe.serial("administração e usuários no celular", () => {
     // Gestor de Peixe pedindo a auditoria de Palmeirópolis pelo parâmetro: continua vendo só Peixe.
     const peixe = await novaPagina(browser);
     await entrar(peixe, PEIXE, USUARIOS_DEV.gestorPeixe);
-    await peixe.goto(`${PEIXE}/admin/auditoria?municipio=${idMunicipio("palmeiropolis")}&area=vinculos`);
+    await peixe.goto(`${PEIXE}/admin/auditoria?filtro_municipio=${idMunicipio("palmeiropolis")}&area=vinculos`);
     await expect(peixe.getByLabel("Município")).toHaveCount(0);
     await expect(peixe.getByText(`[E2E] Convidada ${SUF}`)).toHaveCount(0);
     await expect(peixe.getByText("[DEV] Gestor de Palmeirópolis")).toHaveCount(0);
@@ -357,7 +357,7 @@ test.describe.serial("administração e usuários no celular", () => {
     // Admin: todos os municípios, com o nome de cada um.
     const admin = await novaPagina(browser);
     await entrar(admin, PALMEIROPOLIS, USUARIOS_DEV.admin);
-    await admin.goto(`${PALMEIROPOLIS}/admin/auditoria?municipio=todos&area=municipios`);
+    await admin.goto(`${PALMEIROPOLIS}/admin/auditoria?filtro_municipio=todos&area=municipios`);
     await expect(admin.getByRole("list", { name: "Registros de auditoria" }).getByRole("listitem").first()).toContainText("Arraias");
 
     const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();

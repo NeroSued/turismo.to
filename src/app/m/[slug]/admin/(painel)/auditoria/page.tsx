@@ -34,11 +34,12 @@ export default async function Auditoria({ params, searchParams }: PageProps<"/m/
   const bruto = await searchParams;
   const f = esquemaFiltrosAuditoria.parse({
     ...Object.fromEntries(Object.entries(bruto).map(([k, v]) => [k, Array.isArray(v) ? v[0] : v])),
-    municipio: bruto.municipio === TODOS ? undefined : bruto.municipio,
+    // "filtro_municipio", não "municipio": esse nome é o da escolha de portal no preview (proxy).
+    municipio: bruto.filtro_municipio === TODOS ? undefined : bruto.filtro_municipio,
   });
   const admin = papel === "admin";
   // O gestor vê só o município do painel; o admin escolhe qualquer um ou todos.
-  const municipioId = admin ? (bruto.municipio === TODOS ? null : (f.municipio ?? municipio.id)) : municipio.id;
+  const municipioId = admin ? (bruto.filtro_municipio === TODOS ? null : (f.municipio ?? municipio.id)) : municipio.id;
   const hoje = hojeLocal();
   const fim = f.fim ?? hoje;
   const inicio = f.inicio && f.inicio <= fim ? f.inicio : somarDias(fim, -30);
@@ -51,7 +52,7 @@ export default async function Auditoria({ params, searchParams }: PageProps<"/m/
   const proxima = registros.length === POR_PAGINA ? registros[registros.length - 1].id : null;
   const consulta = new URLSearchParams(
     Object.entries({
-      municipio: admin ? (municipioId ?? TODOS) : undefined,
+      filtro_municipio: admin ? (municipioId ?? TODOS) : undefined,
       usuario: f.usuario,
       inicio,
       fim,
@@ -70,7 +71,7 @@ export default async function Auditoria({ params, searchParams }: PageProps<"/m/
 
       <form method="get" className="flex flex-col gap-4 rounded-2xl border bg-superficie p-4" aria-label="Filtros da auditoria">
         {admin ? (
-          <Selecao id="municipio" rotulo="Município" defaultValue={municipioId ?? TODOS}>
+          <Selecao id="filtro_municipio" rotulo="Município" defaultValue={municipioId ?? TODOS}>
             <option value={TODOS}>Todos os municípios</option>
             {municipios.map((m) => (
               <option key={m.id} value={m.id}>
