@@ -53,7 +53,8 @@ export function pngRuidoso(largura: number, altura: number): Buffer {
   ihdr[8] = 8;
   ihdr[9] = 2;
   let semente = 12345;
-  const aleatorio = () => (semente = (semente * 1103515245 + 12345) & 0x7fffffff) & 0xff;
+  // Bits altos do gerador congruencial: os baixos se repetem a cada 256 valores e comprimem.
+  const aleatorio = () => ((semente = (Math.imul(semente, 1103515245) + 12345) >>> 0) >>> 16) & 0xff;
   const linhas = Array.from({ length: altura }, () => {
     const linha = Buffer.alloc(1 + largura * 3);
     for (let i = 1; i < linha.length; i++) linha[i] = aleatorio();
