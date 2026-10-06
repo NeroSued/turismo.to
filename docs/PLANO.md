@@ -219,9 +219,9 @@ Primeira entrega completa: criar atividade, publicar, emitir voucher, confirmar 
 ## Fase 6: Implantação (precisa do Nero)
 
 - [x] 6.1 Vincular o projeto remoto "Turismo.TO" e aplicar as migrations com `supabase db push`, só com `seed.sql` (municípios).
-- [ ] 6.2 Auth remoto: Site URL, URLs de redirecionamento, SMTP próprio para convites e recuperação de senha.
-- [ ] 6.3 Projeto na Vercel ligado ao GitHub, variáveis por ambiente (`ALLOW_TENANT_OVERRIDE` só em Preview).
-- [ ] 6.4 Domínio `turismo.to` e curinga `*.turismo.to` (o curinga exige os nameservers da Vercel).
+- [x] 6.2 Auth remoto: Site URL, URLs de redirecionamento, SMTP próprio para convites e recuperação de senha.
+- [x] 6.3 Projeto na Vercel ligado ao GitHub, variáveis por ambiente (`ALLOW_TENANT_OVERRIDE` só em Preview).
+- [x] 6.4 Domínio `turismo.to` e curinga `*.turismo.to` (o curinga exige os nameservers da Vercel).
 - [ ] 6.5 Criar o primeiro admin com o script e entregar o acesso ao Nero.
 - [ ] 6.6 Teste de fumaça no preview pelo celular e E2E com `BASE_URL` apontando para o preview.
 
@@ -250,7 +250,7 @@ Pendências externas conhecidas. Atualize quando surgirem novas ou forem resolvi
 - [x] Conta no Resend para o e-mail transacional (decisão do Nero em 2026-10-05: Resend, subdomínio de envio `envio.turismo.to`, configurado como SMTP personalizado no Supabase Auth; registros DNS do Resend no DNS da Vercel). Conta criada pelo Nero em 2026-10-05.
 - [ ] Configurar o Resend: adicionar o domínio `envio.turismo.to`, copiar os registros DNS que o Resend mostrar para o DNS da Vercel, esperar a verificação, criar uma chave de API só de envio e colá-la no SMTP do Supabase Auth. Passo a passo em `README.md`. Faz parte da Fase 6.2 (precisa do Nero, porque a chave é secreta).
 - [x] Aprovação do Nero para mesclar o PR #6 (Fase 5) em `main`. Em 2026-10-05 o PR estava sem conflito e com `npm run verify` em código 0, mas já tem o check "Vercel" (o projeto da Vercel está ligado ao repositório), então o merge publica em produção e, pela regra do CLAUDE.md, só acontece com aprovação explícita. Resolvido: o Nero aprovou ("Pode publicar") em 2026-10-05.
-- [ ] Fase 6 (2026-10-06, atualizado): o Nero preencheu `.env.deploy`. `VERCEL_TOKEN` funciona; a senha de produção funciona. O campo `SUPABASE_ACCESS_TOKEN` veio com a chave secreta do projeto de produção (`sb_secret_...`), não com um token pessoal (`sbp_...`); a API de gerenciamento recusa (401). A chave foi movida para `SUPABASE_SECRET_KEY_PROD` (usada pelo `criar-admin`). Ainda faltam: (1) token pessoal `sbp_...` da conta dona dos dois projetos, para configurar o Auth (Site URL, redirecionamentos, templates), ler os advisors e buscar as chaves do projeto de teste; (2) na Vercel, a variável `SUPABASE_SECRET_KEY_TEST` está em Production: editar o nome para `SUPABASE_SECRET_KEY` e o ambiente para só Preview; (3) SMTP do Resend no projeto "Turismo.TO Teste", remetente `teste@envio.turismo.to`.
+- [x] Fase 6, credenciais de implantação: resolvido pelo Nero em 2026-10-06 (token pessoal do Supabase, chave secreta do teste como `SUPABASE_SECRET_KEY` só em Preview, SMTP do Resend no projeto de teste com `teste@envio.turismo.to`).
 - [ ] Logos, fotos e textos oficiais de cada prefeitura.
 - [ ] Revisão jurídica do aviso de privacidade pelas prefeituras.
 
@@ -393,3 +393,6 @@ Registre aqui decisões tomadas durante a execução: data, decisão, motivo.
 | 2026-10-06 | E2E com alvo local ou preview | `tests/e2e/alvo.ts` e `ambienteE2E` (recusa o projeto de produção pelo ref); `npm run test:e2e` local: 46 passaram, 1 pulado (só no preview). |
 | 2026-10-06 | 6.1 | `supabase db push --db-url` aplicou as 10 migrations em produção ("Turismo.TO"); só `seed.sql` pelo pooler `aws-0-sa-east-1`. Consulta: 7 municípios ativos, 0 usuários, 0 vouchers. `https://turismo.to` 200, `https://palmeiropolis.turismo.to` 200, `/admin` 307 para `/admin/login`, `naoexiste` 404. |
 | 2026-10-06 | Critério: produção sem dados fictícios | Consulta no banco de produção: 0 vouchers; varredura de todas as colunas de texto/jsonb do schema `public` e dos e-mails e metadados de `auth.users`: 0 registros `[DEV]`, `[TESTE]` ou `[E2E]`. |
+| 2026-10-06 | 6.2 | API de gerenciamento do Supabase (PATCH `config/auth`) nos dois projetos: Site URL `https://turismo.to` / `https://teste.turismo.to`; redirecionamentos `https://turismo.to/**`, `https://*.turismo.to/**` (produção) e `https://teste.turismo.to/**`, `https://*.teste.turismo.to/**`, `https://*-nero-sued-s-projects.vercel.app/**` (teste); cadastro desligado; assuntos e templates de convite e recuperação do repositório (com `TokenHash`). SMTP do Resend presente nos dois (`nao-responda@` e `teste@envio.turismo.to`). Cadastro público em produção: 422 `signup_disabled`. |
+| 2026-10-06 | 6.3 | Projeto `turismo-to` na Vercel ligado ao GitHub (deploys por branch). Variáveis, só pelos nomes: Production com `NEXT_PUBLIC_*`, `SUPABASE_SECRET_KEY` e `CRON_SECRET`, sem `ALLOW_TENANT_OVERRIDE`; Preview com `NEXT_PUBLIC_*` do projeto de teste, `SUPABASE_SECRET_KEY` (posta pelo Nero) e `ALLOW_TENANT_OVERRIDE=true`. |
+| 2026-10-06 | 6.4 | API da Vercel: `turismo.to` e `*.turismo.to` verificados no projeto; HTTPS com certificado válido em `https://turismo.to` (200) e `https://palmeiropolis.turismo.to` (200); `www.turismo.to` 307 para `turismo.to`. |
