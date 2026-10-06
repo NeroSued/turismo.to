@@ -8,8 +8,8 @@ Como usar este arquivo:
 
 ## Estado
 
-- Fase ativa: **6** (Fase 5 concluída; PRs das fases 0 a 5 mesclados em `main`; o merge da Fase 5 foi aprovado pelo Nero porque a Vercel publica `main` em produção)
-- Última atualização: 2026-10-05
+- Fase ativa: **7** (Fase 6 concluída e publicada em produção; merge em `main` publica e só acontece com aprovação do Nero)
+- Última atualização: 2026-10-06
 
 ---
 
@@ -237,6 +237,29 @@ Primeira entrega completa: criar atividade, publicar, emitir voucher, confirmar 
 
 ---
 
+## Fase 7: Fotos, sessão compartilhada e páginas de detalhe
+
+- [ ] 7.1 Sessão compartilhada entre subdomínios: cookie de autenticação com domínio `.turismo.to` só em produção, configurável por variável, mantendo o comportamento atual em local e preview; sair encerra a sessão em todos os municípios; a autorização por vínculo continua conferida em cada página e operação.
+- [ ] 7.2 Troca de município no cabeçalho do painel conforme a tela "Assessoria · trocar município": admin vê todos os municípios, gestor ou operador com mais de um vínculo vê só os seus, quem tem um só não vê o seletor.
+- [ ] 7.3 Fotos com capa e galeria em atrativos, atividades, prestadores e eventos, usando a estrutura de fotos existente: ordem, capa (a primeira), legenda e crédito; até 12 fotos por cadastro; tirar foto ou escolher da galeria; reordenar com botões, sem arrastar; conforme a tela "Gestor · fotos do cadastro".
+- [ ] 7.4 Antes de publicar: remover metadados EXIF (inclusive GPS), reduzir para no máximo 2000 px no lado maior e gerar versão otimizada; fotos sem legenda usam o texto alternativo "Foto N de [nome]".
+- [ ] 7.5 Páginas públicas de detalhe de atrativo, atividade, prestador e evento conforme as telas "Atrativo · capa e galeria" e "Galeria · tela cheia": capa nos cards das listas, galeria em tela cheia acessível por teclado e leitor de tela, deslizar no celular e fechar com Esc.
+- [ ] 7.6 Campo descrição em eventos e prestadores (texto com parágrafos, até 2000 caracteres), no painel e nas páginas públicas.
+
+**Pronto quando:**
+
+- Teste: o admin troca de município sem novo login, e sair desconecta todos os municípios.
+- Teste: um gestor de Peixe com sessão compartilhada continua sem acesso a Palmeirópolis.
+- Teste: a foto publicada não tem EXIF nem GPS (arquivo de teste com GPS).
+- Testes de ordem e capa, de limite de 12 fotos e de tipo e tamanho inválidos.
+- E2E no celular do cadastro com fotos até a galeria pública.
+- Axe sem violações críticas ou sérias nas páginas novas.
+- `npm run verify` termina com código 0.
+- E2E completo passa contra o preview em `teste.turismo.to`.
+- PR aberto e mesclado em `main` somente com aprovação do Nero; teste de fumaça só de leitura em produção depois do merge.
+
+---
+
 ## Bloqueios
 
 Pendências externas conhecidas. Atualize quando surgirem novas ou forem resolvidas.
@@ -253,6 +276,7 @@ Pendências externas conhecidas. Atualize quando surgirem novas ou forem resolvi
 - [x] Fase 6, credenciais de implantação: resolvido pelo Nero em 2026-10-06 (token pessoal do Supabase, chave secreta do teste como `SUPABASE_SECRET_KEY` só em Preview, SMTP do Resend no projeto de teste com `teste@envio.turismo.to`).
 - [x] Fase 6, convite e merge: resolvido em 2026-10-06. O Nero aprovou o merge ("Pode publicar e fazer o merge") e confirmou que recebeu o convite e entrou no painel.
 - [ ] Proteção contra senhas vazadas (HaveIBeenPwned) no Auth: o Supabase só permite no plano Pro, e é o único aviso dos advisors de segurança em produção (`auth_leaked_password_protection`, WARN). Resolve ao passar para o Pro.
+- [ ] 2026-10-06, início da Fase 7: um comando que deveria listar só os nomes das variáveis dos arquivos `.env*` imprimiu na conversa do Claude Code as chaves soltas do `.env.chaves-remotas` (chave publicável, chave secreta `sb_secret_...` e um terceiro valor, possivelmente a senha antiga do banco). São as mesmas já listadas acima como vazadas em 2026-10-05. Se ainda não foram revogadas, o Nero deve revogar a chave secreta (Project Settings → API Keys) e trocar a senha do banco; depois, apagar o `.env.chaves-remotas`, que nenhum script usa.
 - [ ] Logos, fotos e textos oficiais de cada prefeitura.
 - [ ] Revisão jurídica do aviso de privacidade pelas prefeituras.
 
@@ -339,6 +363,7 @@ Registre aqui decisões tomadas durante a execução: data, decisão, motivo.
 - 2026-10-06: no preview (override ligado), `/admin/auditoria?municipio=<id>` era lido pelo proxy como escolha de portal e gravava o id no cookie de seleção, e a auditoria do gestor de Peixe saía vazia (achado pelo E2E contra o preview). O override agora só aceita `?municipio=` vazio ou com slug válido (`parametroDeOverride`); qualquer outro valor fica para a página. Espera por verificação de 20 s no alvo preview (envio de 6 MB até o Storage de teste em us-west-2).
 - 2026-10-06: links de convite e recuperação valem 1 hora (padrão do Supabase). O primeiro convite do Nero expirou; a validade foi a 24 h e voltou a 1 h porque o advisor `auth_otp_long_expiry` recomenda no máximo 1 hora. Convite expirado: a pessoa usa "Esqueci minha senha" no login do município e recebe um link novo (conferido no local: conta convidada sem senha recebe "Crie uma nova senha" e o link abre a sessão).
 - 2026-10-06: os domínios `teste.turismo.to` e `*.teste.turismo.to` ficaram ligados à branch `fase-6-implantacao`, apagada no merge. Para rodar o E2E contra outra branch, ligue os dois domínios a ela em Vercel → Settings → Domains.
+- 2026-10-06: início da Fase 7: `fase-7-fotos` criada a partir de `main` atualizada. O Nero autorizou de antemão, na conversa da fase, commit, push, merge e publicação quando a fase estiver pronta ("já considere autorizado"); vale como a aprovação de merge exigida para esta fase.
 
 ## Registro
 
