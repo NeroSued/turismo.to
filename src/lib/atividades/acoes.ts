@@ -93,8 +93,8 @@ export async function mudarStatusAtividade(id: string, status: string): Promise<
   revalidatePath(`/admin/atividades/${id}`);
   revalidatePath("/admin/atividades");
   const avisos = {
-    publicado: "Atividade publicada. Ela já aparece no portal do município.",
-    arquivado: "Atividade arquivada. Ela saiu do portal; vouchers já emitidos continuam válidos.",
+    publicado: "Atividade publicada no portal.",
+    arquivado: "Atividade arquivada. Vouchers emitidos continuam válidos.",
     rascunho: "Atividade voltou para elaboração e saiu do portal.",
   } as const;
   return { ok: true, aviso: avisos[s.data] };
@@ -176,7 +176,7 @@ export async function alternarSessao(sessaoId: string, atividadeId: string, ativ
   revalidatePath(`/admin/atividades/${atividadeId}`);
   return {
     ok: true,
-    aviso: ativa ? "Horário reaberto para reservas." : "Horário fechado: não aceita novas reservas. As já feitas continuam válidas.",
+    aviso: ativa ? "Horário reaberto para reservas." : "Horário fechado para novas reservas.",
   };
 }
 

@@ -2,8 +2,9 @@ import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MensagemEstado, Selo } from "@/components/formulario";
+import { Selo } from "@/components/formulario";
 import { Pagina } from "@/components/pagina";
+import { AvisoDeChegada } from "@/components/painel/avisos";
 import { AcoesStatus, ControlesSessao, FormularioEditarAtividade, FormularioSessao } from "@/components/painel/atividades";
 import { buscarAtividade, listarSessoes } from "@/lib/atividades/dados";
 import { ResumoFotos } from "@/components/painel/tela-fotos";
@@ -33,7 +34,7 @@ export default async function EditarAtividade({ params, searchParams }: PageProp
       <Link href="/admin/atividades" className="flex min-h-11 w-fit items-center gap-1.5 font-bold">
         <ArrowLeft aria-hidden="true" className="size-5" /> Atividades
       </Link>
-      {criada ? <MensagemEstado aviso="Atividade criada em elaboração. Revise, adicione horários e publique." /> : null}
+      {criada ? <AvisoDeChegada parametro="criada" texto="Atividade criada em elaboração. Adicione horários e publique." /> : null}
       <div className="flex flex-col gap-2">
         <h1 className="text-[26px] leading-tight font-bold">{atividade.titulo}</h1>
         <div className="flex flex-wrap items-center gap-2">

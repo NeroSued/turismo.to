@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { MensagemEstado } from "@/components/formulario";
 import { Pagina } from "@/components/pagina";
+import { AvisoDeChegada } from "@/components/painel/avisos";
 import { AcoesStatusCadastro, FormularioEditarCadastro } from "@/components/painel/cadastros";
 import { ResumoFotos } from "@/components/painel/tela-fotos";
 import { CabecalhoCadastro, Voltar } from "@/components/painel/telas-cadastro";
@@ -24,7 +24,7 @@ export default async function EditarAtrativo({ params, searchParams }: PageProps
   return (
     <Pagina className="pt-2">
       <Voltar href="/admin/atrativos" rotulo="Atrativos" />
-      {criado ? <MensagemEstado aviso="Atrativo criado em elaboração. Complete os dados, envie fotos e publique." /> : null}
+      {criado ? <AvisoDeChegada parametro="criado" texto="Atrativo criado em elaboração. Agora adicione fotos e publique." /> : null}
       <CabecalhoCadastro titulo={a.nome} status={a.status} detalhe={CATEGORIAS_ATRATIVO[a.categoria]} />
       <AcoesStatusCadastro tipo="atrativos" id={a.id} status={a.status} />
       <ResumoFotos tipo="atrativos" id={a.id} nome={a.nome} fotos={fotos} />

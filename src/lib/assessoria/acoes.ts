@@ -31,7 +31,7 @@ export async function definirMunicipioAtivo(municipioId: string, ativo: boolean)
     ok: true,
     aviso: ativo
       ? `${data[0].nome} ativado. O portal já aparece no hub.`
-      : `${data[0].nome} desativado. O portal e o painel deixam de abrir até ser reativado.`,
+      : `${data[0].nome} desativado. Portal e painel fechados até reativar.`,
   };
 }
 

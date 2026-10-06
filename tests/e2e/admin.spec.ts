@@ -148,9 +148,10 @@ test.describe.serial("administração e usuários no celular", () => {
     const membro = page.getByRole("list", { name: "Equipe" }).getByRole("listitem").filter({ hasText: email });
     await expect(membro).not.toContainText("Ainda não entrou");
     await membro.getByRole("button", { name: /Tornar .* gestor municipal/ }).click();
-    await expect(membro.getByRole("status")).toHaveText("Papel alterado para gestor municipal.");
+    // O resultado sai no aviso flutuante do painel (Fase 8), não mais dentro do item.
+    await expect(page.getByRole("status").filter({ hasText: "Papel alterado para gestor municipal." })).toBeVisible();
     await membro.getByRole("button", { name: /Desativar o acesso/ }).click();
-    await expect(membro.getByRole("status")).toContainText("Acesso desativado");
+    await expect(page.getByRole("status").filter({ hasText: "Acesso desativado" })).toBeVisible();
     expect(sqlLocal(`select papel || '|' || ativo from public.vinculos v join auth.users u on u.id = v.user_id where u.email = '${email}'`)).toBe("gestor|false");
     await convidado.goto(`${PALMEIROPOLIS}/admin`);
     await expect(convidado.getByRole("heading", { level: 1 })).toHaveText("Sem acesso a este painel");
@@ -308,7 +309,7 @@ test.describe.serial("administração e usuários no celular", () => {
       await remover.click();
       // A pessoa sai da lista e a confirmação fica (antes da correção, sumia junto com o item).
       await expect(remover).toHaveCount(0);
-      const confirmacao = regiao.getByRole("status").filter({ hasText: "removido." });
+      const confirmacao = page.getByRole("status").filter({ hasText: "removido." });
       await expect(confirmacao).toBeVisible();
       await page.waitForTimeout(1500);
       await expect(confirmacao).toBeVisible();
@@ -411,11 +412,11 @@ test.describe.serial("administração e usuários no celular", () => {
     await secao.getByRole("button", { name: `Excluir definitivamente ${legenda}` }).click();
     await secao.getByLabel("Motivo da exclusão").fill("curto");
     await secao.getByRole("button", { name: "Confirmar exclusão definitiva" }).click();
-    await expect(secao.getByRole("alert")).toContainText("pelo menos 10 caracteres");
+    await expect(admin.getByRole("alert").filter({ hasText: "pelo menos 10 caracteres" })).toBeVisible();
     expect(await existe()).toBe(true);
     await secao.getByLabel("Motivo da exclusão").fill(motivo);
     await secao.getByRole("button", { name: "Confirmar exclusão definitiva" }).click();
-    await expect(secao.getByRole("status")).toContainText("Arquivo excluído definitivamente.");
+    await expect(admin.getByRole("status").filter({ hasText: "Arquivo excluído definitivamente." })).toBeVisible();
 
     // O arquivo saiu do Storage e do banco; o histórico guarda quem, quando e o motivo, sem a legenda.
     expect(await existe(), "arquivo apagado do Storage").toBe(false);

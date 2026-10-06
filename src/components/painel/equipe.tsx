@@ -1,8 +1,9 @@
 "use client";
 
 import { Send } from "lucide-react";
-import { useActionState, useRef, useState, useTransition } from "react";
-import { Campo, MensagemEstado, Selo } from "@/components/formulario";
+import { useActionState, useRef } from "react";
+import { Campo, Selo } from "@/components/formulario";
+import { useAcaoPainel, useFormularioPainel } from "@/components/painel/avisos";
 import { Button } from "@/components/ui/button";
 import { alterarVinculo, convidarParaEquipe } from "@/lib/equipe/acoes";
 import { DESCRICAO_PAPEL_EQUIPE, PAPEIS_EQUIPE, ROTULO_PAPEL_EQUIPE, type PapelEquipe } from "@/lib/equipe/esquemas";
@@ -25,16 +26,16 @@ export function ConvidarParaEquipe({ municipioId, nomeMunicipio }: { municipioId
     if (r?.ok) formulario.current?.reset();
     return r;
   }, undefined);
+  const { onSubmit } = useFormularioPainel(estado, pendente, formulario);
   const campos = estado && !estado.ok ? estado.campos : undefined;
   const v = estado && !estado.ok ? estado.valores : undefined;
 
   return (
-    <form ref={formulario} action={acao} className="flex flex-col gap-4 rounded-2xl border bg-superficie p-4">
+    <form ref={formulario} action={acao} onSubmit={onSubmit} className="flex flex-col gap-4 rounded-2xl border bg-superficie p-4">
       <h2 className="text-xl font-bold">Convidar pessoa</h2>
       <p className="text-sm text-muted-foreground">
         A pessoa recebe um e-mail para criar a própria senha. Ninguém recebe senha pronta e cada pessoa tem a sua conta.
       </p>
-      <MensagemEstado erro={estado && !estado.ok ? estado.erro : null} aviso={estado?.ok ? estado.aviso : null} />
       <input type="hidden" name="municipio_id" value={municipioId} />
       <Campo id="email" name="email" rotulo="E-mail" type="email" inputMode="email" autoComplete="off" required maxLength={254}
         defaultValue={v?.email ?? ""} erro={campos?.email} ajuda="Use o e-mail de trabalho da pessoa." />
@@ -61,10 +62,10 @@ export function ConvidarParaEquipe({ municipioId, nomeMunicipio }: { municipioId
 }
 
 function ItemEquipe({ municipioId, m }: { municipioId: string; m: Membro }) {
-  const [resultado, setResultado] = useState<ResultadoAcao | null>(null);
-  const [pendente, iniciar] = useTransition();
-  const executar = (mudanca: { papel?: PapelEquipe; ativo?: boolean }) =>
-    iniciar(async () => setResultado(await alterarVinculo({ municipio_id: municipioId, vinculo_id: m.vinculo_id, ...mudanca })));
+  const acao = useAcaoPainel();
+  const { pendente, salvando } = acao;
+  const executar = (mudanca: { papel?: PapelEquipe; ativo?: boolean }, qual: string) =>
+    acao.executar(() => alterarVinculo({ municipio_id: municipioId, vinculo_id: m.vinculo_id, ...mudanca }), qual);
   const outroPapel: PapelEquipe = m.papel === "gestor" ? "operador" : "gestor";
   const quem = m.nome ?? m.email;
 
@@ -79,20 +80,19 @@ function ItemEquipe({ municipioId, m }: { municipioId: string; m: Membro }) {
           {m.eu ? <Selo tom="cinza">Você</Selo> : null}
         </span>
       </div>
-      <MensagemEstado erro={resultado && !resultado.ok ? resultado.erro : null} aviso={resultado?.ok ? resultado.aviso : null} />
       {m.eu ? (
         <p className="text-sm text-muted-foreground">Ninguém altera o próprio acesso.</p>
       ) : (
         <div className="flex flex-wrap gap-2">
           {m.ativo ? (
-            <Button variant="outline" disabled={pendente} onClick={() => executar({ papel: outroPapel })}
+            <Button variant="outline" disabled={pendente} onClick={() => executar({ papel: outroPapel }, "papel")}
               aria-label={`Tornar ${quem} ${ROTULO_PAPEL_EQUIPE[outroPapel].toLowerCase()}`}>
-              Tornar {ROTULO_PAPEL_EQUIPE[outroPapel].toLowerCase()}
+              {salvando("papel") ? "Salvando…" : `Tornar ${ROTULO_PAPEL_EQUIPE[outroPapel].toLowerCase()}`}
             </Button>
           ) : null}
-          <Button variant={m.ativo ? "ghost" : "outline"} disabled={pendente} onClick={() => executar({ ativo: !m.ativo })}
+          <Button variant={m.ativo ? "ghost" : "outline"} disabled={pendente} onClick={() => executar({ ativo: !m.ativo }, "ativo")}
             aria-label={`${m.ativo ? "Desativar" : "Reativar"} o acesso de ${quem}`}>
-            {m.ativo ? "Desativar acesso" : "Reativar acesso"}
+            {salvando("ativo") ? "Salvando…" : m.ativo ? "Desativar acesso" : "Reativar acesso"}
           </Button>
         </div>
       )}

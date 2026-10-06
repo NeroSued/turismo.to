@@ -1,8 +1,9 @@
 "use client";
 
 import { Trash2, Upload } from "lucide-react";
-import { useActionState, useRef, useState, useTransition } from "react";
-import { AreaTexto, Campo, MensagemEstado } from "@/components/formulario";
+import { useActionState, useRef, useState } from "react";
+import { AreaTexto, Campo } from "@/components/formulario";
+import { useAcaoPainel, useFormularioPainel } from "@/components/painel/avisos";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +26,7 @@ const SUGESTOES = ["#1F4D3A", "#2B4A6B", "#7A3B2E", "#4A5320"];
 
 export function FormularioConfiguracoes({ municipioId, v: v0, nomeOficial }: { municipioId: string; v: Valores; nomeOficial: string }) {
   const [estado, acao, pendente] = useActionState(salvarConfiguracoes.bind(null, municipioId), undefined);
+  const { ref, onSubmit } = useFormularioPainel(estado, pendente);
   const [cor, setCor] = useState(v0.cor_primaria);
   const campos = estado && !estado.ok ? estado.campos : undefined;
   // Depois de um erro, os campos mostram o que foi enviado (o React reseta o formulário).
@@ -32,8 +34,7 @@ export function FormularioConfiguracoes({ municipioId, v: v0, nomeOficial }: { m
   const corValida = /^#[0-9A-Fa-f]{6}$/.test(cor);
 
   return (
-    <form action={acao} className="flex flex-col gap-5">
-      <MensagemEstado erro={estado && !estado.ok ? estado.erro : null} aviso={estado?.ok ? estado.aviso : null} />
+    <form ref={ref} action={acao} onSubmit={onSubmit} className="flex flex-col gap-5">
       <Campo id="nome_exibicao" rotulo="Nome de exibição" defaultValue={v.nome_exibicao ?? ""} maxLength={120} erro={campos?.nome_exibicao}
         ajuda={`Vazio: o portal usa o nome oficial, ${nomeOficial}.`} />
 
@@ -92,17 +93,13 @@ export function EnviarImagemMunicipio({ municipioId, qual, url, rotulo, ajuda }:
     if (r?.ok) formulario.current?.reset();
     return r;
   }, undefined);
-  const [remocao, setRemocao] = useState<ResultadoAcao | null>(null);
-  const [removendo, iniciar] = useTransition();
+  const { onSubmit } = useFormularioPainel(estado, pendente, formulario);
+  const remocao = useAcaoPainel();
   const id = `arquivo-${qual}`;
 
   return (
-    <form ref={formulario} action={acao} className="flex flex-col gap-3 rounded-2xl border bg-superficie p-4">
+    <form ref={formulario} action={acao} onSubmit={onSubmit} className="flex flex-col gap-3 rounded-2xl border bg-superficie p-4">
       <h3 className="text-lg font-bold">{rotulo}</h3>
-      <MensagemEstado
-        erro={estado && !estado.ok ? estado.erro : remocao && !remocao.ok ? remocao.erro : null}
-        aviso={estado?.ok ? estado.aviso : remocao?.ok ? remocao.aviso : null}
-      />
       {url ? (
         // eslint-disable-next-line @next/next/no-img-element -- prévia no painel, sem otimização
         <img src={url} alt={`${rotulo} atual`} className={qual === "logo" ? "size-20 rounded-xl object-contain" : "aspect-[16/10] w-full rounded-xl object-cover"} />
@@ -118,8 +115,8 @@ export function EnviarImagemMunicipio({ municipioId, qual, url, rotulo, ajuda }:
         <Upload aria-hidden="true" /> {pendente ? "Enviando…" : "Enviar imagem"}
       </Button>
       {url ? (
-        <Button type="button" variant="ghost" disabled={removendo} onClick={() => iniciar(async () => setRemocao(await removerImagemMunicipio(municipioId, qual)))}>
-          <Trash2 aria-hidden="true" /> Remover imagem
+        <Button type="button" variant="ghost" disabled={remocao.pendente} onClick={() => remocao.executar(() => removerImagemMunicipio(municipioId, qual))}>
+          <Trash2 aria-hidden="true" /> {remocao.pendente ? "Removendo…" : "Remover imagem"}
         </Button>
       ) : null}
     </form>

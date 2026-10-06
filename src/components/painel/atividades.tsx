@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState, useState, useTransition } from "react";
-import { AreaTexto, CaixaMarcacao, Campo, MensagemEstado, Selecao } from "@/components/formulario";
+import { useActionState } from "react";
+import { AreaTexto, CaixaMarcacao, Campo, Selecao } from "@/components/formulario";
+import { useAcaoPainel, useFormularioPainel } from "@/components/painel/avisos";
 import { Button } from "@/components/ui/button";
 import {
   adicionarSessao,
@@ -12,7 +13,6 @@ import {
   mudarStatusAtividade,
   salvarAtividade,
 } from "@/lib/atividades/acoes";
-import type { ResultadoAcao } from "@/lib/painel/contexto";
 
 type Valores = {
   titulo: string;
@@ -54,10 +54,10 @@ function CamposComuns({ v, campos }: { v?: Valores; campos?: Record<string, stri
 
 export function FormularioNovaAtividade() {
   const [estado, acao, pendente] = useActionState(criarAtividade, undefined);
+  const { ref, onSubmit } = useFormularioPainel(estado, pendente);
   const campos = estado && !estado.ok ? estado.campos : undefined;
   return (
-    <form action={acao} className="flex flex-col gap-5">
-      <MensagemEstado erro={estado && !estado.ok ? estado.erro : null} />
+    <form ref={ref} action={acao} onSubmit={onSubmit} className="flex flex-col gap-5">
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-1 font-bold">Tipo da atividade</legend>
         <label className="flex cursor-pointer gap-3 rounded-2xl border bg-superficie p-3.5 has-[:checked]:border-primary has-[:checked]:bg-verde-suave">
@@ -89,10 +89,10 @@ export function FormularioNovaAtividade() {
 
 export function FormularioEditarAtividade({ id, valores, prestadores = [] }: { id: string; valores: Valores; prestadores?: OpcaoPrestador[] }) {
   const [estado, acao, pendente] = useActionState(salvarAtividade.bind(null, id), undefined);
+  const { ref, onSubmit } = useFormularioPainel(estado, pendente);
   const campos = estado && !estado.ok ? estado.campos : undefined;
   return (
-    <form action={acao} className="flex flex-col gap-5">
-      <MensagemEstado erro={estado && !estado.ok ? estado.erro : null} aviso={estado?.ok ? estado.aviso : null} />
+    <form ref={ref} action={acao} onSubmit={onSubmit} className="flex flex-col gap-5">
       <CamposComuns v={valores} campos={campos} />
       <div className="flex flex-col gap-1.5">
         <Selecao id="prestador_id" rotulo="Prestador responsável (opcional)" defaultValue={valores.prestador_id ?? ""} erro={campos?.prestador_id}>
@@ -114,18 +114,11 @@ export function FormularioEditarAtividade({ id, valores, prestadores = [] }: { i
   );
 }
 
-function useAcaoSimples() {
-  const [resultado, setResultado] = useState<ResultadoAcao | null>(null);
-  const [pendente, iniciar] = useTransition();
-  const executar = (f: () => Promise<ResultadoAcao>) => iniciar(async () => setResultado(await f()));
-  return { resultado, pendente, executar };
-}
-
 export function AcoesStatus({ id, status, modo, temSessoes }: { id: string; status: string; modo: string; temSessoes: boolean }) {
-  const { resultado, pendente, executar } = useAcaoSimples();
+  const { pendente, executar, salvando } = useAcaoPainel();
+  const mudar = (s: "publicado" | "rascunho" | "arquivado") => executar(() => mudarStatusAtividade(id, s), s);
   return (
     <div className="flex flex-col gap-3">
-      <MensagemEstado erro={resultado && !resultado.ok ? resultado.erro : null} aviso={resultado?.ok ? resultado.aviso : null} />
       {status !== "publicado" ? (
         <>
           {modo === "reserva" && !temSessoes ? (
@@ -133,19 +126,19 @@ export function AcoesStatus({ id, status, modo, temSessoes }: { id: string; stat
               Ainda não há horários. Você pode publicar agora, mas o visitante só consegue reservar depois que houver um horário futuro.
             </p>
           ) : null}
-          <Button size="lg" disabled={pendente} onClick={() => executar(() => mudarStatusAtividade(id, "publicado"))}>
-            Publicar no portal
+          <Button size="lg" disabled={pendente} onClick={() => mudar("publicado")}>
+            {salvando("publicado") ? "Salvando…" : "Publicar no portal"}
           </Button>
         </>
       ) : null}
       {status === "publicado" ? (
-        <Button size="lg" variant="outline" disabled={pendente} onClick={() => executar(() => mudarStatusAtividade(id, "rascunho"))}>
-          Voltar para elaboração
+        <Button size="lg" variant="outline" disabled={pendente} onClick={() => mudar("rascunho")}>
+          {salvando("rascunho") ? "Salvando…" : "Voltar para elaboração"}
         </Button>
       ) : null}
       {status !== "arquivado" ? (
-        <Button variant="ghost" disabled={pendente} onClick={() => executar(() => mudarStatusAtividade(id, "arquivado"))}>
-          Arquivar atividade
+        <Button variant="ghost" disabled={pendente} onClick={() => mudar("arquivado")}>
+          {salvando("arquivado") ? "Salvando…" : "Arquivar atividade"}
         </Button>
       ) : null}
     </div>
@@ -154,11 +147,11 @@ export function AcoesStatus({ id, status, modo, temSessoes }: { id: string; stat
 
 export function FormularioSessao({ atividadeId, hoje }: { atividadeId: string; hoje: string }) {
   const [estado, acao, pendente] = useActionState(adicionarSessao.bind(null, atividadeId), undefined);
+  const { ref, onSubmit } = useFormularioPainel(estado, pendente);
   const campos = estado && !estado.ok ? estado.campos : undefined;
   return (
-    <form action={acao} className="flex flex-col gap-4 rounded-2xl border bg-superficie p-4">
+    <form ref={ref} action={acao} onSubmit={onSubmit} className="flex flex-col gap-4 rounded-2xl border bg-superficie p-4">
       <h3 className="text-lg font-bold">Novo horário</h3>
-      <MensagemEstado erro={estado && !estado.ok ? estado.erro : null} aviso={estado?.ok ? estado.aviso : null} />
       <Campo id="dia" rotulo="Data" type="date" min={hoje} required erro={campos?.dia} />
       <div className="grid grid-cols-2 gap-3">
         <Campo id="hora_inicio" rotulo="Início" type="time" required erro={campos?.hora_inicio} />
@@ -168,7 +161,7 @@ export function FormularioSessao({ atividadeId, hoje }: { atividadeId: string; h
         ajuda="Deixe vazio para sem limite. As vagas contam pessoas, não vouchers." erro={campos?.capacidade} />
       <p className="text-sm text-muted-foreground">Horários no fuso de Tocantins (America/Araguaina).</p>
       <Button type="submit" size="lg" disabled={pendente}>
-        {pendente ? "Adicionando…" : "Adicionar horário"}
+        {pendente ? "Salvando…" : "Adicionar horário"}
       </Button>
     </form>
   );
@@ -183,26 +176,25 @@ export function ControlesSessao(p: {
   rotulo: string;
 }) {
   const [estado, acao, pendenteCap] = useActionState(alterarCapacidade.bind(null, p.sessaoId, p.atividadeId), undefined);
-  const { resultado, pendente, executar } = useAcaoSimples();
-  const msg = resultado ?? estado ?? null;
+  const { ref, onSubmit } = useFormularioPainel(estado, pendenteCap);
+  const { pendente, executar, salvando } = useAcaoPainel();
   const idCap = `cap-${p.sessaoId}`;
   return (
     <div className="flex flex-col gap-3">
-      <MensagemEstado erro={msg && !msg.ok ? msg.erro : null} aviso={msg?.ok ? msg.aviso : null} />
-      <form action={acao} className="flex items-end gap-2">
+      <form ref={ref} action={acao} onSubmit={onSubmit} className="flex items-end gap-2">
         <Campo id={idCap} name="capacidade" rotulo={`Vagas de ${p.rotulo}`} type="number" inputMode="numeric" min={1} max={10000}
           defaultValue={p.capacidade ?? ""} placeholder="Sem limite" className="flex-1" />
         <Button type="submit" variant="outline" disabled={pendenteCap}>
-          Salvar vagas
+          {pendenteCap ? "Salvando…" : "Salvar vagas"}
         </Button>
       </form>
       <div className="flex flex-wrap gap-2">
-        <Button variant="outline" size="sm" disabled={pendente} onClick={() => executar(() => alternarSessao(p.sessaoId, p.atividadeId, !p.ativa))}>
-          {p.ativa ? "Fechar para reservas" : "Reabrir para reservas"}
+        <Button variant="outline" size="sm" disabled={pendente} onClick={() => executar(() => alternarSessao(p.sessaoId, p.atividadeId, !p.ativa), "alternar")}>
+          {salvando("alternar") ? "Salvando…" : p.ativa ? "Fechar para reservas" : "Reabrir para reservas"}
         </Button>
         {p.reservadas === 0 ? (
-          <Button variant="destructive" size="sm" disabled={pendente} onClick={() => executar(() => excluirSessao(p.sessaoId, p.atividadeId))}>
-            Excluir horário
+          <Button variant="destructive" size="sm" disabled={pendente} onClick={() => executar(() => excluirSessao(p.sessaoId, p.atividadeId), "excluir")}>
+            {salvando("excluir") ? "Excluindo…" : "Excluir horário"}
           </Button>
         ) : null}
       </div>

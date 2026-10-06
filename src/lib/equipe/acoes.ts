@@ -67,8 +67,8 @@ export async function convidarParaEquipe(_: Estado, dados: FormData): Promise<Es
   return {
     ok: true,
     aviso: conta.nova
-      ? `Convite enviado para ${r.data.email} como ${ROTULO_PAPEL_EQUIPE[r.data.papel].toLowerCase()}. A pessoa cria a própria senha pelo link do e-mail.`
-      : `${r.data.email} já tinha conta e agora tem acesso como ${ROTULO_PAPEL_EQUIPE[r.data.papel].toLowerCase()}. Ela entra com a senha que já usa.`,
+      ? `Convite enviado para ${r.data.email} como ${ROTULO_PAPEL_EQUIPE[r.data.papel].toLowerCase()}.`
+      : `${r.data.email} já tinha conta e agora é ${ROTULO_PAPEL_EQUIPE[r.data.papel].toLowerCase()}.`,
   };
 }
 
@@ -103,7 +103,7 @@ export async function alterarVinculo(entrada: {
   if (error) return { ok: false, erro: error.code === "42501" ? SEM_PERMISSAO : ERRO_GENERICO };
   if (!data.length) return { ok: false, erro: SEM_PERMISSAO };
   revalidarEquipe();
-  if (r.data.ativo === false) return { ok: true, aviso: "Acesso desativado. A pessoa não entra mais no painel deste município." };
+  if (r.data.ativo === false) return { ok: true, aviso: "Acesso desativado neste município." };
   if (r.data.ativo === true) return { ok: true, aviso: "Acesso reativado." };
   return { ok: true, aviso: `Papel alterado para ${ROTULO_PAPEL_EQUIPE[r.data.papel!].toLowerCase()}.` };
 }

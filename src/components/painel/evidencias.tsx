@@ -1,8 +1,9 @@
 "use client";
 
 import { FileText, Trash2, Upload } from "lucide-react";
-import { useActionState, useRef, useState, useTransition } from "react";
-import { AreaTexto, Campo, MensagemEstado, Selecao } from "@/components/formulario";
+import { useActionState, useRef, useState } from "react";
+import { AreaTexto, Campo, Selecao } from "@/components/formulario";
+import { useAcaoPainel, useFormularioPainel } from "@/components/painel/avisos";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -84,10 +85,10 @@ function Campos({ v, campos, atividades, anos, hoje }: {
 
 export function FormularioNovaEvidencia({ atividades, anos, hoje }: { atividades: Opcao[]; anos: number[]; hoje: string }) {
   const [estado, acao, pendente] = useActionState(criarEvidencia, undefined);
+  const { ref, onSubmit } = useFormularioPainel(estado, pendente);
   const erro = estado && !estado.ok ? estado : undefined;
   return (
-    <form action={acao} className="flex flex-col gap-5">
-      <MensagemEstado erro={erro?.erro} />
+    <form ref={ref} action={acao} onSubmit={onSubmit} className="flex flex-col gap-5">
       <Campos key={JSON.stringify(erro?.valores ?? {})} v={erro?.valores} campos={erro?.campos} atividades={atividades} anos={anos} hoje={hoje} />
       <Button type="submit" size="lg" disabled={pendente}>
         {pendente ? "Salvando…" : "Registrar evidência"}
@@ -105,11 +106,11 @@ export function FormularioEditarEvidencia({ id, valores, atividades, anos, hoje 
   hoje: string;
 }) {
   const [estado, acao, pendente] = useActionState(salvarEvidencia.bind(null, id), undefined);
+  const { ref, onSubmit } = useFormularioPainel(estado, pendente);
   const erro = estado && !estado.ok ? estado : undefined;
   const v = erro?.valores ?? valores;
   return (
-    <form action={acao} className="flex flex-col gap-5">
-      <MensagemEstado erro={erro?.erro} aviso={estado?.ok ? estado.aviso : null} />
+    <form ref={ref} action={acao} onSubmit={onSubmit} className="flex flex-col gap-5">
       <Campos key={JSON.stringify(v)} v={v} campos={erro?.campos} atividades={atividades} anos={anos} hoje={hoje} />
       <Button type="submit" size="lg" variant="outline" disabled={pendente}>
         {pendente ? "Salvando…" : "Salvar alterações"}
@@ -118,20 +119,12 @@ export function FormularioEditarEvidencia({ id, valores, atividades, anos, hoje 
   );
 }
 
-function useAcaoSimples() {
-  const [resultado, setResultado] = useState<ResultadoAcao | null>(null);
-  const [pendente, iniciar] = useTransition();
-  const executar = (f: () => Promise<ResultadoAcao>) => iniciar(async () => setResultado(await f()));
-  return { resultado, pendente, executar };
-}
-
 export function ArquivarEvidencia({ id, arquivada }: { id: string; arquivada: boolean }) {
-  const { resultado, pendente, executar } = useAcaoSimples();
+  const { pendente, executar } = useAcaoPainel();
   return (
     <div className="flex flex-col gap-3">
-      <MensagemEstado erro={resultado && !resultado.ok ? resultado.erro : null} aviso={resultado?.ok ? resultado.aviso : null} />
       <Button variant={arquivada ? "outline" : "ghost"} disabled={pendente} onClick={() => executar(() => arquivarEvidencia(id, !arquivada))}>
-        {arquivada ? "Reativar evidência" : "Arquivar evidência"}
+        {pendente ? "Salvando…" : arquivada ? "Reativar evidência" : "Arquivar evidência"}
       </Button>
     </div>
   );
@@ -148,7 +141,8 @@ export function GerenciarArquivosEvidencia({ evidenciaId, arquivos }: { evidenci
     if (r?.ok) formulario.current?.reset();
     return r;
   }, undefined);
-  const remocao = useAcaoSimples();
+  const { onSubmit } = useFormularioPainel(estado, pendente, formulario);
+  const remocao = useAcaoPainel();
   const campos = estado && !estado.ok ? estado.campos : undefined;
   const fotos = arquivos.filter((a) => a.imagem);
   const anexos = arquivos.filter((a) => !a.imagem);
@@ -194,13 +188,8 @@ export function GerenciarArquivosEvidencia({ evidenciaId, arquivos }: { evidenci
           ))}
         </ul>
       ) : null}
-      <MensagemEstado
-        erro={remocao.resultado && !remocao.resultado.ok ? remocao.resultado.erro : null}
-        aviso={remocao.resultado?.ok ? remocao.resultado.aviso : null}
-      />
-      <form ref={formulario} action={acao} className="flex flex-col gap-4 rounded-2xl border bg-superficie p-4">
+      <form ref={formulario} action={acao} onSubmit={onSubmit} className="flex flex-col gap-4 rounded-2xl border bg-superficie p-4">
         <h3 className="text-lg font-bold">Enviar foto ou anexo</h3>
-        <MensagemEstado erro={estado && !estado.ok ? estado.erro : null} aviso={estado?.ok ? estado.aviso : null} />
         <Selecao id="tipo" rotulo="Tipo do arquivo" value={tipo} onChange={(e) => setTipo(e.target.value)} erro={campos?.tipo}>
           {TIPOS_ARQUIVO.map((t) => (
             <option key={t} value={t}>
@@ -246,12 +235,12 @@ export function GerenciarArquivosEvidencia({ evidenciaId, arquivos }: { evidenci
 
 export type ArquivoLgpd = { id: string; tipo: string; legenda: string; url: string; retirado: boolean };
 
-type AcaoLgpd = ReturnType<typeof useAcaoSimples>;
+type AcaoLgpd = ReturnType<typeof useAcaoPainel>;
 
 function ItemExclusaoLgpd({ evidenciaId, a, acao }: { evidenciaId: string; a: ArquivoLgpd; acao: AcaoLgpd }) {
   const [aberto, setAberto] = useState(false);
   const [motivo, setMotivo] = useState("");
-  const { pendente, executar } = acao;
+  const { pendente, executar, salvando } = acao;
   const id = `motivo-${a.id}`;
   const tipo = ROTULO_TIPO_ARQUIVO[a.tipo as keyof typeof ROTULO_TIPO_ARQUIVO] ?? "Arquivo";
   return (
@@ -275,8 +264,8 @@ function ItemExclusaoLgpd({ evidenciaId, a, acao }: { evidenciaId: string; a: Ar
           <AreaTexto id={id} rotulo="Motivo da exclusão" value={motivo} onChange={(e) => setMotivo(e.target.value)} maxLength={500}
             required ajuda="Ex.: pedido do titular recebido pela Ouvidoria em 05/10/2026. Não escreva dados pessoais aqui." />
           <Button variant="destructive" size="lg" disabled={pendente}
-            onClick={() => executar(() => excluirArquivoEvidenciaLgpd(evidenciaId, a.id, motivo))}>
-            {pendente ? "Excluindo…" : "Confirmar exclusão definitiva"}
+            onClick={() => executar(() => excluirArquivoEvidenciaLgpd(evidenciaId, a.id, motivo), a.id)}>
+            {salvando(a.id) ? "Excluindo…" : "Confirmar exclusão definitiva"}
           </Button>
           <Button variant="ghost" disabled={pendente} onClick={() => setAberto(false)}>
             Cancelar
@@ -289,12 +278,10 @@ function ItemExclusaoLgpd({ evidenciaId, a, acao }: { evidenciaId: string; a: Ar
 
 /** Exclusão definitiva a pedido do titular (LGPD, item 4.5). Só aparece para a assessoria. */
 export function ExclusaoLgpd({ evidenciaId, arquivos }: { evidenciaId: string; arquivos: ArquivoLgpd[] }) {
-  // O resultado fica acima da lista: depois da exclusão o item some, e a mensagem precisa continuar visível.
-  const acao = useAcaoSimples();
-  const { resultado } = acao;
+  // O resultado sai no aviso flutuante: depois da exclusão o item some, e a mensagem precisa continuar visível.
+  const acao = useAcaoPainel();
   return (
     <div className="flex flex-col gap-3">
-      <MensagemEstado erro={resultado && !resultado.ok ? resultado.erro : null} aviso={resultado?.ok ? resultado.aviso : null} />
       {arquivos.length === 0 ? (
         <p className="rounded-2xl border bg-superficie p-4">Esta evidência não tem arquivos guardados.</p>
       ) : (

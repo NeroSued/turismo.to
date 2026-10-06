@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { MensagemEstado } from "@/components/formulario";
 import { Pagina } from "@/components/pagina";
+import { AvisoDeChegada } from "@/components/painel/avisos";
 import { AcoesStatusCadastro, FormularioEditarCadastro } from "@/components/painel/cadastros";
 import { ResumoFotos } from "@/components/painel/tela-fotos";
 import { CabecalhoCadastro, Voltar } from "@/components/painel/telas-cadastro";
@@ -22,7 +22,7 @@ export default async function EditarEvento({ params, searchParams }: PageProps<"
   return (
     <Pagina className="pt-2">
       <Voltar href="/admin/eventos" rotulo="Eventos" />
-      {criado ? <MensagemEstado aviso="Evento criado em elaboração. Revise, envie fotos e publique." /> : null}
+      {criado ? <AvisoDeChegada parametro="criado" texto="Evento criado em elaboração. Agora adicione fotos e publique." /> : null}
       <CabecalhoCadastro titulo={e.titulo} status={e.status} detalhe={`${formatarDataHora(e.inicio)} a ${formatarDataHora(e.fim)}`} />
       <AcoesStatusCadastro tipo="eventos" id={e.id} status={e.status} />
       <ResumoFotos tipo="eventos" id={e.id} nome={e.titulo} fotos={fotos} />
