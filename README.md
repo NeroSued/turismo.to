@@ -85,6 +85,7 @@ npx supabase gen types typescript --local > src/lib/database.types.ts   # depois
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Todos | Chave publicável (`sb_publishable_...`). Pública por natureza |
 | `SUPABASE_SECRET_KEY` | Todos, **só servidor** | Chave secreta (`sb_secret_...`). Nunca em variável `NEXT_PUBLIC_*`, nunca no navegador, nunca em log |
 | `ALLOW_TENANT_OVERRIDE` | Development e **Preview** | `true`. **Não crie em Production** |
+| `NEXT_PUBLIC_AUTH_COOKIE_DOMAIN` | **Só Production** | `.turismo.to`: o login vale em todos os subdomínios (troca de município sem entrar de novo; sair desconecta todos). Ausente em local e Preview: o login fica preso ao endereço. Não é segredo |
 | `CRON_SECRET` | Production, **só servidor** | Segredo aleatório (32 bytes ou mais) que o Vercel Cron envia à rota `/api/cron/manter-ativo`. Tipo Sensitive |
 
 A chave secreta só é usada por `src/lib/supabase/privilegiado.ts`, nas operações listadas em "Operações privilegiadas" (D8) do [PLANO](docs/PLANO.md). Um teste falha se outro arquivo importar esse módulo.
