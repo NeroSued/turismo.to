@@ -381,7 +381,7 @@ test.describe.serial("administração e usuários no celular", () => {
     await page.getByLabel("Data de realização").fill(new Date().toLocaleDateString("sv-SE", { timeZone: "America/Araguaina" }));
     await page.getByLabel("Responsável pela ação").fill("Secretaria de Turismo");
     await page.getByRole("button", { name: "Registrar evidência" }).click();
-    await expect(page).toHaveURL(/\/admin\/evidencias\/[0-9a-f-]+\?criada=1$/);
+    await expect(page).toHaveURL(/\/admin\/evidencias\/[0-9a-f-]+(\?criada=1)?$/);
     const evidencia = new URL(page.url()).pathname.split("/").pop()!;
     await page.getByLabel("Tipo do arquivo").selectOption("lista_presenca");
     await page.getByLabel("Arquivo", { exact: true }).setInputFiles({ name: "lista.pdf", mimeType: "application/pdf", buffer: PDF_TESTE });

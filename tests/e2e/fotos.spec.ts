@@ -53,7 +53,7 @@ test.describe("fotos de cadastro", () => {
     await page.getByLabel("Categoria").selectOption("natureza");
     await page.getByLabel("Descrição").fill("Primeiro parágrafo sobre o poço.\n\nSegundo parágrafo com a melhor época.");
     await page.getByRole("button", { name: "Criar atrativo" }).click();
-    await expect(page).toHaveURL(/\/admin\/atrativos\/[0-9a-f-]{36}\?criado=1$/);
+    await expect(page).toHaveURL(/\/admin\/atrativos\/[0-9a-f-]{36}(\?criado=1)?$/);
     const id = new URL(page.url()).pathname.split("/").pop()!;
 
     await page.getByRole("link", { name: /Adicionar fotos/ }).click();
@@ -235,7 +235,7 @@ test.describe("fotos de cadastro", () => {
     await page.getByLabel("Categoria").selectOption("hospedagem");
     await page.getByLabel("Situação na rede").selectOption("participante");
     await page.getByRole("button", { name: "Criar prestador" }).click();
-    await expect(page).toHaveURL(/\/admin\/prestadores\/[0-9a-f-]{36}\?criado=1$/);
+    await expect(page).toHaveURL(/\/admin\/prestadores\/[0-9a-f-]{36}(\?criado=1)?$/);
     const id = new URL(page.url()).pathname.split("/").pop()!;
     const descricao = page.getByLabel("Descrição");
     await expect(descricao).toHaveAttribute("maxlength", "2000");

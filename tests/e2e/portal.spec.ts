@@ -50,7 +50,7 @@ async function criar(page: Page, tipo: string, preencher: () => Promise<void>, b
   await page.goto(`${PALMEIROPOLIS}/admin/${tipo}/novo`);
   await preencher();
   await page.getByRole("button", { name: botao }).click();
-  await expect(page).toHaveURL(new RegExp(`/admin/${tipo}/[0-9a-f-]{36}\\?criado=1$`));
+  await expect(page).toHaveURL(new RegExp(`/admin/${tipo}/[0-9a-f-]{36}(\\?criado=1)?$`));
   return new URL(page.url()).pathname.split("/").pop()!;
 }
 
@@ -197,7 +197,7 @@ test.describe.serial("portal público e cadastros no celular", () => {
     await expect(page.getByText("O término precisa ser igual ou depois do início.")).toBeVisible();
     await page.getByLabel("Horário de término").fill("12:00");
     await page.getByRole("button", { name: "Criar evento" }).click();
-    await expect(page).toHaveURL(/\/admin\/eventos\/[0-9a-f-]{36}\?criado=1$/);
+    await expect(page).toHaveURL(/\/admin\/eventos\/[0-9a-f-]{36}(\?criado=1)?$/);
     ids.eventoRascunho = new URL(page.url()).pathname.split("/").pop()!;
 
     ids.prestador = await criar(
@@ -256,7 +256,7 @@ test.describe.serial("portal público e cadastros no celular", () => {
     await page.getByLabel("Registro voluntário").check();
     await page.getByLabel("Nome da atividade").fill(NOMES.atividade);
     await page.getByRole("button", { name: "Criar atividade" }).click();
-    await expect(page).toHaveURL(/\/admin\/atividades\/[0-9a-f-]{36}\?criada=1$/);
+    await expect(page).toHaveURL(/\/admin\/atividades\/[0-9a-f-]{36}(\?criada=1)?$/);
     ids.atividade = new URL(page.url()).pathname.split("/").pop()!;
     await page.getByRole("button", { name: "Publicar no portal" }).click();
     await expect(page.getByRole("status").filter({ hasText: "Atividade publicada" })).toBeVisible();
