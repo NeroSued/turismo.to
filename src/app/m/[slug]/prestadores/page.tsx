@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { CabecalhoInterno, FotoPortal, nomeDoMunicipio, RodapePortal, Vazio } from "@/components/portal/estrutura";
 import { listarPrestadores, primeiraFotoDe } from "@/lib/cadastros/dados";
 import { CATEGORIAS_PRESTADOR, type CategoriaPrestador } from "@/lib/cadastros/esquemas";
+import { textoAlternativo } from "@/lib/fotos/tratamento";
 import { buscarMunicipioPorSlug } from "@/lib/municipio/dados";
 import { cn } from "@/lib/utils";
 
@@ -61,8 +62,12 @@ export default async function Rede({ params, searchParams }: PageProps<"/m/[slug
               {prestadores.map((p) => {
                 const foto = fotos.get(p.id);
                 return (
-                  <li key={p.id} className="flex gap-3 rounded-2xl border bg-superficie p-3">
-                    <FotoPortal caminho={foto?.caminho} legenda={foto?.legenda ?? ""} className="size-[88px] shrink-0 rounded-xl" sizes="88px" />
+                  <li key={p.id}>
+                    <Link
+                      href={`/prestadores/${p.id}`}
+                      className="flex gap-3 rounded-2xl border bg-superficie p-3 text-foreground no-underline hover:border-primary hover:text-foreground"
+                    >
+                    <FotoPortal caminho={foto?.caminho} legenda={textoAlternativo(foto?.legenda, 0, p.nome_publico)} className="size-[88px] shrink-0 rounded-xl" sizes="88px" />
                     <div className="flex min-w-0 flex-1 flex-col gap-1">
                       <h2 className="text-[17px] leading-tight font-bold">{p.nome_publico}</h2>
                       <span className="flex flex-wrap gap-1.5">
@@ -75,6 +80,7 @@ export default async function Rede({ params, searchParams }: PageProps<"/m/[slug
                       {p.localizacao ? <p className="text-sm text-muted-foreground">{p.localizacao}</p> : null}
                       {p.contatos_publicos ? <p className="text-sm font-bold">{p.contatos_publicos}</p> : null}
                     </div>
+                    </Link>
                   </li>
                 );
               })}

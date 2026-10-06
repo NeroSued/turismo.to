@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CabecalhoInterno, nomeDoMunicipio, RodapePortal, Vazio } from "@/components/portal/estrutura";
+import { CabecalhoInterno, FotoPortal, nomeDoMunicipio, RodapePortal, Vazio } from "@/components/portal/estrutura";
 import { BlocoData, horarioDoEvento } from "@/components/portal/eventos";
-import { listarEventos, type Evento } from "@/lib/cadastros/dados";
+import { listarEventos, primeiraFotoDe, type Evento } from "@/lib/cadastros/dados";
 import { formatarMesAno } from "@/lib/datas";
+import { textoAlternativo } from "@/lib/fotos/tratamento";
 import { buscarMunicipioPorSlug } from "@/lib/municipio/dados";
 
 export async function generateMetadata({ params }: PageProps<"/m/[slug]/eventos">): Promise<Metadata> {
@@ -19,6 +20,7 @@ export default async function Calendario({ params }: PageProps<"/m/[slug]/evento
   const municipio = await buscarMunicipioPorSlug(slug);
   if (!municipio) notFound();
   const eventos = await listarEventos(municipio.id, { publicados: true, aPartirDe: new Date() });
+  const capas = await primeiraFotoDe(municipio.id, "evento_id", eventos.map((e) => e.id));
   const meses = new Map<string, Evento[]>();
   for (const e of eventos) {
     const m = formatarMesAno(e.inicio);
@@ -41,11 +43,19 @@ export default async function Calendario({ params }: PageProps<"/m/[slug]/evento
                   <li key={e.id}>
                     <Link href={`/eventos/${e.id}`} className="flex items-center gap-3.5 border-b py-2.5 text-foreground no-underline hover:text-foreground">
                       <BlocoData inicio={e.inicio} fim={e.fim} />
-                      <span className="flex min-w-0 flex-col gap-0.5">
+                      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                         <span className="text-[17px] font-bold">{e.titulo}</span>
                         <span className="text-sm text-muted-foreground">{[e.local, horarioDoEvento(e.inicio, e.fim)].filter(Boolean).join(" · ")}</span>
                         {e.organizador ? <span className="text-sm text-muted-foreground">Organização: {e.organizador}</span> : null}
                       </span>
+                      {capas.get(e.id) ? (
+                        <FotoPortal
+                          caminho={capas.get(e.id)?.caminho}
+                          legenda={textoAlternativo(capas.get(e.id)?.legenda, 0, e.titulo)}
+                          className="size-[72px] shrink-0 rounded-xl"
+                          sizes="72px"
+                        />
+                      ) : null}
                     </Link>
                   </li>
                 ))}

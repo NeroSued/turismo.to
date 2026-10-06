@@ -6,6 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { listarAtrativos, listarEventos, listarPrestadores, primeiraFotoDe } from "@/lib/cadastros/dados";
 import { CATEGORIAS_ATRATIVO, CATEGORIAS_PRESTADOR, type CategoriaPrestador } from "@/lib/cadastros/esquemas";
 import { formatarDataComSemana, formatarHora } from "@/lib/datas";
+import { textoAlternativo } from "@/lib/fotos/tratamento";
 import { buscarMunicipioPorSlug } from "@/lib/municipio/dados";
 import { atividadesPublicadas, proximosHorarios } from "@/lib/portal/dados";
 import { BlocoData, horarioDoEvento } from "@/components/portal/eventos";
@@ -29,7 +30,10 @@ export default async function PortalMunicipal({ params }: PageProps<"/m/[slug]">
     listarPrestadores(municipio.id, { publicados: true }),
   ]);
   const idsAtrativos = [...new Set([...atrativos.map((a) => a.id), ...atividades.flatMap((a) => (a.atrativo_id ? [a.atrativo_id] : []))])];
-  const fotos = await primeiraFotoDe(municipio.id, "atrativo_id", idsAtrativos);
+  const [fotos, capasAtividades] = await Promise.all([
+    primeiraFotoDe(municipio.id, "atrativo_id", idsAtrativos),
+    primeiraFotoDe(municipio.id, "atividade_id", atividades.map((a) => a.id)),
+  ]);
 
   const reservas = atividades.filter((a) => a.modo === "reserva");
   const registro = atividades.find((a) => a.modo === "registro_voluntario");
@@ -85,14 +89,15 @@ export default async function PortalMunicipal({ params }: PageProps<"/m/[slug]">
             <ul className="flex flex-col gap-3">
               {atividades.map((a) => {
                 const h = horarios.get(a.id);
-                const foto = a.atrativo_id ? fotos.get(a.atrativo_id) : undefined;
+                // Capa da atividade; sem ela, a do atrativo onde acontece.
+                const foto = capasAtividades.get(a.id) ?? (a.atrativo_id ? fotos.get(a.atrativo_id) : undefined);
                 return (
                   <li key={a.id}>
                     <Link
                       href={`/atividades/${a.id}`}
                       className="flex gap-3 rounded-2xl border bg-superficie p-3 text-foreground no-underline hover:border-primary hover:text-foreground"
                     >
-                      <FotoPortal caminho={foto?.caminho} legenda={foto?.legenda ?? ""} className="size-[88px] shrink-0 rounded-xl" sizes="88px" />
+                      <FotoPortal caminho={foto?.caminho} legenda={textoAlternativo(foto?.legenda, 0, a.titulo)} className="size-[88px] shrink-0 rounded-xl" sizes="88px" />
                       <span className="flex min-w-0 flex-1 flex-col gap-[3px]">
                         {a.modo === "reserva" ? (
                           <span className="w-fit rounded-full bg-verde-suave px-2 py-0.5 text-xs font-bold text-primary">Reserva gratuita</span>
@@ -161,7 +166,7 @@ export default async function PortalMunicipal({ params }: PageProps<"/m/[slug]">
                   return (
                     <li key={a.id}>
                       <Link href={`/atrativos/${a.id}`} className="flex flex-col gap-1.5 text-foreground no-underline hover:text-foreground">
-                        <FotoPortal caminho={foto?.caminho} legenda={foto?.legenda ?? ""} className="h-[124px] rounded-[14px]" sizes="(max-width: 576px) 50vw, 270px" />
+                        <FotoPortal caminho={foto?.caminho} legenda={textoAlternativo(foto?.legenda, 0, a.nome)} className="h-[124px] rounded-[14px]" sizes="(max-width: 576px) 50vw, 270px" />
                         <span className="leading-tight font-bold">{a.nome}</span>
                         <span className="text-[13px] text-muted-foreground">{CATEGORIAS_ATRATIVO[a.categoria]}</span>
                       </Link>

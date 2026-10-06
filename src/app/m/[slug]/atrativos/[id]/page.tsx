@@ -1,11 +1,14 @@
-import { ExternalLink } from "lucide-react";
+import { Accessibility, ChevronRight, Clock, ExternalLink, MapPin, Mountain, Phone } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CabecalhoInterno, FotoPortal, nomeDoMunicipio, RodapePortal } from "@/components/portal/estrutura";
+import { CapaDetalhe, FaixaFotos, fotosDaGaleria, Paragrafos } from "@/components/portal/detalhe";
+import { FotoPortal, nomeDoMunicipio, RodapePortal } from "@/components/portal/estrutura";
+import { GaleriaProvider } from "@/components/portal/galeria";
 import { urlPublica } from "@/lib/arquivos/url";
-import { buscarAtrativo, listarFotos } from "@/lib/cadastros/dados";
+import { buscarAtrativo, listarFotos, primeiraFotoDe } from "@/lib/cadastros/dados";
 import { CATEGORIAS_ATRATIVO } from "@/lib/cadastros/esquemas";
+import { textoAlternativo } from "@/lib/fotos/tratamento";
 import { buscarMunicipioPorSlug } from "@/lib/municipio/dados";
 import { atividadesPublicadas } from "@/lib/portal/dados";
 import { resumo } from "@/lib/portal/metadados";
@@ -30,92 +33,126 @@ export async function generateMetadata({ params }: PageProps<"/m/[slug]/atrativo
     openGraph: {
       title: d.atrativo.nome,
       description: descricao,
-      images: foto ? [{ url: urlPublica(foto.caminho), alt: foto.legenda }] : undefined,
+      images: foto ? [{ url: urlPublica(foto.caminho), alt: textoAlternativo(foto.legenda, 0, d.atrativo.nome) }] : undefined,
     },
   };
 }
 
-function Info({ titulo, children }: { titulo: string; children: React.ReactNode }) {
+function Linha({ icone: Icone, titulo, children }: { icone: typeof Clock; titulo: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-0.5">
-      <dt className="text-[13px] font-bold text-muted-foreground">{titulo}</dt>
-      <dd className="whitespace-pre-line">{children}</dd>
+    <div className="flex gap-3 border-b border-[#E4E7E0] px-3.5 py-3 last:border-b-0">
+      <Icone aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-primary" />
+      <div className="flex min-w-0 flex-col">
+        <dt className="text-[13px] text-muted-foreground">{titulo}</dt>
+        <dd className="font-bold whitespace-pre-line">{children}</dd>
+      </div>
     </div>
   );
 }
 
+/** Detalhe do atrativo (tela "Atrativo · capa e galeria"). */
 export default async function Atrativo({ params }: PageProps<"/m/[slug]/atrativos/[id]">) {
   const { slug, id } = await params;
   const d = await carregar(slug, id);
   if (!d) notFound();
   const { municipio, atrativo: a } = d;
-  const [fotos, atividades] = await Promise.all([
-    listarFotos(municipio.id, "atrativo_id", [a.id]),
-    atividadesPublicadas(municipio.id),
-  ]);
+  const [fotos, atividades] = await Promise.all([listarFotos(municipio.id, "atrativo_id", [a.id]), atividadesPublicadas(municipio.id)]);
   const ligadas = atividades.filter((x) => x.atrativo_id === a.id);
+  const capasAtividades = await primeiraFotoDe(municipio.id, "atividade_id", ligadas.map((x) => x.id));
   const mapa =
     a.latitude !== null && a.longitude !== null
       ? `https://www.openstreetmap.org/?mlat=${a.latitude}&mlon=${a.longitude}#map=16/${a.latitude}/${a.longitude}`
       : null;
-  const temInfo = Boolean(a.endereco || mapa || a.horarios || a.contato || a.condicoes_acesso || a.acessibilidade || a.orientacoes_ambientais);
+  const temInfo = Boolean(a.horarios || a.condicoes_acesso || a.acessibilidade || a.contato);
+  const nomeMunicipio = nomeDoMunicipio(municipio);
 
   return (
-    <>
-      <CabecalhoInterno titulo="Atrativo" voltar="/atrativos" rotuloVoltar="Voltar aos atrativos" />
-      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-5 px-4 pb-10">
-        {fotos.length ? (
-          <ul className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1" aria-label="Fotos">
-            {fotos.map((f, i) => (
-              <li key={f.id} className="w-[88%] shrink-0 snap-start">
-                <figure className="flex flex-col gap-1.5">
-                  <FotoPortal caminho={f.caminho} legenda={f.legenda} className="h-56 rounded-[18px]" sizes="(max-width: 576px) 88vw, 480px" prioridade={i === 0} />
-                  <figcaption className="text-sm text-muted-foreground">{f.legenda}</figcaption>
-                </figure>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-        <div className="flex flex-col gap-1.5">
-          <span className="w-fit rounded-full bg-verde-suave px-2.5 py-0.5 text-[13px] font-bold text-primary">{CATEGORIAS_ATRATIVO[a.categoria]}</span>
-          <h1 className="text-[32px] leading-tight font-bold">{a.nome}</h1>
-          {a.descricao ? <p className="text-[17px] whitespace-pre-line">{a.descricao}</p> : null}
+    <GaleriaProvider fotos={fotosDaGaleria(fotos, a.nome)} nome={a.nome}>
+      <CapaDetalhe fotos={fotos} nome={a.nome} voltar="/atrativos" rotuloVoltar="Voltar aos atrativos" />
+      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-7 px-4 pt-[18px] pb-10">
+        <div className="flex flex-col gap-2">
+          <span className="w-fit rounded-full bg-verde-suave px-2 py-0.5 text-xs font-bold text-primary">{CATEGORIAS_ATRATIVO[a.categoria]}</span>
+          <h1 className="text-[32px] leading-[1.05] font-bold tracking-[-0.015em]">{a.nome}</h1>
+          <p className="text-[15px] text-muted-foreground">{nomeMunicipio}, Tocantins</p>
         </div>
+
         {temInfo ? (
-        <dl className="flex flex-col gap-3.5 rounded-2xl border bg-superficie p-4">
-          {a.endereco ? <Info titulo="Endereço ou como chegar">{a.endereco}</Info> : null}
-          {mapa ? (
-            <Info titulo="Localização">
-              <a href={mapa} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-1.5 font-bold">
-                Ver no mapa <ExternalLink aria-hidden="true" className="size-4" />
-                <span className="sr-only">(abre o OpenStreetMap em outra aba)</span>
-              </a>
-            </Info>
-          ) : null}
-          {a.horarios ? <Info titulo="Horários">{a.horarios}</Info> : null}
-          {a.contato ? <Info titulo="Contato">{a.contato}</Info> : null}
-          {a.condicoes_acesso ? <Info titulo="Condições de acesso">{a.condicoes_acesso}</Info> : null}
-          {a.acessibilidade ? <Info titulo="Acessibilidade">{a.acessibilidade}</Info> : null}
-          {a.orientacoes_ambientais ? <Info titulo="Orientações ambientais">{a.orientacoes_ambientais}</Info> : null}
-        </dl>
+          <dl className="-mt-3 overflow-hidden rounded-2xl border bg-superficie">
+            {a.horarios ? <Linha icone={Clock} titulo="Horário">{a.horarios}</Linha> : null}
+            {a.condicoes_acesso ? <Linha icone={Mountain} titulo="Acesso">{a.condicoes_acesso}</Linha> : null}
+            {a.acessibilidade ? <Linha icone={Accessibility} titulo="Acessibilidade">{a.acessibilidade}</Linha> : null}
+            {a.contato ? <Linha icone={Phone} titulo="Contato">{a.contato}</Linha> : null}
+          </dl>
         ) : (
-          // Fora do <dl>: lista de definição só aceita pares de termo e descrição.
-          <p className="rounded-2xl border bg-superficie p-4 text-muted-foreground">
+          <p className="-mt-3 rounded-2xl border bg-superficie p-4 text-muted-foreground">
             Horários e orientações de visita ainda não foram informados. Fale com a Secretaria de Turismo antes de ir.
           </p>
         )}
+
+        {a.descricao ? (
+          <section aria-labelledby="sobre" className="flex flex-col gap-2">
+            <h2 id="sobre" className="text-[21px] font-bold">Sobre</h2>
+            <Paragrafos texto={a.descricao} />
+          </section>
+        ) : null}
+
+        <FaixaFotos fotos={fotos} nome={a.nome} />
+
         {ligadas.length ? (
-          <section aria-labelledby="atividades-atrativo" className="flex flex-col gap-2">
-            <h2 id="atividades-atrativo" className="text-xl font-bold">Atividades gratuitas aqui</h2>
-            {ligadas.map((x) => (
-              <Link key={x.id} href={`/atividades/${x.id}`} className="flex min-h-14 items-center rounded-2xl border bg-superficie px-4 font-bold text-foreground no-underline hover:border-primary hover:text-foreground">
-                {x.titulo} · {x.modo === "reserva" ? "reservar" : "registrar visita"}
-              </Link>
-            ))}
+          <section aria-labelledby="atividades-atrativo" className="flex flex-col gap-2.5">
+            <h2 id="atividades-atrativo" className="text-[21px] font-bold">Atividades com voucher aqui</h2>
+            {ligadas.map((x) => {
+              const capa = capasAtividades.get(x.id) ?? fotos[0];
+              return (
+                <Link
+                  key={x.id}
+                  href={`/atividades/${x.id}`}
+                  className="flex items-center gap-3 rounded-2xl border bg-superficie p-3 text-foreground no-underline hover:border-primary hover:text-foreground"
+                >
+                  <FotoPortal caminho={capa?.caminho} legenda="" className="size-[72px] shrink-0 rounded-xl" sizes="72px" />
+                  <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    {x.modo === "reserva" ? (
+                      <span className="w-fit rounded-full bg-verde-suave px-2 py-0.5 text-xs font-bold text-primary">Reserva gratuita</span>
+                    ) : (
+                      <span className="w-fit rounded-full bg-dourado-suave px-2 py-0.5 text-xs font-bold text-dourado-texto">Registro voluntário</span>
+                    )}
+                    <span className="font-bold">{x.titulo}</span>
+                    <span className="text-sm text-muted-foreground">{x.modo === "reserva" ? "Reservar vaga gratuita" : "Registrar minha visita"}</span>
+                  </span>
+                  <ChevronRight aria-hidden="true" className="size-5 text-muted-foreground" />
+                </Link>
+              );
+            })}
+          </section>
+        ) : null}
+
+        {a.endereco || mapa ? (
+          <section aria-labelledby="como-chegar" className="flex flex-col gap-2.5">
+            <h2 id="como-chegar" className="text-[21px] font-bold">Como chegar</h2>
+            {a.endereco ? <p className="text-[15px] whitespace-pre-line text-[#2A352E]">{a.endereco}</p> : null}
+            {mapa ? (
+              <a
+                href={mapa}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="box-border flex min-h-[52px] items-center justify-center gap-2 rounded-[14px] border-[1.5px] border-foreground font-bold text-foreground no-underline hover:text-foreground"
+              >
+                <MapPin aria-hidden="true" className="size-5" /> Abrir no mapa
+                <ExternalLink aria-hidden="true" className="size-4" />
+                <span className="sr-only">(abre o OpenStreetMap em outra aba)</span>
+              </a>
+            ) : null}
+          </section>
+        ) : null}
+
+        {a.orientacoes_ambientais ? (
+          <section aria-labelledby="orientacoes" className="flex flex-col gap-2 rounded-2xl bg-dourado-suave p-4 text-[#4A3408]">
+            <h2 id="orientacoes" className="text-[17px] font-bold">Orientações ambientais</h2>
+            <Paragrafos texto={a.orientacoes_ambientais} className="text-[15px] whitespace-pre-line" />
           </section>
         ) : null}
       </main>
       <RodapePortal municipio={municipio} />
-    </>
+    </GaleriaProvider>
   );
 }
