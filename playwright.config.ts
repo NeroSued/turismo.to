@@ -31,7 +31,9 @@ export default defineConfig({
   reporter: [["list"]],
   globalSetup: "./tests/e2e/global-setup.ts",
   projects: [
-    { name: "celular", testIgnore: /sessao-compartilhada/ },
+    { name: "celular", testIgnore: /sessao-compartilhada|computador/ },
+    // Fase 9: portal público no computador (canvas "Turismo.TO Desktop"), em 1440x900.
+    { name: "computador", testMatch: /computador/, use: { viewport: { width: 1440, height: 900 }, hasTouch: false } },
     ...(noPreview
       ? []
       : [
