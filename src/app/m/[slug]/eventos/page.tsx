@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CabecalhoInterno, FotoPortal, nomeDoMunicipio, RodapePortal, Vazio } from "@/components/portal/estrutura";
+import { CabecalhoPortal, CabecalhoInterno, FotoPortal, nomeDoMunicipio, RodapePortal, Vazio } from "@/components/portal/estrutura";
 import { BlocoData, horarioDoEvento } from "@/components/portal/eventos";
 import { listarEventos, primeiraFotoDe, type Evento } from "@/lib/cadastros/dados";
 import { formatarMesAno } from "@/lib/datas";
@@ -29,16 +29,17 @@ export default async function Calendario({ params }: PageProps<"/m/[slug]/evento
 
   return (
     <>
-      <CabecalhoInterno titulo="Calendário de eventos" />
-      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-4 pb-10">
-        <h1 className="sr-only">Calendário de eventos de {nomeDoMunicipio(municipio)}</h1>
+      <CabecalhoInterno titulo="Calendário de eventos" className="md:hidden" />
+      <CabecalhoPortal municipio={municipio} soComputador />
+      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col md:max-w-[1248px] md:px-6 gap-6 px-4 pb-10">
+        <h1 className="sr-only md:not-sr-only md:pt-6 md:text-[clamp(36px,4vw,48px)] md:leading-[1.05] md:font-bold md:tracking-[-0.02em]">Calendário de eventos de {nomeDoMunicipio(municipio)}</h1>
         {eventos.length === 0 ? (
           <Vazio>Nenhum evento divulgado por enquanto. Festas, feiras e festivais aparecem aqui assim que a Secretaria publicar.</Vazio>
         ) : (
           [...meses].map(([mes, lista]) => (
             <section key={mes} aria-label={mes} className="flex flex-col gap-1">
-              <h2 className="text-xl font-bold">{mes}</h2>
-              <ul className="flex flex-col">
+              <h2 className="text-xl font-bold md:text-[26px] md:first-letter:uppercase">{mes}</h2>
+              <ul className="flex flex-col md:grid md:grid-cols-2 md:gap-x-8">
                 {lista.map((e) => (
                   <li key={e.id}>
                     <Link href={`/eventos/${e.id}`} className="flex items-center gap-3.5 border-b py-2.5 text-foreground no-underline hover:text-foreground">
