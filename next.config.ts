@@ -28,6 +28,10 @@ const nextConfig: NextConfig = {
       : [],
     dangerouslyAllowLocalIP: supabaseLocal,
     formats: ["image/avif", "image/webp"],
+    // 9.6: larguras geradas. As fotos publicadas têm no máximo 2000 px (7.4), então nada acima de 2048;
+    // miniaturas (60 a 132 px) usam os tamanhos pequenos.
+    deviceSizes: [640, 750, 828, 1080, 1200, 1600, 2048],
+    imageSizes: [64, 96, 128, 160, 256, 384],
   },
 };
 

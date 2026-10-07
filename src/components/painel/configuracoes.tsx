@@ -15,6 +15,7 @@ import { enviarDireto } from "@/lib/arquivos/envio-direto";
 type Valores = {
   nome_exibicao: string | null;
   cor_primaria: string;
+  apresentacao: string | null;
   contato_secretaria: string | null;
   ouvidoria_url: string | null;
   aviso_privacidade: string | null;
@@ -66,6 +67,8 @@ export function FormularioConfiguracoes({ municipioId, v: v0, nomeOficial }: { m
         </div>
       </fieldset>
 
+      <AreaTexto id="apresentacao" rotulo="Frase de apresentação" defaultValue={v.apresentacao ?? ""} maxLength={160} rows={2}
+        erro={campos?.apresentacao} ajuda="Até 160 caracteres. Aparece no card do município em turismo.to e na capa do portal. Vazio: o card mostra só o nome." />
       <AreaTexto id="contato_secretaria" rotulo="Contato da Secretaria de Turismo" defaultValue={v.contato_secretaria ?? ""} maxLength={600}
         erro={campos?.contato_secretaria} ajuda="Endereço, telefone ou WhatsApp oficial e horário de atendimento. Aparece no rodapé do portal." />
       <Campo id="ouvidoria_url" rotulo="Link da Ouvidoria oficial" type="url" inputMode="url" defaultValue={v.ouvidoria_url ?? ""}

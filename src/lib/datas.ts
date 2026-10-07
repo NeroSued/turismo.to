@@ -140,3 +140,19 @@ export function instanteLocal(dia: string, hora: string): Date {
 export function jaPassou(v: Instante): boolean {
   return comoData(v).getTime() <= Date.now();
 }
+
+const fmtDiaMesExtenso = new Intl.DateTimeFormat("pt-BR", { timeZone: FUSO, day: "numeric", month: "long" });
+
+/** "5 de junho" (dia do mês e nome do mês, no fuso America/Araguaina). */
+export function formatarDiaMes(v: Instante): string {
+  return fmtDiaMesExtenso.format(comoData(v));
+}
+
+/** Período de um evento: "12 de outubro", "5 a 11 de junho" ou "28 de junho a 2 de julho". */
+export function formatarPeriodo(inicio: Instante, fim: Instante): string {
+  const a = comoData(inicio);
+  const b = comoData(fim);
+  if (diaLocal(a) === diaLocal(b)) return formatarDiaMes(a);
+  if (diaLocal(a).slice(0, 7) === diaLocal(b).slice(0, 7)) return `${Number(diaLocal(a).slice(8, 10))} a ${formatarDiaMes(b)}`;
+  return `${formatarDiaMes(a)} a ${formatarDiaMes(b)}`;
+}

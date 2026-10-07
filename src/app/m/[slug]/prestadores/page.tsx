@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CabecalhoInterno, FotoPortal, nomeDoMunicipio, RodapePortal, Vazio } from "@/components/portal/estrutura";
+import { CabecalhoPortal, CabecalhoInterno, FotoPortal, nomeDoMunicipio, RodapePortal, Vazio } from "@/components/portal/estrutura";
 import { listarPrestadores, primeiraFotoDe } from "@/lib/cadastros/dados";
 import { CATEGORIAS_PRESTADOR, type CategoriaPrestador } from "@/lib/cadastros/esquemas";
 import { textoAlternativo } from "@/lib/fotos/tratamento";
@@ -32,9 +32,10 @@ export default async function Rede({ params, searchParams }: PageProps<"/m/[slug
 
   return (
     <>
-      <CabecalhoInterno titulo="Rede de prestadores" />
-      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-4 px-4 pb-10">
-        <h1 className="sr-only">Rede de prestadores de {nomeDoMunicipio(municipio)}</h1>
+      <CabecalhoInterno titulo="Rede de prestadores" className="md:hidden" />
+      <CabecalhoPortal municipio={municipio} soComputador />
+      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col md:max-w-[1248px] md:px-6 gap-4 px-4 pb-10">
+        <h1 className="sr-only md:not-sr-only md:pt-6 md:text-[clamp(36px,4vw,48px)] md:leading-[1.05] md:font-bold md:tracking-[-0.02em]">Rede de prestadores de {nomeDoMunicipio(municipio)}</h1>
         <p className="text-[15px] text-muted-foreground">Empresas e profissionais que aderiram à rede municipal de turismo.</p>
         {todos.length === 0 ? (
           <Vazio>A rede municipal de prestadores está em formação. Pousadas, restaurantes e guias que aderirem aparecem aqui.</Vazio>
@@ -58,14 +59,14 @@ export default async function Rede({ params, searchParams }: PageProps<"/m/[slug
                 ))}
               </ul>
             </nav>
-            <ul className="flex flex-col gap-3">
+            <ul className="flex flex-col gap-3 md:grid md:grid-cols-[repeat(auto-fill,minmax(min(100%,340px),1fr))] md:gap-4">
               {prestadores.map((p) => {
                 const foto = fotos.get(p.id);
                 return (
-                  <li key={p.id}>
+                  <li key={p.id} className="md:flex">
                     <Link
                       href={`/prestadores/${p.id}`}
-                      className="flex gap-3 rounded-2xl border bg-superficie p-3 text-foreground no-underline hover:border-primary hover:text-foreground"
+                      className="flex gap-3 rounded-2xl border bg-superficie p-3 text-foreground no-underline hover:border-primary hover:text-foreground md:w-full"
                     >
                     <FotoPortal caminho={foto?.caminho} legenda={textoAlternativo(foto?.legenda, 0, p.nome_publico)} className="size-[88px] shrink-0 rounded-xl" sizes="88px" />
                     <div className="flex min-w-0 flex-1 flex-col gap-1">

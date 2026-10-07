@@ -18,7 +18,7 @@ const ERRO_GENERICO = "Não foi possível salvar agora. Confira a conexão e ten
 export async function salvarConfiguracoes(municipioId: string, _: Estado, dados: FormData): Promise<Estado> {
   const ctx = await contextoDoMunicipio(municipioId, ["gestor"]);
   if (!ctx) return { ok: false, erro: SEM_PERMISSAO };
-  const campos = ["nome_exibicao", "cor_primaria", "contato_secretaria", "ouvidoria_url", "aviso_privacidade", "referencia_icms", "dias_anonimizacao"];
+  const campos = ["nome_exibicao", "cor_primaria", "apresentacao", "contato_secretaria", "ouvidoria_url", "aviso_privacidade", "referencia_icms", "dias_anonimizacao"];
   const valores = Object.fromEntries(campos.map((k) => [k, String(dados.get(k) ?? "")]));
   const r = esquemaConfiguracoes.safeParse(valores);
   if (!r.success) return { ok: false, erro: "Corrija os campos destacados.", campos: errosPorCampo(r.error), valores };

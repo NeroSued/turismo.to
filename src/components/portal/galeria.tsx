@@ -32,6 +32,19 @@ export function GaleriaProvider({ fotos, nome, children }: { fotos: FotoGaleria[
 
   const ir = useCallback((indice: number) => setAtual(Math.min(Math.max(indice, 0), total - 1)), [total]);
 
+  // Um botão que fica desativado (seta na primeira ou na última foto) perde o foco, que iria para
+  // fora da galeria; o foco passa para a outra seta ou para o botão de fechar.
+  useEffect(() => {
+    const d = dialogo.current;
+    if (!aberto || !d) return;
+    // Logo depois da troca, o botão focado já está desativado; em seguida o navegador mandaria o foco ao <body>.
+    const ativo = document.activeElement;
+    const perdido = !ativo || ativo === document.body || (ativo instanceof HTMLButtonElement && ativo.disabled);
+    if (!perdido) return;
+    const destino = d.querySelector<HTMLElement>("[data-seta]:not(:disabled)") ?? d.querySelector<HTMLElement>("[data-fechar]");
+    destino?.focus();
+  }, [atual, aberto]);
+
   useEffect(() => {
     miniaturas.current?.querySelector<HTMLElement>(`[data-indice="${atual}"]`)?.scrollIntoView({ block: "nearest", inline: "center" });
   }, [atual]);
@@ -56,30 +69,44 @@ export function GaleriaProvider({ fotos, nome, children }: { fotos: FotoGaleria[
             } else if (e.key === "ArrowRight") {
               e.preventDefault();
               ir(atual + 1);
+            } else if (e.key === "Tab") {
+              // Foco preso na galeria: do último volta ao primeiro, e vice-versa.
+              const focaveis = [...e.currentTarget.querySelectorAll<HTMLElement>("button:not(:disabled), a[href]")];
+              const primeiro = focaveis[0];
+              const ultimo = focaveis[focaveis.length - 1];
+              if (!primeiro || !ultimo) return;
+              if (e.shiftKey && (document.activeElement === primeiro || !e.currentTarget.contains(document.activeElement))) {
+                e.preventDefault();
+                ultimo.focus();
+              } else if (!e.shiftKey && document.activeElement === ultimo) {
+                e.preventDefault();
+                primeiro.focus();
+              }
             }
           }}
-          className="m-0 h-dvh max-h-none w-full max-w-none bg-[#0E1410] p-0 text-white backdrop:bg-[#0E1410]"
+          className="m-0 h-dvh max-h-none w-full max-w-none overflow-hidden bg-[#0E1410] p-0 text-white backdrop:bg-[#0E1410]"
         >
           {aberto ? (
-          <div className="mx-auto flex h-full max-w-3xl flex-col">
-            <div className="flex items-center justify-between px-3 py-2.5">
+          <div className="mx-auto flex h-full max-w-3xl flex-col lg:max-w-none">
+            <div className="flex items-center justify-between px-3 py-2.5 lg:px-5 lg:py-3.5">
               <button
                 type="button"
+                data-fechar
                 onClick={() => dialogo.current?.close()}
                 aria-label="Fechar galeria"
-                className="flex size-11 items-center justify-center rounded-full bg-white/12 text-white"
+                className="flex size-11 items-center justify-center rounded-full bg-white/12 text-white hover:bg-white/20 lg:order-last lg:size-12"
               >
                 <X aria-hidden="true" className="size-[22px]" strokeWidth={2.2} />
               </button>
-              <span aria-live="polite" aria-atomic="true" className="font-bold">
+              <span aria-live="polite" aria-atomic="true" className="font-bold lg:order-first">
                 <span className="sr-only">Foto </span>
                 {atual + 1} de {total}
               </span>
-              <span className="w-11" />
+              <span className="w-11 lg:hidden" />
             </div>
 
             <div
-              className="relative flex flex-1 touch-pan-y items-center justify-center select-none"
+              className="relative flex min-h-0 flex-1 touch-pan-y items-center justify-center select-none lg:gap-4 lg:px-5"
               onPointerDown={(e) => {
                 inicioToque.current = { x: e.clientX, y: e.clientY };
               }}
@@ -95,8 +122,16 @@ export function GaleriaProvider({ fotos, nome, children }: { fotos: FotoGaleria[
               }}
             >
               {foto ? (
-                <div className="relative size-full">
-                  <Image key={foto.url} src={foto.url} alt={foto.alt} fill sizes="(max-width: 768px) 100vw, 768px" className="object-contain" draggable={false} />
+                <div className="relative size-full lg:order-2 lg:max-w-[1040px] lg:flex-1">
+                  <Image
+                    key={foto.url}
+                    src={foto.url}
+                    alt={foto.alt}
+                    fill
+                    sizes="(min-width: 1024px) min(1040px, calc(100vw - 176px)), (max-width: 768px) 100vw, 768px"
+                    className="object-contain"
+                    draggable={false}
+                  />
                 </div>
               ) : null}
               {total > 1 ? (
@@ -106,7 +141,8 @@ export function GaleriaProvider({ fotos, nome, children }: { fotos: FotoGaleria[
                     onClick={() => ir(atual - 1)}
                     disabled={atual === 0}
                     aria-label="Foto anterior"
-                    className="absolute top-1/2 left-2 flex size-12 -translate-y-1/2 items-center justify-center rounded-full bg-[rgba(14,20,16,0.7)] text-white disabled:opacity-35"
+                    data-seta
+                    className="absolute top-1/2 left-2 flex size-12 -translate-y-1/2 items-center justify-center rounded-full bg-[rgba(14,20,16,0.7)] text-white disabled:opacity-35 lg:static lg:order-1 lg:size-[52px] lg:shrink-0 lg:translate-y-0 lg:bg-white/12 lg:enabled:hover:bg-white/20"
                   >
                     <ChevronLeft aria-hidden="true" className="size-[22px]" strokeWidth={2.2} />
                   </button>
@@ -115,7 +151,8 @@ export function GaleriaProvider({ fotos, nome, children }: { fotos: FotoGaleria[
                     onClick={() => ir(atual + 1)}
                     disabled={atual === total - 1}
                     aria-label="Próxima foto"
-                    className="absolute top-1/2 right-2 flex size-12 -translate-y-1/2 items-center justify-center rounded-full bg-[rgba(14,20,16,0.7)] text-white disabled:opacity-35"
+                    data-seta
+                    className="absolute top-1/2 right-2 flex size-12 -translate-y-1/2 items-center justify-center rounded-full bg-[rgba(14,20,16,0.7)] text-white disabled:opacity-35 lg:static lg:order-3 lg:size-[52px] lg:shrink-0 lg:translate-y-0 lg:bg-white/12 lg:enabled:hover:bg-white/20"
                   >
                     <ChevronRight aria-hidden="true" className="size-[22px]" strokeWidth={2.2} />
                   </button>
@@ -123,13 +160,13 @@ export function GaleriaProvider({ fotos, nome, children }: { fotos: FotoGaleria[
               ) : null}
             </div>
 
-            <div className="flex min-h-16 flex-col gap-0.5 px-4 pt-3 pb-1.5">
+            <div className="flex min-h-16 flex-col gap-0.5 px-4 pt-3 pb-1.5 lg:mx-auto lg:min-h-0 lg:w-full lg:max-w-[1040px] lg:flex-row lg:flex-wrap lg:justify-between lg:gap-x-5 lg:gap-y-1.5 lg:px-0">
               {foto?.legenda ? <p>{foto.legenda}</p> : null}
-              {foto?.credito ? <p className="text-[13px] text-[#B9C2BB]">Foto: {foto.credito}</p> : null}
+              {foto?.credito ? <p className="text-[13px] text-[#B9C2BB] lg:ml-auto lg:text-[15px]">Foto: {foto.credito}</p> : null}
             </div>
 
             {total > 1 ? (
-              <div ref={miniaturas} className="flex gap-1.5 overflow-x-auto px-4 pt-2.5 pb-6 [scrollbar-width:none]">
+              <div ref={miniaturas} className="flex gap-1.5 overflow-x-auto px-4 pt-2.5 pb-6 [scrollbar-width:none] lg:justify-center-safe lg:gap-2 lg:px-5 lg:pt-4">
                 {fotos.map((f, j) => (
                   <button
                     key={f.url}
@@ -139,11 +176,11 @@ export function GaleriaProvider({ fotos, nome, children }: { fotos: FotoGaleria[
                     aria-label={`Ver foto ${j + 1} de ${total}`}
                     aria-current={j === atual ? "true" : undefined}
                     className={cn(
-                      "relative size-[60px] shrink-0 overflow-hidden rounded-lg border-[3px] p-0",
+                      "relative size-[60px] shrink-0 overflow-hidden rounded-lg border-[3px] p-0 lg:h-[54px] lg:w-[72px] lg:rounded-md",
                       j === atual ? "border-[#C99A3B]" : "border-transparent opacity-60",
                     )}
                   >
-                    <Image src={f.url} alt="" fill sizes="60px" className="object-cover" />
+                    <Image src={f.url} alt="" fill sizes="(min-width: 1024px) 72px, 60px" className="object-cover" />
                   </button>
                 ))}
               </div>

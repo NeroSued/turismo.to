@@ -118,6 +118,24 @@
   textarea {
     font-size: max(16px, 1rem);
   }
+  /* 9.5: mão em tudo que se clica (portal e painel); "proibido" no que está desativado. */
+  button,
+  [role="button"],
+  summary,
+  select,
+  input[type="file"],
+  input[type="file"]::file-selector-button,
+  input[type="checkbox"],
+  input[type="radio"],
+  label:has(> input[type="file"]) {
+    cursor: pointer;
+  }
+  :disabled,
+  input[type="file"]:disabled::file-selector-button,
+  [aria-disabled="true"],
+  label:has(> input[type="file"]:disabled) {
+    cursor: not-allowed;
+  }
   /* Foco visível em tudo: contorno dourado de 3px. */
   :focus-visible {
     outline: 3px solid var(--dourado) !important;

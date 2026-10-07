@@ -39,3 +39,14 @@ describe("datas no fuso America/Araguaina", () => {
     expect(() => instanteLocal("2026-10-12", "8h")).toThrow();
   });
 });
+
+describe("formatarPeriodo (cartaz de evento, Fase 9)", () => {
+  it("um dia, mesmo mês e meses diferentes, no fuso de Araguaína", async () => {
+    const { formatarPeriodo } = await import("@/lib/datas");
+    expect(formatarPeriodo("2026-10-12T22:00:00Z", "2026-10-13T01:00:00Z")).toBe("12 de outubro");
+    expect(formatarPeriodo("2026-06-05T12:00:00Z", "2026-06-11T23:00:00Z")).toBe("5 a 11 de junho");
+    expect(formatarPeriodo("2026-06-28T12:00:00Z", "2026-07-02T12:00:00Z")).toBe("28 de junho a 2 de julho");
+    // 01:00 UTC do dia 1º ainda é dia 31 em Araguaína (UTC-3).
+    expect(formatarPeriodo("2026-08-01T01:00:00Z", "2026-08-01T02:00:00Z")).toBe("31 de julho");
+  });
+});

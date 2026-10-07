@@ -8,8 +8,8 @@ Como usar este arquivo:
 
 ## Estado
 
-- Fase ativa: nenhuma (Fase 8 concluída e publicada em produção em 2026-10-06; merge em `main` publica e só acontece com aprovação do Nero)
-- Última atualização: 2026-10-06
+- Fase ativa: Fase 9 (layout de computador do portal público), branch `fase-9-desktop`
+- Última atualização: 2026-10-07
 
 ---
 
@@ -284,6 +284,33 @@ Primeira entrega completa: criar atividade, publicar, emitir voucher, confirmar 
 
 ---
 
+## Fase 9: Layout de computador do portal público
+
+Escopo: só o portal público (`turismo.to` e `<municipio>.turismo.to`); o painel `/admin` não muda, exceto o item 9.5. Abaixo de 768 px, o layout de celular atual continua igual; a partir de 1024 px, vale o canvas "Turismo.TO Desktop"; entre os dois, uma transição sem rolagem horizontal.
+
+- [x] 9.1 Home `turismo.to` conforme a tela "turismo.to · home": cards em duas colunas, foto de capa do município (`configuracoes_municipio.capa_caminho`), iniciais sobre fundo verde quando não houver capa, contagem real de atrativos e atividades publicados, endereço do portal e bloco "Como funcionam as atividades" ocupando a vaga quando o número de municípios for ímpar; frase curta de apresentação (até 160 caracteres) em Configurações, se ainda não existir.
+- [x] 9.2 Portal municipal conforme a tela "Portal municipal": cabeçalho com âncoras e botão de reserva, capa com painel sobreposto, atividades em grade, eventos com cartaz, atrativos com filtro por categoria (só as categorias existentes), prestadores e rodapé em colunas.
+- [x] 9.3 Páginas de detalhe de atrativo, atividade, evento e prestador conforme "Atrativo · detalhe": mosaico de fotos que se adapta à quantidade (1 foto ocupa tudo; até 4 se reorganiza), texto à esquerda e coluna de informações à direita, e "Outros atrativos".
+- [x] 9.4 Galeria em tela cheia no computador: setas, teclas ← → e Esc, foco preso na galeria e devolvido ao fechar, miniaturas, legenda e crédito.
+- [x] 9.5 Cursor de mão em todo o sistema, painel incluído: `button`, `[role=button]`, `summary`, `select`, label de upload; cursor `not-allowed` em itens desativados.
+- [x] 9.6 Imagens com tamanhos adequados para cada largura, sem carregar a versão grande em miniaturas.
+
+**Pronto quando:**
+
+- E2E em 1440x900: a home mostra duas colunas com capa e as iniciais quando falta capa.
+- E2E em 1440x900: o portal e a página de detalhe seguem o layout do canvas.
+- E2E em 1440x900: a galeria responde ao teclado (← → Esc, foco preso e devolvido).
+- Em 390, 768, 1024 e 1440 px nenhuma página pública tem rolagem horizontal (E2E).
+- O layout de celular continua passando nos testes atuais.
+- Teste: botões ativos têm cursor `pointer` e desativados `not-allowed`.
+- Axe sem violações críticas ou sérias nas páginas públicas em 1440 px.
+- `npm run verify` termina com código 0.
+- E2E completo passa contra o preview em `teste.turismo.to`.
+- Capturas de tela em 1440 px da home, do portal e de um atrativo.
+- PR mesclado em `main` somente depois de o Nero responder "pode publicar"; teste de fumaça só de leitura em produção depois do merge.
+
+---
+
 ## Bloqueios
 
 Pendências externas conhecidas. Atualize quando surgirem novas ou forem resolvidas.
@@ -303,6 +330,7 @@ Pendências externas conhecidas. Atualize quando surgirem novas ou forem resolvi
 - [ ] 2026-10-06, início da Fase 7: um comando que deveria listar só os nomes das variáveis dos arquivos `.env*` imprimiu na conversa do Claude Code as chaves soltas do `.env.chaves-remotas` (chave publicável, chave secreta `sb_secret_...` e um terceiro valor, possivelmente a senha antiga do banco). São as mesmas já listadas acima como vazadas em 2026-10-05. Se ainda não foram revogadas, o Nero deve revogar a chave secreta (Project Settings → API Keys) e trocar a senha do banco; depois, apagar o `.env.chaves-remotas`, que nenhum script usa.
 - [x] Fase 8: aprovação do Nero para mesclar o PR #9 em `main` (merge publica em produção). Em 2026-10-06 o PR estava sem conflito, checks da Vercel verdes, `npm run verify` com código 0 e E2E completo aprovado contra o preview. Falta o Nero responder "pode publicar"; depois, merge, teste de fumaça só de leitura em produção. Resolvido: o Nero respondeu "pode publicar" em 2026-10-06.
 - [x] Teste de fumaça de produção, "hub abre com os sete municípios": em 2026-10-06 o hub mostra 5, porque Ananás e Arraias foram desativados por uma conta de administrador às 16h21 e 16h22 (America/Araguaina), antes do merge da Fase 8 (auditoria de `municipios`). Nada foi reativado. O Nero precisa dizer se a desativação foi intencional: se foi, o teste de fumaça passa a conferir os municípios ativos em vez de 7 fixos; se não foi, reativar pelo painel da assessoria. Resolvido: o Nero confirmou em 2026-10-06 que desativou os dois de propósito (entram só em 2027); o teste de fumaça passou a conferir os ativos.
+- [ ] Fase 9: aprovação do Nero para mesclar o PR da Fase 9 em `main` (merge publica em produção). Antes do merge, a migration `20261007120000_apresentacao_municipio.sql` vai ao projeto de produção com `supabase db push`. Em 2026-10-07: `npm run verify` com código 0 e E2E completo aprovado contra o preview. Falta o Nero responder "pode publicar".
 - [ ] Logos, fotos e textos oficiais de cada prefeitura.
 - [ ] Revisão jurídica do aviso de privacidade pelas prefeituras.
 
@@ -412,6 +440,14 @@ Registre aqui decisões tomadas durante a execução: data, decisão, motivo.
 - 2026-10-06: duas corridas com o aviso de 3 s no preview (mais lento): em `fotos.spec`, o aviso "2 fotos enviadas" era procurado só depois de a lista recarregar ("3 de 12"), quando já tinha sumido; as duas verificações continuam, com o aviso conferido primeiro. Em `admin.spec` (item 5.8), a espera fixa de 1,5 s passava do tempo do aviso; agora o teste pausa o aviso com o ponteiro (comportamento da 8.2) e confere que ele continua na tela após 1,5 s.
 - 2026-10-06: Ananás e Arraias desativados em produção pelo Nero, de propósito: entram no programa só em 2027. O teste de fumaça deixou de esperar 7 municípios fixos: confere que o hub lista só municípios do `seed.sql`, sem repetição, com Palmeirópolis, que cada portal listado responde 200 e que cada um fora do hub responde 404 (regra de município inativo). Quando os dois forem ativados, o teste continua valendo sem mudança.
 - 2026-10-06: testes antigos ajustados à tela nova, sem afrouxar o que verificam: `portal.spec` envia as fotos pela tela "Fotos" (recusa por conteúdo e por tamanho continuam, com o limite novo de 10 MB e arquivo de 11 MB), procura a capa pelo `alt` da imagem (dentro de botão o leitor de tela não expõe a imagem como "img"), espera `og:image` em `.webp` e o link "Abrir no mapa" (texto do canvas); a integração `portal.test` inclui `descricao` entre as colunas públicas de prestadores (a garantia de nenhuma coluna interna continua).
+- 2026-10-07: início da Fase 9: `fase-9-desktop` criada a partir de `main` atualizada (`3f3f6cb`); domínios `teste.turismo.to` e `*.teste.turismo.to` religados a ela pela API da Vercel (`gitBranch`). Merge só depois de o Nero responder "pode publicar".
+
+- 2026-10-07: 9.1, frase de apresentação: não existia campo; criada a coluna `configuracoes_municipio.apresentacao` (até 160 caracteres, banco e Zod; vazio vira nulo) em Configurações. Aparece no card da home e no painel da capa do portal (no lugar do texto padrão). Contagens da home: atrativos e atividades publicados, lidos pela RLS anônima. Sem capa, o card mostra as iniciais em `#DCE7DF` sobre `#1F4D3A`; com número par de municípios, o bloco "Como funcionam as atividades" ocupa uma linha inteira.
+- 2026-10-07: Fase 9, celular igual: o mesmo HTML serve as três faixas, com classes `md:` (768 px, transição: grades fluidas, mosaico, cabeçalho branco) e `lg:` (1024 px: âncoras no cabeçalho, duas colunas no detalhe, setas laterais na galeria). Abaixo de 768 px nada muda. Blocos novos que só fazem sentido no computador ("Eventos aqui", "Outros atrativos", cards de prestadores na capa, "Como funcionam" na home, filtro de categorias) ficam escondidos no celular. No detalhe, as duas colunas são `display: contents` abaixo de 1024 px e cada bloco tem `order-*`, para manter a ordem do celular sem duplicar conteúdo.
+- 2026-10-07: 9.3: o mosaico mostra até 5 fotos (1: ocupa tudo; 2: metade e metade; 3: capa e duas empilhadas; 4: capa, duas em cima e uma larga embaixo; 5: capa e quatro). Com mais de 5, o 5º quadro leva "Ver as N fotos" e abre a galeria naquela foto, como no canvas. Na atividade, o título da página é o nome da atividade no computador (no celular continua "Reserva gratuita"); o formulário fica na coluna da direita, fixo ao rolar.
+- 2026-10-07: 9.4: o `<dialog>` nativo não prende o Tab (o foco sai para o navegador); a galeria passou a prender Tab e Shift+Tab. O E2E achou um defeito: quando a seta "Próxima" focada se desativava na última foto, o foco ia para o `<body>` e as setas do teclado paravam. Agora o foco passa para a outra seta (ou o botão fechar).
+- 2026-10-07: 9.5: regra global (camada base do CSS) com `cursor: pointer` em `button`, `[role=button]`, `summary`, `select`, campo de arquivo e label que o envolve, e `not-allowed` em `:disabled` e `[aria-disabled=true]`. Os botões e campos do shadcn tinham `disabled:pointer-events-none`, que escondia o cursor; trocado por `disabled:cursor-not-allowed`.
+- 2026-10-07: 9.6: `sizes` de cada imagem pela largura real em cada faixa; larguras geradas pelo otimizador limitadas a 2048 px (as fotos publicadas têm até 2000 px) e tamanhos pequenos para miniaturas (64 a 384). O teste mede o que a página pede; quando uma miniatura usa a mesma foto já baixada em tamanho maior na página, o navegador a reaproveita do cache sem baixar nada novo, e o teste aceita esse caso.
 
 ## Registro
 
@@ -501,3 +537,11 @@ Registre aqui decisões tomadas durante a execução: data, decisão, motivo.
 | 2026-10-06 | Fase 8, verificação | `npm run verify` com código 0 em `6b8b326`: typecheck, lint, Vitest 105/105, pgTAP 328/328 (10 arquivos), Playwright 62 aprovados e 1 pulado (inclui `avisos.spec` 8/8), build. Uma rodada logo após `supabase db reset` teve 2 arquivos de integração com tempo esgotado na preparação (serviços ainda reiniciando); repetida sem mudança, passou. E2E completo contra o preview (`teste.turismo.to`, deploy `6b8b326`, projeto "Turismo.TO Teste"): 58 aprovados, 1 pulado, código 0, em 19 min; aviso 3125 ms na tela, duplo clique = 1 envio, axe 0 graves nas telas com aviso. Rodadas anteriores contra o preview acharam e corrigiram o botão coberto pela barra e três corridas de teste com o aviso de 3 s; uma falhou por `page.goto` sem resposta da rede e outra pelo maior conteúdo do atendimento em 2596 ms (orçamento 2500; o mesmo código mediu de 1796 a 2192 ms nas demais rodadas, JavaScript igual, 262 KB). |
 | 2026-10-06 | Merge da Fase 8 | Aprovado pelo Nero ("pode publicar"). PR #9 sem conflito e com checks da Vercel verdes; merge `25aedce`, branch apagada; deploy de produção `25aedce` READY. Sem migration. `npm run test:fumaca` em `https://turismo.to` e `https://palmeiropolis.turismo.to`: 5 de 6. Falhou só "hub abre com os sete municípios" (5 links), porque Ananás e Arraias estão desativados em produção desde 16h21 (ação de administrador registrada na auditoria, anterior ao merge); ver Bloqueios. |
 | 2026-10-06 | Fumaça da Fase 8 | Depois da confirmação do Nero, `npm run test:fumaca` em produção: 6/6. Hub com 5 ativos (Jaú do Tocantins, Palmeirópolis, Paranã, Peixe e São Salvador, todos com portal em 200); Arraias e Ananás, inativos, respondem 404. |
+| 2026-10-07 | 9.1 | Migration `apresentacao` (pgTAP `011_apresentacao` 7/7: limite de 160, só espaços recusado, gestor grava no próprio município e não no alheio, anônimo lê só de município ativo). E2E `computador.spec` em 1440x900: 7 cards em 2 colunas de 588 px, capa 16:9 carregada em Palmeirópolis, iniciais nos 6 sem capa (fundo `rgb(31, 77, 58)`), contagens iguais às do banco (6 atrativos, 19 atividades), "Como funcionam" na vaga do 7º. |
+| 2026-10-07 | 9.2 | E2E 1440: âncoras Atividades/Eventos/Atrativos/Prestadores/Contato e "Reservar atividade" no cabeçalho, sem o menu em gaveta; capa de 500 px com painel sobreposto (máx. 560 px); atividades em grade com foto 3:2; cartaz 132x165 no evento; filtro só com as 3 categorias publicadas, "Religioso" mostra só os religiosos; prestadores em cards; rodapé em 3 colunas. |
+| 2026-10-07 | 9.3 | E2E 1440: caminho Palmeirópolis/Atrativos/nome; mosaico de 5 (capa 592x508, menores 296x250) com "Ver as 6 fotos"; 1 foto = 1200 px; 3 fotos = capa e duas empilhadas; dados à direita (800 px do título), "Eventos aqui", "Outros atrativos em Palmeirópolis"; atividade com o formulário à direita, evento e prestador no mesmo layout. Capturas em `test-results/telas-computador/`. |
+| 2026-10-07 | 9.4 | E2E 1440: Enter abre em "1 de 6" com legenda e crédito na mesma linha, setas ao lado da foto, 6 miniaturas de 72 px; → e ← trocam; 12 Tab e 12 Shift+Tab ficam dentro; na última foto a seta desativa e o foco continua na galeria; miniatura vai à foto 3; Esc fecha e devolve o foco. |
+| 2026-10-07 | 9.5 | E2E: `cursor: pointer` no filtro, mosaico, setas e fechar da galeria, `summary` do menu (390 px), "Entrar", label "Da galeria" e "Mover a foto 2 para baixo" do painel; `not-allowed` na seta da 1ª foto e em "Mover a foto 2 para cima" (desativados). |
+| 2026-10-07 | 9.6 | E2E: em home, portal e detalhe, miniaturas pedem até 256 px (ou reaproveitam do cache a foto já baixada) e fotos até ~2x a largura exibida; ao abrir a galeria, só a foto grande vem grande e a miniatura nova pediu 96 px; em 390 px (contexto sem cache), os 4 quadros escondidos do mosaico não são baixados. Sem rolagem horizontal em 12 páginas públicas em 390, 768, 1024 e 1440 px; axe 0 graves em 11 páginas em 1440 px. |
+| 2026-10-07 | Fase 9, verificação | `npm run verify` com código 0 em `8fcf3b7` depois de `npx supabase db reset`: typecheck, lint, Vitest 106/106, pgTAP 335/335 (11 arquivos), Playwright 71 aprovados e 1 pulado (os 62 de antes, layout de celular, mais `computador.spec` 9/9), build. Migration aplicada no projeto "Turismo.TO Teste" com `supabase db push`. |
+| 2026-10-07 | Fase 9, verificação final | `npm run verify` com código 0 em `d15182d` depois de `npx supabase db reset`: typecheck, lint, Vitest 106/106, pgTAP 335/335 (11 arquivos), Playwright 71 aprovados e 1 pulado, build. E2E completo contra o preview (`teste.turismo.to`, deploy `ff7b83a`, projeto "Turismo.TO Teste" com a migration): 67 aprovados, 1 pulado, código 0, em 20,7 min; LCP no celular de 1,4 a 2,1 s. Rodadas anteriores no preview acharam 3 verificações do teste de computador que dependiam de quais dados existiam (eventos, atrativos e prestadores antigos de outros testes) e duas oscilações isoladas (LCP 2,77 s no portal e o aviso "Publicado."), que passaram isoladas; a grade de atrativos passou a enviar só os cartões que o filtro pode mostrar. |

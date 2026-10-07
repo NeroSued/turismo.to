@@ -42,12 +42,25 @@ const MENU = [
   { href: "/privacidade", rotulo: "Aviso de privacidade" },
 ];
 
-/** Cabeçalho do portal (tela "Portal municipal"): logo, nome e menu. */
-export function CabecalhoPortal({ municipio }: { municipio: Municipio }) {
+const ANCORAS = [
+  { href: "/#atividades", rotulo: "Atividades" },
+  { href: "/#eventos", rotulo: "Eventos" },
+  { href: "/#atrativos", rotulo: "Atrativos" },
+  { href: "/#prestadores", rotulo: "Prestadores" },
+  { href: "/#contato", rotulo: "Contato" },
+];
+
+/**
+ * Cabeçalho do portal (tela "Portal municipal"): logo, nome e menu. No celular, o menu em gaveta;
+ * a partir de 1024 px, as âncoras das seções e o botão de reserva (canvas de computador).
+ * `soComputador`: páginas de detalhe, que no celular usam a capa com o botão voltar.
+ */
+export function CabecalhoPortal({ municipio, soComputador = false }: { municipio: Municipio; soComputador?: boolean }) {
   const nome = nomeDoMunicipio(municipio);
   const logo = municipio.configuracoes_municipio?.logo_caminho;
   return (
-    <header className="mx-auto flex w-full max-w-xl items-center justify-between gap-3 px-4 py-3">
+    <header className={cn("md:border-b md:bg-superficie", soComputador && "hidden md:block")}>
+    <div className="mx-auto flex w-full max-w-xl items-center justify-between gap-3 px-4 py-3 md:max-w-[1248px] md:flex-wrap md:gap-x-6 md:px-6">
       <Link href="/" className="flex items-center gap-2.5 text-foreground no-underline hover:text-foreground">
         {logo ? (
           <Image src={urlPublica(logo)} alt={`Logo de ${nome}`} width={40} height={40} className="size-10 rounded-[10px] object-contain" />
@@ -61,7 +74,21 @@ export function CabecalhoPortal({ municipio }: { municipio: Municipio }) {
           <span className="font-heading text-lg font-bold">{nome}</span>
         </span>
       </Link>
-      <details className="group relative">
+      <div className="flex items-center gap-2">
+      <nav aria-label="Seções do portal" className="hidden flex-wrap items-center gap-0.5 lg:flex">
+        {ANCORAS.map((a) => (
+          <Link key={a.href} href={a.href} className="flex min-h-11 items-center rounded-[10px] px-3 font-bold text-foreground no-underline hover:bg-[#E1E6DC] hover:text-foreground">
+            {a.rotulo}
+          </Link>
+        ))}
+      </nav>
+      <Link
+        href="/#atividades"
+        className="ml-2 hidden min-h-11 items-center rounded-xl bg-primary px-[18px] font-bold text-primary-foreground no-underline hover:text-primary-foreground md:flex"
+      >
+        Reservar atividade
+      </Link>
+      <details className="group relative lg:hidden">
         <summary
           aria-label="Abrir menu"
           className="flex size-11 cursor-pointer list-none items-center justify-center rounded-xl border bg-superficie text-foreground [&::-webkit-details-marker]:hidden"
@@ -80,14 +107,26 @@ export function CabecalhoPortal({ municipio }: { municipio: Municipio }) {
           </ul>
         </nav>
       </details>
+      </div>
+    </div>
     </header>
   );
 }
 
 /** Cabeçalho das páginas internas do portal: voltar e título. */
-export function CabecalhoInterno({ titulo, voltar = "/", rotuloVoltar = "Voltar ao portal" }: { titulo: string; voltar?: string; rotuloVoltar?: string }) {
+export function CabecalhoInterno({
+  titulo,
+  voltar = "/",
+  rotuloVoltar = "Voltar ao portal",
+  className,
+}: {
+  titulo: string;
+  voltar?: string;
+  rotuloVoltar?: string;
+  className?: string;
+}) {
   return (
-    <header className="mx-auto flex w-full max-w-xl items-center gap-2 px-3 py-2.5">
+    <header className={cn("mx-auto flex w-full max-w-xl items-center gap-2 px-3 py-2.5", className)}>
       <Link href={voltar} aria-label={rotuloVoltar} className="flex size-11 shrink-0 items-center justify-center rounded-xl text-foreground">
         <ArrowLeft aria-hidden="true" className="size-[22px]" />
       </Link>
@@ -100,11 +139,14 @@ export function CabecalhoInterno({ titulo, voltar = "/", rotuloVoltar = "Voltar 
 export function RodapePortal({ municipio }: { municipio: Municipio }) {
   const c = municipio.configuracoes_municipio;
   return (
-    <footer id="contato" className="bg-primary px-4 pt-8 pb-9 text-primary-foreground">
-      <div className="mx-auto flex max-w-xl flex-col gap-3.5">
-        <h2 className="text-xl font-bold">Secretaria Municipal de Turismo</h2>
-        <p className="text-[15px] whitespace-pre-line">{c?.contato_secretaria ?? "[Contato da Secretaria de Turismo]"}</p>
-        <div className="flex flex-col pt-1.5">
+    <footer id="contato" className="scroll-mt-4 bg-primary px-4 pt-8 pb-9 text-primary-foreground md:mt-[88px] md:px-6 md:pt-12 md:pb-10">
+      <div className="mx-auto flex max-w-xl flex-col gap-3.5 md:grid md:max-w-[1200px] md:grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))] md:gap-8">
+        <div className="flex flex-col gap-3.5 md:gap-2.5">
+          <h2 className="text-xl font-bold md:text-[22px]">Secretaria Municipal de Turismo</h2>
+          <p className="text-[15px] whitespace-pre-line md:text-base">{c?.contato_secretaria ?? "[Contato da Secretaria de Turismo]"}</p>
+        </div>
+        <div className="flex flex-col pt-1.5 md:pt-0">
+          <h2 className="mb-2 hidden text-[15px] font-bold tracking-[0.08em] uppercase md:block">Links</h2>
           {c?.ouvidoria_url ? (
             <a href={c.ouvidoria_url} target="_blank" rel="noopener noreferrer" className="flex min-h-11 w-fit items-center gap-2 font-bold text-white hover:text-white">
               Ouvidoria do município
@@ -122,7 +164,7 @@ export function RodapePortal({ municipio }: { municipio: Municipio }) {
             Outros municípios do Tocantins
           </a>
         </div>
-        <p className="border-t border-white/30 pt-3 text-sm">
+        <p className="border-t border-white/30 pt-3 text-sm md:self-end md:text-[15px]">
           Todas as atividades deste portal são gratuitas. Nenhum pagamento é solicitado.
         </p>
       </div>
@@ -131,6 +173,6 @@ export function RodapePortal({ municipio }: { municipio: Municipio }) {
 }
 
 /** Estado vazio de uma seção do portal: diz o que acontece e o que fazer. */
-export function Vazio({ children }: { children: React.ReactNode }) {
-  return <p className="rounded-2xl border bg-superficie p-4 text-muted-foreground">{children}</p>;
+export function Vazio({ children, className }: { children: React.ReactNode; className?: string }) {
+  return <p className={cn("rounded-2xl border bg-superficie p-4 text-muted-foreground md:basis-full", className)}>{children}</p>;
 }
