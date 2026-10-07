@@ -93,7 +93,7 @@ export async function criarVitrine() {
       (${m}, '${ids.atividade}', now() + interval '3 days', now() + interval '3 days 3 hours', 15);
     insert into public.eventos (id, municipio_id, titulo, descricao, local, organizador, inicio, fim, atrativo_id, status) values
       ('${ids.evento}', ${m}, ${q(nomes.evento)}, ${q("Feira de produtos do cerrado, música e comidas com pequi.")}, 'Praça da Matriz', 'Secretaria de Turismo',
-       now() + interval '10 days', now() + interval '12 days', '${ids.mirante}', 'publicado');
+       now() - interval '1 day', now() + interval '2 days', '${ids.mirante}', 'publicado');
     insert into public.prestadores (id, municipio_id, nome_publico, categoria, servicos, situacao_rede, status) values
       ('${ids.prestador}', ${m}, ${q(nomes.prestador)}, 'hospedagem', 'Quartos para até 4 pessoas', 'participante', 'publicado');
     insert into public.fotos (municipio_id, caminho, legenda, credito, atrativo_id, ordem) values
