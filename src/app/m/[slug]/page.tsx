@@ -51,6 +51,14 @@ export default async function PortalMunicipal({ params }: PageProps<"/m/[slug]">
     primeiraFotoDe(municipio.id, "prestador_id", prestadoresNaCapa.map((p) => p.id)),
   ]);
 
+  // Só vão para o navegador os cartões que o filtro pode mostrar: os primeiros no geral e os
+  // primeiros de cada categoria (a lista completa fica em /atrativos).
+  const porCategoria = new Map<string, number>();
+  const naGrade = atrativos.filter((a, i) => {
+    const n = porCategoria.get(a.categoria) ?? 0;
+    porCategoria.set(a.categoria, n + 1);
+    return i < ATRATIVOS_NA_CAPA_COMPUTADOR || n < ATRATIVOS_NA_CAPA_COMPUTADOR;
+  });
   const reservas = atividades.filter((a) => a.modo === "reserva");
   const registro = atividades.find((a) => a.modo === "registro_voluntario");
   const categoriasRede = (Object.keys(CATEGORIAS_PRESTADOR) as CategoriaPrestador[]).filter((c) => prestadores.some((p) => p.categoria === c));
@@ -239,7 +247,7 @@ export default async function PortalMunicipal({ params }: PageProps<"/m/[slug]">
               <GradeAtrativos
                 limite={ATRATIVOS_NA_CAPA_COMPUTADOR}
                 limiteCelular={ATRATIVOS_NA_CAPA}
-                itens={atrativos.map((a) => {
+                itens={naGrade.map((a) => {
                   const foto = fotos.get(a.id);
                   return {
                     id: a.id,

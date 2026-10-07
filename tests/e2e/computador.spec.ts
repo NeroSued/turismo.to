@@ -165,7 +165,8 @@ test("portal municipal: âncoras e reserva no cabeçalho, capa com painel, grade
   const religiosos = Number(sql("select count(*) from public.atrativos a join public.municipios m on m.id = a.municipio_id where m.slug = 'palmeiropolis' and a.status = 'publicado' and a.categoria = 'religioso'"));
   await expect(grade.getByRole("listitem")).toHaveCount(Math.min(religiosos, 8));
   await filtro.getByRole("button", { name: "Todos" }).click();
-  await expect(grade.getByRole("link", { name: contem(v.nomes.mirante) })).toBeVisible();
+  const publicados = Number(sql("select count(*) from public.atrativos a join public.municipios m on m.id = a.municipio_id where m.slug = 'palmeiropolis' and a.status = 'publicado'"));
+  await expect(grade.getByRole("listitem")).toHaveCount(Math.min(publicados, 8));
 
   // Prestadores em cards com foto; rodapé em colunas.
   await expect(page.locator("#prestadores").getByRole("link", { name: contem(v.nomes.prestador) })).toContainText("Participante da rede");
@@ -211,8 +212,12 @@ test("detalhe do atrativo: caminho, mosaico de 5 com 'Ver as 6 fotos', texto à 
   await expect(page.locator("[data-coluna=informacoes]").getByRole("region", { name: "Como chegar" })).toBeVisible();
 
   const outros = page.getByRole("region", { name: "Outros atrativos em Palmeirópolis" });
-  await expect(outros.getByRole("link", { name: contem(v.nomes.igreja) })).toBeVisible();
-  await expect(outros.getByRole("link", { name: contem(v.nomes.museu) })).toBeVisible();
+  // Os 4 primeiros publicados, em ordem de nome, sem o próprio atrativo.
+  const esperados = sql(
+    `select string_agg(nome, '|' order by nome) from (select a.nome from public.atrativos a join public.municipios m on m.id = a.municipio_id where m.slug = 'palmeiropolis' and a.status = 'publicado' and a.id <> '${v.ids.mirante}' order by a.nome limit 4) x`,
+  ).split("|");
+  await expect(outros.getByRole("link")).toHaveCount(esperados.length);
+  for (const nome of esperados) await expect(outros.getByRole("link", { name: contem(nome) })).toBeVisible();
   await expect(outros.getByRole("link", { name: contem(v.nomes.mirante) })).toHaveCount(0);
   console.log(`detalhe 1440: mosaico 5 (capa ${Math.round(grande.width)}x${Math.round(grande.height)}, menores ${Math.round(menor.width)}x${Math.round(menor.height)}); informações a ${Math.round(info.x - titulo.x)} px à direita do título; outros atrativos listados`);
 
