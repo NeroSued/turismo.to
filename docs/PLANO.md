@@ -8,7 +8,7 @@ Como usar este arquivo:
 
 ## Estado
 
-- Fase ativa: Fase 8 (avisos flutuantes no painel); merge em `main` publica e só acontece com o Nero respondendo "pode publicar"
+- Fase ativa: nenhuma (Fase 8 concluída e publicada em produção em 2026-10-06; merge em `main` publica e só acontece com aprovação do Nero)
 - Última atualização: 2026-10-06
 
 ---
@@ -301,7 +301,8 @@ Pendências externas conhecidas. Atualize quando surgirem novas ou forem resolvi
 - [x] Fase 6, convite e merge: resolvido em 2026-10-06. O Nero aprovou o merge ("Pode publicar e fazer o merge") e confirmou que recebeu o convite e entrou no painel.
 - [ ] Proteção contra senhas vazadas (HaveIBeenPwned) no Auth: o Supabase só permite no plano Pro, e é o único aviso dos advisors de segurança em produção (`auth_leaked_password_protection`, WARN). Resolve ao passar para o Pro.
 - [ ] 2026-10-06, início da Fase 7: um comando que deveria listar só os nomes das variáveis dos arquivos `.env*` imprimiu na conversa do Claude Code as chaves soltas do `.env.chaves-remotas` (chave publicável, chave secreta `sb_secret_...` e um terceiro valor, possivelmente a senha antiga do banco). São as mesmas já listadas acima como vazadas em 2026-10-05. Se ainda não foram revogadas, o Nero deve revogar a chave secreta (Project Settings → API Keys) e trocar a senha do banco; depois, apagar o `.env.chaves-remotas`, que nenhum script usa.
-- [ ] Fase 8: aprovação do Nero para mesclar o PR #9 em `main` (merge publica em produção). Em 2026-10-06 o PR estava sem conflito, checks da Vercel verdes, `npm run verify` com código 0 e E2E completo aprovado contra o preview. Falta o Nero responder "pode publicar"; depois, merge, teste de fumaça só de leitura em produção.
+- [x] Fase 8: aprovação do Nero para mesclar o PR #9 em `main` (merge publica em produção). Em 2026-10-06 o PR estava sem conflito, checks da Vercel verdes, `npm run verify` com código 0 e E2E completo aprovado contra o preview. Falta o Nero responder "pode publicar"; depois, merge, teste de fumaça só de leitura em produção. Resolvido: o Nero respondeu "pode publicar" em 2026-10-06.
+- [ ] Teste de fumaça de produção, "hub abre com os sete municípios": em 2026-10-06 o hub mostra 5, porque Ananás e Arraias foram desativados por uma conta de administrador às 16h21 e 16h22 (America/Araguaina), antes do merge da Fase 8 (auditoria de `municipios`). Nada foi reativado. O Nero precisa dizer se a desativação foi intencional: se foi, o teste de fumaça passa a conferir os municípios ativos em vez de 7 fixos; se não foi, reativar pelo painel da assessoria.
 - [ ] Logos, fotos e textos oficiais de cada prefeitura.
 - [ ] Revisão jurídica do aviso de privacidade pelas prefeituras.
 
@@ -497,3 +498,4 @@ Registre aqui decisões tomadas durante a execução: data, decisão, motivo.
 | 2026-10-06 | 8.5 | Mesmo spec: duplo clique em "Salvar alterações" com a resposta segurada 1,5 s → botão "Salvando…" desativado e 1 envio ao servidor (contado pelo cabeçalho `next-action`); duplo clique em "Publicar no portal" publica uma vez. |
 | 2026-10-06 | 8.6 | Mesmo spec: "Depois de salvar, você poderá adicionar fotos." visível sob o título em Novo atrativo, Nova atividade, Novo evento e Novo prestador. |
 | 2026-10-06 | Fase 8, verificação | `npm run verify` com código 0 em `6b8b326`: typecheck, lint, Vitest 105/105, pgTAP 328/328 (10 arquivos), Playwright 62 aprovados e 1 pulado (inclui `avisos.spec` 8/8), build. Uma rodada logo após `supabase db reset` teve 2 arquivos de integração com tempo esgotado na preparação (serviços ainda reiniciando); repetida sem mudança, passou. E2E completo contra o preview (`teste.turismo.to`, deploy `6b8b326`, projeto "Turismo.TO Teste"): 58 aprovados, 1 pulado, código 0, em 19 min; aviso 3125 ms na tela, duplo clique = 1 envio, axe 0 graves nas telas com aviso. Rodadas anteriores contra o preview acharam e corrigiram o botão coberto pela barra e três corridas de teste com o aviso de 3 s; uma falhou por `page.goto` sem resposta da rede e outra pelo maior conteúdo do atendimento em 2596 ms (orçamento 2500; o mesmo código mediu de 1796 a 2192 ms nas demais rodadas, JavaScript igual, 262 KB). |
+| 2026-10-06 | Merge da Fase 8 | Aprovado pelo Nero ("pode publicar"). PR #9 sem conflito e com checks da Vercel verdes; merge `25aedce`, branch apagada; deploy de produção `25aedce` READY. Sem migration. `npm run test:fumaca` em `https://turismo.to` e `https://palmeiropolis.turismo.to`: 5 de 6. Falhou só "hub abre com os sete municípios" (5 links), porque Ananás e Arraias estão desativados em produção desde 16h21 (ação de administrador registrada na auditoria, anterior ao merge); ver Bloqueios. |
