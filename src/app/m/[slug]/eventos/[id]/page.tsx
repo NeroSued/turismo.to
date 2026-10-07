@@ -2,12 +2,12 @@ import { Building2, CalendarDays, Clock, Landmark, MapPin } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CapaDetalhe, FaixaFotos, fotosDaGaleria, Linha, Paragrafos } from "@/components/portal/detalhe";
-import { nomeDoMunicipio, RodapePortal } from "@/components/portal/estrutura";
+import { Caminho, CapaDetalhe, CorpoDetalhe, FaixaFotos, fotosDaGaleria, Linha, OutrosCartoes, Paragrafos } from "@/components/portal/detalhe";
+import { CabecalhoPortal, nomeDoMunicipio, RodapePortal } from "@/components/portal/estrutura";
 import { GaleriaProvider } from "@/components/portal/galeria";
 import { urlPublica } from "@/lib/arquivos/url";
-import { buscarEvento, listarFotos } from "@/lib/cadastros/dados";
-import { formatarDataComSemana, formatarHora } from "@/lib/datas";
+import { buscarEvento, listarEventos, listarFotos, primeiraFotoDe } from "@/lib/cadastros/dados";
+import { formatarDataComSemana, formatarHora, formatarPeriodo } from "@/lib/datas";
 import { textoAlternativo } from "@/lib/fotos/tratamento";
 import { buscarMunicipioPorSlug } from "@/lib/municipio/dados";
 import { resumo } from "@/lib/portal/metadados";
@@ -43,42 +43,64 @@ export default async function EventoPublico({ params }: PageProps<"/m/[slug]/eve
   const d = await carregar(slug, id);
   if (!d) notFound();
   const { municipio, evento: e } = d;
-  const fotos = await listarFotos(municipio.id, "evento_id", [e.id]);
+  const [fotos, proximos] = await Promise.all([
+    listarFotos(municipio.id, "evento_id", [e.id]),
+    listarEventos(municipio.id, { publicados: true, aPartirDe: new Date(), limite: 5 }),
+  ]);
+  const outros = proximos.filter((x) => x.id !== e.id).slice(0, 4);
+  const capasOutros = await primeiraFotoDe(municipio.id, "evento_id", outros.map((x) => x.id));
+  const nomeMunicipio = nomeDoMunicipio(municipio);
   // O atrativo ligado só aparece se estiver publicado.
   const atrativo = e.atrativos?.status === "publicado" ? e.atrativos : null;
 
   return (
     <GaleriaProvider fotos={fotosDaGaleria(fotos, e.titulo)} nome={e.titulo}>
+      <CabecalhoPortal municipio={municipio} soComputador />
+      <Caminho municipio={nomeMunicipio} secao={{ href: "/eventos", rotulo: "Eventos" }} nome={e.titulo} />
       <CapaDetalhe fotos={fotos} nome={e.titulo} voltar="/eventos" rotuloVoltar="Voltar ao calendário" />
-      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-7 px-4 pt-[18px] pb-10">
-        <div className="flex flex-col gap-2">
-          <span className="w-fit rounded-full bg-verde-suave px-2 py-0.5 text-xs font-bold text-primary">Evento</span>
-          <h1 className="text-[32px] leading-[1.05] font-bold tracking-[-0.015em]">{e.titulo}</h1>
-          <p className="text-[15px] text-muted-foreground">{nomeDoMunicipio(municipio)}, Tocantins</p>
-        </div>
-        <dl className="-mt-3 overflow-hidden rounded-2xl border bg-superficie">
-          <Linha icone={CalendarDays} titulo="Início">
-            {formatarDataComSemana(e.inicio)}, {formatarHora(e.inicio)}
-          </Linha>
-          <Linha icone={Clock} titulo="Término">
-            {formatarDataComSemana(e.fim)}, {formatarHora(e.fim)}
-          </Linha>
-          {e.local ? <Linha icone={MapPin} titulo="Local">{e.local}</Linha> : null}
-          {atrativo ? (
-            <Linha icone={Landmark} titulo="Atrativo">
-              <Link href={`/atrativos/${atrativo.id}`} className="inline-flex min-h-11 items-center">{atrativo.nome}</Link>
+      <CorpoDetalhe
+        texto={
+          <>
+            <div className="order-1 flex flex-col gap-2 md:gap-2.5">
+              <span className="w-fit rounded-full bg-verde-suave px-2 py-0.5 text-xs font-bold text-primary md:px-2.5 md:text-[13px]">Evento</span>
+              <h1 className="text-[32px] leading-[1.05] font-bold tracking-[-0.015em] md:text-[clamp(36px,4vw,52px)] md:leading-[1.02] md:tracking-[-0.02em]">{e.titulo}</h1>
+              <p className="text-[15px] text-muted-foreground md:text-lg">
+                {nomeMunicipio}, Tocantins<span className="hidden md:inline"> · {formatarPeriodo(e.inicio, e.fim)}</span>
+              </p>
+            </div>
+            {e.descricao ? (
+              <section aria-labelledby="sobre" className="order-3 flex flex-col gap-2 md:gap-3">
+                <h2 id="sobre" className="text-[21px] font-bold md:text-[26px]">Sobre</h2>
+                <Paragrafos texto={e.descricao} />
+              </section>
+            ) : null}
+            <FaixaFotos fotos={fotos} nome={e.titulo} className="order-4" />
+          </>
+        }
+        lateral={
+          <dl className="order-2 -mt-3 overflow-hidden rounded-2xl border bg-superficie md:rounded-[18px] lg:mt-0">
+            <Linha icone={CalendarDays} titulo="Início">
+              {formatarDataComSemana(e.inicio)}, {formatarHora(e.inicio)}
             </Linha>
-          ) : null}
-          {e.organizador ? <Linha icone={Building2} titulo="Organização">{e.organizador}</Linha> : null}
-        </dl>
-        {e.descricao ? (
-          <section aria-labelledby="sobre" className="flex flex-col gap-2">
-            <h2 id="sobre" className="text-[21px] font-bold">Sobre</h2>
-            <Paragrafos texto={e.descricao} />
-          </section>
-        ) : null}
-        <FaixaFotos fotos={fotos} nome={e.titulo} />
-      </main>
+            <Linha icone={Clock} titulo="Término">
+              {formatarDataComSemana(e.fim)}, {formatarHora(e.fim)}
+            </Linha>
+            {e.local ? <Linha icone={MapPin} titulo="Local">{e.local}</Linha> : null}
+            {atrativo ? (
+              <Linha icone={Landmark} titulo="Atrativo">
+                <Link href={`/atrativos/${atrativo.id}`} className="inline-flex min-h-11 items-center">{atrativo.nome}</Link>
+              </Linha>
+            ) : null}
+            {e.organizador ? <Linha icone={Building2} titulo="Organização">{e.organizador}</Linha> : null}
+          </dl>
+        }
+        depois={
+          <OutrosCartoes
+            titulo="Próximos eventos"
+            itens={outros.map((o) => ({ href: `/eventos/${o.id}`, nome: o.titulo, rotulo: formatarPeriodo(o.inicio, o.fim), foto: capasOutros.get(o.id) }))}
+          />
+        }
+      />
       <RodapePortal municipio={municipio} />
     </GaleriaProvider>
   );
