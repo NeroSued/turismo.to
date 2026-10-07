@@ -30,6 +30,13 @@ async function graves(page: Page) {
   return r.violations.filter((x) => x.impact === "critical" || x.impact === "serious").map((x) => `${x.id}: ${x.nodes.map((n) => n.target.join(" ")).join(", ")}`);
 }
 
+/** Espera as imagens visíveis terminarem de carregar (no preview, "networkidle" pode não chegar). */
+async function imagensCarregadas(page: Page) {
+  await expect
+    .poll(() => page.locator("img").evaluateAll((l) => (l as HTMLImageElement[]).every((i) => i.offsetParent === null || i.complete)), { timeout: 30_000 })
+    .toBe(true);
+}
+
 async function caixa(l: Locator) {
   const b = await l.boundingBox();
   if (!b) throw new Error("elemento sem caixa (invisível)");
@@ -169,7 +176,12 @@ test("portal municipal: âncoras e reserva no cabeçalho, capa com painel, grade
   await expect(grade.getByRole("listitem")).toHaveCount(Math.min(publicados, 8));
 
   // Prestadores em cards com foto; rodapé em colunas.
-  await expect(page.locator("#prestadores").getByRole("link", { name: contem(v.nomes.prestador) })).toContainText("Participante da rede");
+  const cartoesRede = page.locator("#prestadores ul:visible").getByRole("link");
+  const nCartoes = await cartoesRede.count();
+  expect(nCartoes).toBeGreaterThan(0);
+  expect(nCartoes).toBeLessThanOrEqual(6);
+  for (let i = 0; i < nCartoes; i++) await expect(cartoesRede.nth(i)).toContainText(/Participante da rede|Em adesão à rede/);
+  await expect(page.locator("#prestadores").getByRole("link", { name: /^Ver toda a rede/ })).toBeVisible();
   const colunas = page.locator("#contato > div > *");
   await expect(colunas).toHaveCount(3);
   const [c1, c2, c3] = [await caixa(colunas.nth(0)), await caixa(colunas.nth(1)), await caixa(colunas.nth(2))];
@@ -414,7 +426,7 @@ test("imagens no tamanho certo: miniaturas não baixam a versão grande; fotos e
         await new Promise((r) => setTimeout(r, 60));
       }
     });
-    await page.waitForLoadState("networkidle");
+    await imagensCarregadas(page);
     const imagens = await page.locator("img").evaluateAll((lista) =>
       (lista as HTMLImageElement[]).filter((i) => i.currentSrc && i.offsetParent !== null && i.clientWidth > 0).map((i) => ({ src: i.currentSrc, largura: i.clientWidth, alt: i.alt })),
     );
@@ -444,7 +456,7 @@ test("imagens no tamanho certo: miniaturas não baixam a versão grande; fotos e
   };
   page.on("request", ouvir);
   await page.locator("[data-mosaico]").getByRole("button").first().click();
-  await page.waitForLoadState("networkidle");
+  await imagensCarregadas(page);
   page.off("request", ouvir);
   await expect(page.getByRole("dialog").locator("button img")).toHaveCount(6);
   const miniaturas = pedidos.filter((w) => w <= 256);
@@ -457,7 +469,8 @@ test("imagens no tamanho certo: miniaturas não baixam a versão grande; fotos e
   const celular = await page.context().browser()!.newContext({ viewport: { width: 390, height: 844 }, locale: "pt-BR" });
   const p = await celular.newPage();
   await p.goto(`${PALMEIROPOLIS}/atrativos/${v.ids.mirante}`);
-  await p.waitForLoadState("networkidle");
+  await p.waitForLoadState("load");
+  await imagensCarregadas(p);
   const escondidas = await p.locator("[data-mosaico] button.hidden img").evaluateAll((l) => (l as HTMLImageElement[]).map((i) => i.naturalWidth));
   expect(escondidas).toHaveLength(4);
   expect(escondidas.every((w) => w === 0)).toBe(true);
