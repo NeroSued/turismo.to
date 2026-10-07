@@ -53,7 +53,7 @@ test.describe("fotos de cadastro", () => {
     await page.getByLabel("Categoria").selectOption("natureza");
     await page.getByLabel("Descrição").fill("Primeiro parágrafo sobre o poço.\n\nSegundo parágrafo com a melhor época.");
     await page.getByRole("button", { name: "Criar atrativo" }).click();
-    await expect(page).toHaveURL(/\/admin\/atrativos\/[0-9a-f-]{36}\?criado=1$/);
+    await expect(page).toHaveURL(/\/admin\/atrativos\/[0-9a-f-]{36}(\?criado=1)?$/);
     const id = new URL(page.url()).pathname.split("/").pop()!;
 
     await page.getByRole("link", { name: /Adicionar fotos/ }).click();
@@ -75,8 +75,9 @@ test.describe("fotos de cadastro", () => {
       { name: "trilha.png", mimeType: "image/png", buffer: pngRuidoso(640, 480) },
       { name: "descanso.png", mimeType: "image/png", buffer: pngRuidoso(480, 640) },
     ]);
+    // O aviso (3 s) sai ao fim dos envios, antes de a lista recarregar: confere primeiro o aviso.
+    await expect(page.getByRole("status").filter({ hasText: "2 fotos enviadas" })).toBeVisible({ timeout: NO_PREVIEW ? 60_000 : 20_000 });
     await expect(page.getByText("3 de 12")).toBeVisible({ timeout: NO_PREVIEW ? 60_000 : 20_000 });
-    await expect(page.getByRole("status").filter({ hasText: "2 fotos enviadas" })).toBeVisible();
 
     // A foto publicada (capa) não tem EXIF nem GPS e tem no máximo 2000 px.
     const ordem = ordemNoBanco("atrativo_id", id);
@@ -235,7 +236,7 @@ test.describe("fotos de cadastro", () => {
     await page.getByLabel("Categoria").selectOption("hospedagem");
     await page.getByLabel("Situação na rede").selectOption("participante");
     await page.getByRole("button", { name: "Criar prestador" }).click();
-    await expect(page).toHaveURL(/\/admin\/prestadores\/[0-9a-f-]{36}\?criado=1$/);
+    await expect(page).toHaveURL(/\/admin\/prestadores\/[0-9a-f-]{36}(\?criado=1)?$/);
     const id = new URL(page.url()).pathname.split("/").pop()!;
     const descricao = page.getByLabel("Descrição");
     await expect(descricao).toHaveAttribute("maxlength", "2000");

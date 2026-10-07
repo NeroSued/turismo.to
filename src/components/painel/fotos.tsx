@@ -3,7 +3,7 @@
 import { ArrowDown, ArrowUp, Camera, Images, Star, Trash2, TriangleAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useActionState, useState } from "react";
-import { MensagemEstado } from "@/components/formulario";
+import { useAvisos, useFormularioPainel } from "@/components/painel/avisos";
 import { enviarDireto } from "@/lib/arquivos/envio-direto";
 import { adicionarFoto, salvarFotos } from "@/lib/fotos/acoes";
 import { LIMITE_FOTOS, type TipoFoto } from "@/lib/fotos/tipos";
@@ -34,8 +34,9 @@ export function GerenciarFotos({
 }) {
   const router = useRouter();
   const [envios, setEnvios] = useState<Envio[]>([]);
-  const [avisoEnvio, setAvisoEnvio] = useState<string | null>(null);
+  const mostrar = useAvisos();
   const [estado, acao, pendente] = useActionState(salvarFotos.bind(null, tipo, donoId), undefined);
+  const { ref, onSubmit } = useFormularioPainel(estado, pendente);
   const enviando = envios.some((e) => !e.erro);
   const cheio = fotos.length >= LIMITE_FOTOS;
   const erroDe = (campo: string) => (estado && !estado.ok ? estado.campos?.[campo] : undefined);
@@ -48,7 +49,6 @@ export function GerenciarFotos({
     const arquivos = Array.from(lista ?? []);
     campo.value = "";
     if (!arquivos.length) return;
-    setAvisoEnvio(null);
     const novos = arquivos.map((a, i) => ({ chave: `${Date.now()}-${i}`, nome: a.name || `foto ${i + 1}` }));
     setEnvios((atual) => [...atual.filter((e) => !e.erro), ...novos]);
     let enviadas = 0;
@@ -68,9 +68,7 @@ export function GerenciarFotos({
       if (!erro) router.refresh();
     }
     if (enviadas) {
-      setAvisoEnvio(
-        `${enviadas === 1 ? "Foto enviada" : `${enviadas} fotos enviadas`}. A localização GPS e os demais dados da câmera foram removidos.`,
-      );
+      mostrar("sucesso", `${enviadas === 1 ? "Foto enviada" : `${enviadas} fotos enviadas`}. GPS e dados da câmera removidos.`);
     }
   }
 
@@ -119,7 +117,6 @@ export function GerenciarFotos({
       </p>
 
       <div aria-live="polite" className="flex flex-col gap-2 empty:hidden">
-        {avisoEnvio ? <MensagemEstado aviso={avisoEnvio} /> : null}
         {envios
           .filter((e) => !e.erro)
           .map((e) => (
@@ -145,8 +142,7 @@ export function GerenciarFotos({
           </div>
         ))}
 
-      <form action={acao} className="flex flex-col gap-[18px]" key={versao}>
-        <MensagemEstado erro={estado && !estado.ok ? estado.erro : null} aviso={estado?.ok ? estado.aviso : null} />
+      <form ref={ref} action={acao} onSubmit={onSubmit} className="flex flex-col gap-[18px]" key={versao}>
         {!capa ? (
           <div className="flex flex-col gap-1 rounded-2xl border bg-superficie p-4">
             <p className="font-bold">Nenhuma foto ainda.</p>

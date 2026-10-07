@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { MensagemEstado, Selo } from "@/components/formulario";
+import { Selo } from "@/components/formulario";
 import { Pagina } from "@/components/pagina";
+import { AvisoDeChegada } from "@/components/painel/avisos";
 import { ArquivarEvidencia, ExclusaoLgpd, FormularioEditarEvidencia, GerenciarArquivosEvidencia } from "@/components/painel/evidencias";
 import { Voltar } from "@/components/painel/telas-cadastro";
 import { listarAtividades } from "@/lib/atividades/dados";
@@ -65,7 +66,7 @@ export default async function EditarEvidencia({ params, searchParams }: PageProp
           <span className="text-sm text-muted-foreground">{ROTULO_TIPO_ACAO[evidencia.tipo_acao]}</span>
         </div>
       </div>
-      {criada ? <MensagemEstado aviso="Evidência registrada. Agora envie fotos com legenda e os anexos." /> : null}
+      {criada ? <AvisoDeChegada parametro="criada" texto="Evidência registrada. Agora envie fotos e anexos." /> : null}
       <dl className="grid grid-cols-2 gap-3 rounded-2xl border bg-superficie p-4">
         <div>
           <dt className="text-[13px] text-muted-foreground">Realizada em</dt>

@@ -125,6 +125,26 @@
   }
 }
 
+/* Painel: rolagem e foco param acima da barra inferior fixa e do aviso flutuante (nada fica escondido atrás deles). */
+html:has([data-painel]) {
+  scroll-padding-bottom: calc(150px + env(safe-area-inset-bottom));
+}
+
+/* Barra de progresso do aviso flutuante do painel (Fase 8.2): esvazia em 3 s e pausa com o aviso. */
+@keyframes aviso-progresso {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+.aviso-progresso {
+  animation-name: aviso-progresso;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
 /* Espaço reservado para foto oficial ainda não enviada (tela "Portal municipal" do canvas). */
 .marcador-foto {
   background-color: #c9d2c2;

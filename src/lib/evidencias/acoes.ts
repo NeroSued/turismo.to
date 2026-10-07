@@ -68,7 +68,7 @@ export async function salvarEvidencia(id: string, _: Estado, dados: FormData): P
   if (!data.length) return { ok: false, erro: "Evidência não encontrada neste município." };
   revalidatePath(`/admin/evidencias/${id}`);
   revalidatePath("/admin/evidencias");
-  return { ok: true, aviso: "Alterações salvas. O histórico registrou quem alterou e quando." };
+  return { ok: true, aviso: "Alterações salvas." };
 }
 
 export async function arquivarEvidencia(id: string, arquivar: boolean): Promise<ResultadoAcao> {
@@ -89,8 +89,8 @@ export async function arquivarEvidencia(id: string, arquivar: boolean): Promise<
   return {
     ok: true,
     aviso: arquivar
-      ? "Evidência arquivada. Ela sai da lista e da minuta, mas continua guardada com o histórico."
-      : "Evidência reativada. Ela volta para a lista e para a minuta.",
+      ? "Evidência arquivada. Saiu da lista e da minuta."
+      : "Evidência reativada.",
   };
 }
 
@@ -143,7 +143,7 @@ export async function removerArquivoEvidencia(evidenciaId: string, arquivoId: st
   revalidatePath(`/admin/evidencias/${evidenciaId}`);
   return {
     ok: true,
-    aviso: "Arquivo retirado da evidência e registrado no histórico. Ele continua guardado; para apagar de vez, fale com a assessoria.",
+    aviso: "Arquivo retirado da evidência. Continua guardado no histórico.",
   };
 }
 
@@ -192,5 +192,5 @@ export async function excluirArquivoEvidenciaLgpd(evidenciaId: string, arquivoId
     return { ok: false, erro: chave ? ERROS_LGPD[chave] : ERRO_GENERICO };
   }
   revalidatePath(`/admin/evidencias/${evidenciaId}`);
-  return { ok: true, aviso: "Arquivo excluído definitivamente. O histórico registrou quem excluiu, quando e o motivo." };
+  return { ok: true, aviso: "Arquivo excluído definitivamente." };
 }

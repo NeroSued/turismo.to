@@ -81,7 +81,7 @@ test.describe.serial("relatórios e evidências no celular", () => {
     await page.getByLabel("Atividade relacionada (opcional)").selectOption({ label: DADOS.atividade });
     await page.getByRole("button", { name: "Registrar evidência" }).click();
 
-    await expect(page).toHaveURL(/\/admin\/evidencias\/[0-9a-f-]{36}\?criada=1$/);
+    await expect(page).toHaveURL(/\/admin\/evidencias\/[0-9a-f-]{36}(\?criada=1)?$/);
     ids.evidencia = new URL(page.url()).pathname.split("/").pop()!;
     await expect(page.getByRole("heading", { level: 1, name: DADOS.evidencia })).toBeVisible();
     await expect(page.getByText("Incluída por")).toBeVisible();

@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Pagina } from "@/components/pagina";
+import { ProvedorAvisos } from "@/components/painel/avisos";
 import { NavegacaoPainel } from "@/components/painel/navegacao";
 import { SeletorMunicipio } from "@/components/painel/seletor-municipio";
 import type { Papel } from "@/lib/auth/acesso";
@@ -55,7 +56,7 @@ export default async function LayoutPainel({ params, children }: LayoutProps<"/m
   const host = (await headers()).get("host");
 
   return (
-    <div className="flex flex-1 flex-col pb-[88px] print:pb-0">
+    <div data-painel className="flex flex-1 flex-col pb-[88px] print:pb-0">
       <header className="mx-auto flex w-full max-w-xl items-center justify-between gap-2 px-4 py-3 print:hidden">
         {comSeletor ? (
           <SeletorMunicipio
@@ -86,7 +87,7 @@ export default async function LayoutPainel({ params, children }: LayoutProps<"/m
           </Button>
         </form>
       </header>
-      {children}
+      <ProvedorAvisos>{children}</ProvedorAvisos>
       <NavegacaoPainel papel={acesso.papel} />
     </div>
   );

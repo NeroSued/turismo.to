@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState, useRef, useState, useTransition } from "react";
-import { AreaTexto, Campo, MensagemEstado, Selecao } from "@/components/formulario";
+import { useActionState, useRef } from "react";
+import { AreaTexto, Campo, Selecao } from "@/components/formulario";
+import { useAcaoPainel, useFormularioPainel } from "@/components/painel/avisos";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -82,16 +83,15 @@ function Campos({ tipo, essenciais, v, campos, atrativos }: {
 
 export function FormularioNovoCadastro({ tipo, valores, atrativos = [] }: { tipo: TipoCadastro; valores?: Valores; atrativos?: OpcaoAtrativo[] }) {
   const [estado, acao, pendente] = useActionState(criarCadastro.bind(null, tipo), undefined);
+  const { ref, onSubmit } = useFormularioPainel(estado, pendente);
   return (
-    <form action={acao} className="flex flex-col gap-5">
-      <MensagemEstado erro={estado && !estado.ok ? estado.erro : null} />
+    <form ref={ref} action={acao} onSubmit={onSubmit} className="flex flex-col gap-5">
       <Campos tipo={tipo} essenciais v={(estado && !estado.ok && estado.valores) || valores} campos={estado && !estado.ok ? estado.campos : undefined} atrativos={atrativos} />
       <Button type="submit" size="lg" disabled={pendente}>
         {pendente ? "Salvando…" : `Criar ${TEXTOS[tipo].singular}`}
       </Button>
       <p className="text-sm text-muted-foreground">
-        Começa em elaboração e só aparece no portal depois de publicado. Os demais dados e as fotos você completa na
-        próxima tela.
+        Começa em elaboração e só aparece no portal depois de publicado. Os demais dados você completa na próxima tela.
       </p>
     </form>
   );
@@ -99,9 +99,9 @@ export function FormularioNovoCadastro({ tipo, valores, atrativos = [] }: { tipo
 
 export function FormularioEditarCadastro({ tipo, id, valores, atrativos = [] }: { tipo: TipoCadastro; id: string; valores: Valores; atrativos?: OpcaoAtrativo[] }) {
   const [estado, acao, pendente] = useActionState(salvarCadastro.bind(null, tipo, id), undefined);
+  const { ref, onSubmit } = useFormularioPainel(estado, pendente);
   return (
-    <form action={acao} className="flex flex-col gap-5">
-      <MensagemEstado erro={estado && !estado.ok ? estado.erro : null} aviso={estado?.ok ? estado.aviso : null} />
+    <form ref={ref} action={acao} onSubmit={onSubmit} className="flex flex-col gap-5">
       <Campos tipo={tipo} v={(estado && !estado.ok && estado.valores) || valores} campos={estado && !estado.ok ? estado.campos : undefined} atrativos={atrativos} />
       <Button type="submit" size="lg" variant="outline" disabled={pendente}>
         {pendente ? "Salvando…" : "Salvar alterações"}
@@ -110,31 +110,23 @@ export function FormularioEditarCadastro({ tipo, id, valores, atrativos = [] }: 
   );
 }
 
-function useAcaoSimples() {
-  const [resultado, setResultado] = useState<ResultadoAcao | null>(null);
-  const [pendente, iniciar] = useTransition();
-  const executar = (f: () => Promise<ResultadoAcao>) => iniciar(async () => setResultado(await f()));
-  return { resultado, pendente, executar };
-}
-
 export function AcoesStatusCadastro({ tipo, id, status }: { tipo: TipoCadastro; id: string; status: StatusConteudo }) {
-  const { resultado, pendente, executar } = useAcaoSimples();
-  const mudar = (s: StatusConteudo) => executar(() => mudarStatusCadastro(tipo, id, s));
+  const { pendente, executar, salvando } = useAcaoPainel();
+  const mudar = (s: StatusConteudo) => executar(() => mudarStatusCadastro(tipo, id, s), s);
   return (
     <div className="flex flex-col gap-3">
-      <MensagemEstado erro={resultado && !resultado.ok ? resultado.erro : null} aviso={resultado?.ok ? resultado.aviso : null} />
       {status !== "publicado" ? (
         <Button size="lg" disabled={pendente} onClick={() => mudar("publicado")}>
-          Publicar no portal
+          {salvando("publicado") ? "Salvando…" : "Publicar no portal"}
         </Button>
       ) : (
         <Button size="lg" variant="outline" disabled={pendente} onClick={() => mudar("rascunho")}>
-          Voltar para elaboração
+          {salvando("rascunho") ? "Salvando…" : "Voltar para elaboração"}
         </Button>
       )}
       {status !== "arquivado" ? (
         <Button variant="ghost" disabled={pendente} onClick={() => mudar("arquivado")}>
-          Arquivar (tira do portal)
+          {salvando("arquivado") ? "Salvando…" : "Arquivar (tira do portal)"}
         </Button>
       ) : null}
     </div>
@@ -148,12 +140,12 @@ export function FormularioAdesao({ prestadorId, hoje }: { prestadorId: string; h
     if (r?.ok) formulario.current?.reset();
     return r;
   }, undefined);
+  const { onSubmit } = useFormularioPainel(estado, pendente, formulario);
   const campos = estado && !estado.ok ? estado.campos : undefined;
   const v = estado && !estado.ok ? estado.valores : undefined;
   return (
-    <form ref={formulario} action={acao} className="flex flex-col gap-4 rounded-2xl border bg-superficie p-4">
+    <form ref={formulario} action={acao} onSubmit={onSubmit} className="flex flex-col gap-4 rounded-2xl border bg-superficie p-4">
       <h3 className="text-lg font-bold">Registrar adesão</h3>
-      <MensagemEstado erro={estado && !estado.ok ? estado.erro : null} aviso={estado?.ok ? estado.aviso : null} />
       <Campo id="data_adesao" rotulo="Data da adesão" type="date" required defaultValue={v?.data_adesao ?? hoje} max={hoje} erro={campos?.data_adesao} />
       <Campo id="responsavel" rotulo="Responsável pelo prestador" defaultValue={v?.responsavel} required maxLength={120} erro={campos?.responsavel} />
       <Campo id="contato_interno" rotulo="Contato interno" defaultValue={v?.contato_interno} maxLength={300} erro={campos?.contato_interno}

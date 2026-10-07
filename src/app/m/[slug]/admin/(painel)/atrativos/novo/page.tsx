@@ -12,7 +12,10 @@ export default async function NovoAtrativo({ params }: PageProps<"/m/[slug]/admi
   return (
     <Pagina className="pt-2">
       <Voltar href="/admin/atrativos" rotulo="Atrativos" />
-      <h1 className="text-[26px] font-bold">Novo atrativo</h1>
+      <div className="flex flex-col gap-1">
+        <h1 className="text-[26px] font-bold">Novo atrativo</h1>
+        <p className="text-muted-foreground">Depois de salvar, você poderá adicionar fotos.</p>
+      </div>
       <FormularioNovoCadastro tipo="atrativos" />
     </Pagina>
   );

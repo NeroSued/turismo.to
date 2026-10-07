@@ -1,8 +1,9 @@
 "use client";
 
 import { Minus, Plus, ShieldCheck } from "lucide-react";
-import { useActionState, useState } from "react";
+import { useActionState, useMemo, useRef, useState } from "react";
 import { Campo, MensagemEstado, Selecao } from "@/components/formulario";
+import { useAvisoDoResultado } from "@/components/painel/avisos";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { EstadoReserva } from "@/lib/voucher/acoes-publicas";
@@ -43,6 +44,10 @@ const textoVagas = (v: number | null) => (v === null ? "Vagas livres" : v === 0 
 
 export function FormularioReserva({ atividade, sessoes, chave, hoje, ultimoDia, acao, rotuloBotao, assistida }: Props) {
   const [estado, enviar, pendente] = useActionState(acao, undefined);
+  const formulario = useRef<HTMLFormElement>(null);
+  // Na emissão assistida (painel), o erro sai no aviso flutuante e o foco vai ao primeiro campo inválido.
+  const erroNoPainel = useMemo(() => (assistida && estado?.erro ? { ok: false as const, erro: estado.erro } : null), [assistida, estado]);
+  useAvisoDoResultado(erroNoPainel, formulario);
   const campos = estado?.campos;
   const reserva = atividade.modo === "reserva";
 
@@ -78,11 +83,11 @@ export function FormularioReserva({ atividade, sessoes, chave, hoje, ultimoDia, 
   const etapa = () => ++n;
 
   return (
-    <form action={enviar} className="flex flex-col gap-7" noValidate>
+    <form ref={formulario} action={enviar} className="flex flex-col gap-7" noValidate>
       <input type="hidden" name="atividade_id" value={atividade.id} />
       <input type="hidden" name="chave_idempotencia" value={chave} />
       <input type="hidden" name="pessoas" value={qtd} />
-      <MensagemEstado erro={estado?.erro} />
+      {assistida ? null : <MensagemEstado erro={estado?.erro} />}
 
       {reserva ? (
         <>

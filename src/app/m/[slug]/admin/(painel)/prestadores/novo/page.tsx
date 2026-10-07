@@ -12,7 +12,10 @@ export default async function NovoPrestador({ params }: PageProps<"/m/[slug]/adm
   return (
     <Pagina className="pt-2">
       <Voltar href="/admin/prestadores" rotulo="Prestadores" />
-      <h1 className="text-[26px] font-bold">Novo prestador</h1>
+      <div className="flex flex-col gap-1">
+        <h1 className="text-[26px] font-bold">Novo prestador</h1>
+        <p className="text-muted-foreground">Depois de salvar, você poderá adicionar fotos.</p>
+      </div>
       <FormularioNovoCadastro tipo="prestadores" valores={{ situacao_rede: "em_adesao" }} />
     </Pagina>
   );

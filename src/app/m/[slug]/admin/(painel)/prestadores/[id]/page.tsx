@@ -1,8 +1,8 @@
 import { FileText, Lock } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { MensagemEstado } from "@/components/formulario";
 import { Pagina } from "@/components/pagina";
+import { AvisoDeChegada } from "@/components/painel/avisos";
 import { AcoesStatusCadastro, FormularioAdesao, FormularioEditarCadastro } from "@/components/painel/cadastros";
 import { ResumoFotos } from "@/components/painel/tela-fotos";
 import { CabecalhoCadastro, Voltar } from "@/components/painel/telas-cadastro";
@@ -24,7 +24,7 @@ export default async function EditarPrestador({ params, searchParams }: PageProp
   return (
     <Pagina className="pt-2">
       <Voltar href="/admin/prestadores" rotulo="Prestadores" />
-      {criado ? <MensagemEstado aviso="Prestador criado em elaboração. Registre a adesão, envie fotos e publique." /> : null}
+      {criado ? <AvisoDeChegada parametro="criado" texto="Prestador criado em elaboração. Registre a adesão e publique." /> : null}
       <CabecalhoCadastro
         titulo={p.nome_publico}
         status={p.status}
