@@ -25,6 +25,8 @@ export const esquemaConfiguracoes = z.object({
       (v) => !ehHexValido(v) || contraste(v, "#FFFFFF") >= CONTRASTE_MINIMO,
       `Cor clara demais: o texto branco sobre ela fica com contraste menor que ${CONTRASTE_MINIMO}:1. Escolha um tom mais escuro.`,
     ),
+  // 9.1: frase do card da home e da capa do portal; o banco repete o limite.
+  apresentacao: textoOpcional(160),
   contato_secretaria: textoOpcional(600),
   ouvidoria_url: z
     .string()

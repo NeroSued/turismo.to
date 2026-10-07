@@ -14,6 +14,7 @@ export function ConteudoConfiguracoes({ municipio }: { municipio: Municipio }) {
         v={{
           nome_exibicao: c?.nome_exibicao ?? null,
           cor_primaria: c?.cor_primaria ?? COR_MUNICIPAL_PADRAO,
+          apresentacao: c?.apresentacao ?? null,
           contato_secretaria: c?.contato_secretaria ?? null,
           ouvidoria_url: c?.ouvidoria_url ?? null,
           aviso_privacidade: c?.aviso_privacidade ?? null,

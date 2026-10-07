@@ -107,13 +107,13 @@ isOneToOne: false
                   ]
                 },"configuracoes_municipio": {
                   Row: {
-                    "atualizado_em": string,"aviso_privacidade": string | null,"capa_caminho": string | null,"contato_secretaria": string | null,"cor_primaria": string,"dias_anonimizacao": number,"logo_caminho": string | null,"municipio_id": string,"nome_exibicao": string | null,"ouvidoria_url": string | null,"referencia_icms": string
+                    "apresentacao": string | null,"atualizado_em": string,"aviso_privacidade": string | null,"capa_caminho": string | null,"contato_secretaria": string | null,"cor_primaria": string,"dias_anonimizacao": number,"logo_caminho": string | null,"municipio_id": string,"nome_exibicao": string | null,"ouvidoria_url": string | null,"referencia_icms": string
                   }
                   Insert: {
-                    "atualizado_em"?: string,"aviso_privacidade"?: string | null,"capa_caminho"?: string | null,"contato_secretaria"?: string | null,"cor_primaria"?: string,"dias_anonimizacao"?: number,"logo_caminho"?: string | null,"municipio_id": string,"nome_exibicao"?: string | null,"ouvidoria_url"?: string | null,"referencia_icms"?: string
+                    "apresentacao"?: string | null,"atualizado_em"?: string,"aviso_privacidade"?: string | null,"capa_caminho"?: string | null,"contato_secretaria"?: string | null,"cor_primaria"?: string,"dias_anonimizacao"?: number,"logo_caminho"?: string | null,"municipio_id": string,"nome_exibicao"?: string | null,"ouvidoria_url"?: string | null,"referencia_icms"?: string
                   }
                   Update: {
-                    "atualizado_em"?: string,"aviso_privacidade"?: string | null,"capa_caminho"?: string | null,"contato_secretaria"?: string | null,"cor_primaria"?: string,"dias_anonimizacao"?: number,"logo_caminho"?: string | null,"municipio_id"?: string,"nome_exibicao"?: string | null,"ouvidoria_url"?: string | null,"referencia_icms"?: string
+                    "apresentacao"?: string | null,"atualizado_em"?: string,"aviso_privacidade"?: string | null,"capa_caminho"?: string | null,"contato_secretaria"?: string | null,"cor_primaria"?: string,"dias_anonimizacao"?: number,"logo_caminho"?: string | null,"municipio_id"?: string,"nome_exibicao"?: string | null,"ouvidoria_url"?: string | null,"referencia_icms"?: string
                   }
                   Relationships: [
                     {
