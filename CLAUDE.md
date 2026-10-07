@@ -7,6 +7,7 @@ Portal de turismo para sete municípios do Tocantins. Uma única aplicação Nex
 - Repositório: https://github.com/NeroSued/turismo.to
 - Supabase: projeto "Turismo.TO", ref `kytbiyiltfpyvwuumfds`
 - Referência visual: canvas "Turismo.TO Mobile" em https://claude.ai/artifact/2oeMYd6RhxTDvMbnLUWm3u (telas Hub, Portal municipal, Reserva gratuita, Voucher emitido, Operador e Gestor). Ao implementar uma dessas telas, leia o artboard correspondente antes.
+- Referência visual de computador: canvas "Turismo.TO Desktop" em https://claude.ai/artifact/RdSAS8AguJSSGVcxcqeELh (telas "turismo.to · home", "Portal municipal" e "Atrativo · detalhe"). Vale a partir de 1024 px no portal público; abaixo de 768 px continua o layout de celular. Leia a tela correspondente antes de implementá-la.
 
 Idioma: interface, mensagens de commit, documentação e respostas em português do Brasil.
 

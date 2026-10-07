@@ -8,8 +8,8 @@ Como usar este arquivo:
 
 ## Estado
 
-- Fase ativa: nenhuma (Fase 8 concluída e publicada em produção em 2026-10-06; merge em `main` publica e só acontece com aprovação do Nero)
-- Última atualização: 2026-10-06
+- Fase ativa: Fase 9 (layout de computador do portal público), branch `fase-9-desktop`
+- Última atualização: 2026-10-07
 
 ---
 
@@ -284,6 +284,33 @@ Primeira entrega completa: criar atividade, publicar, emitir voucher, confirmar 
 
 ---
 
+## Fase 9: Layout de computador do portal público
+
+Escopo: só o portal público (`turismo.to` e `<municipio>.turismo.to`); o painel `/admin` não muda, exceto o item 9.5. Abaixo de 768 px, o layout de celular atual continua igual; a partir de 1024 px, vale o canvas "Turismo.TO Desktop"; entre os dois, uma transição sem rolagem horizontal.
+
+- [ ] 9.1 Home `turismo.to` conforme a tela "turismo.to · home": cards em duas colunas, foto de capa do município (`configuracoes_municipio.capa_caminho`), iniciais sobre fundo verde quando não houver capa, contagem real de atrativos e atividades publicados, endereço do portal e bloco "Como funcionam as atividades" ocupando a vaga quando o número de municípios for ímpar; frase curta de apresentação (até 160 caracteres) em Configurações, se ainda não existir.
+- [ ] 9.2 Portal municipal conforme a tela "Portal municipal": cabeçalho com âncoras e botão de reserva, capa com painel sobreposto, atividades em grade, eventos com cartaz, atrativos com filtro por categoria (só as categorias existentes), prestadores e rodapé em colunas.
+- [ ] 9.3 Páginas de detalhe de atrativo, atividade, evento e prestador conforme "Atrativo · detalhe": mosaico de fotos que se adapta à quantidade (1 foto ocupa tudo; até 4 se reorganiza), texto à esquerda e coluna de informações à direita, e "Outros atrativos".
+- [ ] 9.4 Galeria em tela cheia no computador: setas, teclas ← → e Esc, foco preso na galeria e devolvido ao fechar, miniaturas, legenda e crédito.
+- [ ] 9.5 Cursor de mão em todo o sistema, painel incluído: `button`, `[role=button]`, `summary`, `select`, label de upload; cursor `not-allowed` em itens desativados.
+- [ ] 9.6 Imagens com tamanhos adequados para cada largura, sem carregar a versão grande em miniaturas.
+
+**Pronto quando:**
+
+- E2E em 1440x900: a home mostra duas colunas com capa e as iniciais quando falta capa.
+- E2E em 1440x900: o portal e a página de detalhe seguem o layout do canvas.
+- E2E em 1440x900: a galeria responde ao teclado (← → Esc, foco preso e devolvido).
+- Em 390, 768, 1024 e 1440 px nenhuma página pública tem rolagem horizontal (E2E).
+- O layout de celular continua passando nos testes atuais.
+- Teste: botões ativos têm cursor `pointer` e desativados `not-allowed`.
+- Axe sem violações críticas ou sérias nas páginas públicas em 1440 px.
+- `npm run verify` termina com código 0.
+- E2E completo passa contra o preview em `teste.turismo.to`.
+- Capturas de tela em 1440 px da home, do portal e de um atrativo.
+- PR mesclado em `main` somente depois de o Nero responder "pode publicar"; teste de fumaça só de leitura em produção depois do merge.
+
+---
+
 ## Bloqueios
 
 Pendências externas conhecidas. Atualize quando surgirem novas ou forem resolvidas.
@@ -412,6 +439,7 @@ Registre aqui decisões tomadas durante a execução: data, decisão, motivo.
 - 2026-10-06: duas corridas com o aviso de 3 s no preview (mais lento): em `fotos.spec`, o aviso "2 fotos enviadas" era procurado só depois de a lista recarregar ("3 de 12"), quando já tinha sumido; as duas verificações continuam, com o aviso conferido primeiro. Em `admin.spec` (item 5.8), a espera fixa de 1,5 s passava do tempo do aviso; agora o teste pausa o aviso com o ponteiro (comportamento da 8.2) e confere que ele continua na tela após 1,5 s.
 - 2026-10-06: Ananás e Arraias desativados em produção pelo Nero, de propósito: entram no programa só em 2027. O teste de fumaça deixou de esperar 7 municípios fixos: confere que o hub lista só municípios do `seed.sql`, sem repetição, com Palmeirópolis, que cada portal listado responde 200 e que cada um fora do hub responde 404 (regra de município inativo). Quando os dois forem ativados, o teste continua valendo sem mudança.
 - 2026-10-06: testes antigos ajustados à tela nova, sem afrouxar o que verificam: `portal.spec` envia as fotos pela tela "Fotos" (recusa por conteúdo e por tamanho continuam, com o limite novo de 10 MB e arquivo de 11 MB), procura a capa pelo `alt` da imagem (dentro de botão o leitor de tela não expõe a imagem como "img"), espera `og:image` em `.webp` e o link "Abrir no mapa" (texto do canvas); a integração `portal.test` inclui `descricao` entre as colunas públicas de prestadores (a garantia de nenhuma coluna interna continua).
+- 2026-10-07: início da Fase 9: `fase-9-desktop` criada a partir de `main` atualizada (`3f3f6cb`); domínios `teste.turismo.to` e `*.teste.turismo.to` religados a ela pela API da Vercel (`gitBranch`). Merge só depois de o Nero responder "pode publicar".
 
 ## Registro
 
